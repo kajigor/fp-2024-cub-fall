@@ -1,5 +1,6 @@
 # HW01
 ## Soft deadline: 23:59 17.09.2024
+## Hard deadline: 23:59 19.09.2024
 
 1. (1 point) Implement the predicate `short` which checks that the input list has length less than 3. 
 
