@@ -4,47 +4,22 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short [] = True
-short [_] = True
-short [_, _] = True
-short _ = False
+short = undefined 
 
 lovely :: [Int] -> Bool
-lovely lst = short lst || lst !! 2 == 14
+lovely = undefined 
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = [(a, b, c) | c <- [1..], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2] 
+rightTriangles = undefined 
 
 fizzBuzz :: [String]
-fizzBuzz = [fizzBuzzHelper n | n <- [1..]] 
-
-fizzBuzzHelper :: Int -> String
-fizzBuzzHelper n
-    | n `mod` 15 == 0 = "FizzBuzz"
-    | n `mod` 5 == 0 = "Buzz"
-    | n `mod` 3 == 0 = "Fizz"
-    | otherwise = show n
+fizzBuzz = undefined 
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = case planet of
-    "Mercury" -> (ageInSeconds / 31557600.0) * (1/0.2408467)
-    "Venus" -> (ageInSeconds / 31557600.0) * (1/0.61519726)
-    "Earth" -> ageInSeconds / 31557600.0
-    "Mars" -> (ageInSeconds / 31557600.0) * (1/1.8808158)
-    "Jupiter" -> (ageInSeconds / 31557600.0) * (1/11.862615 )
-    "Saturn" -> (ageInSeconds / 31557600.0) * (1/29.447498)
-    "Uranus" -> (ageInSeconds / 31557600.0) * (1/84.016846)
-    "Neptune" -> (ageInSeconds / 31557600.0) * (1/164.79132)
-    "Pluto" -> error "Pluto is not a planet!"
-    _ -> error "Unrecognized planet name!"
+ageOn planet ageInSeconds = undefined 
 
 isLeapYear :: Int -> Bool
-isLeapYear year 
-    | year `mod` 400 == 0 = True
-    | year `mod` 100 == 0 = False
-    | year `mod` 4 == 0 = True
-    | year < 0 = error "Year cannot be negative"
-    | otherwise = False
+isLeapYear year = undefined 
 
 main = do
   runTests
