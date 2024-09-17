@@ -4,22 +4,56 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short a = length a < 3
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely a = short a || a !! 2 == 14
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles =
+  [ (x, y, z)
+    | z <- [1 ..],
+      y <- [1 .. z],
+      x <- [1 .. y],
+      z ^ 2 == x ^ 2 + y ^ 2
+  ]
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz =
+  [ if x `mod` 15 == 0
+      then "FizzBuzz"
+      else
+        if x `mod` 3 == 0
+          then "Fizz"
+          else
+            if x `mod` 5 == 0
+              then "Buzz"
+              else show x
+    | x <- [1 ..]
+  ]
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds = case planet of
+  "Mercury" -> earthYears / 0.2408467
+  "Venus" -> earthYears / 0.61519726
+  "Earth" -> earthYears / 1.0
+  "Mars" -> earthYears / 1.8808158
+  "Jupiter" -> earthYears / 11.862615
+  "Saturn" -> earthYears / 29.447498
+  "Uranus" -> earthYears / 84.016846
+  "Neptune" -> earthYears / 164.79132
+  "Pluto" -> error "Pluto is not a planet bro..."
+  _ -> error "I don't know that planet"
+  where
+    earthYears = ageInSeconds / 31557600
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year
+  | year < 0 = error "year cannot be negative"
+  | year `mod` 400 == 0 = True
+  | year `mod` 100 == 0 = False
+  | year `mod` 4 == 0 = True
+  | otherwise = False
 
 main = do
   runTests
