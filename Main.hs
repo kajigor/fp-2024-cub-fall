@@ -12,7 +12,7 @@ lovely (_:_:14:_) = True
 lovely xs         = short xs
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = [(a, b, c) | c <- [1..], a <- reverse [1..c], b <- [a..c], a^2 + b^2 == c^2]
+rightTriangles = [(a, b, c) | c <- [1..], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]
 
 fizzBuzz :: [String]
 fizzBuzz = [fizzBuzzString n | n <- [1..]]
