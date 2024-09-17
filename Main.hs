@@ -4,22 +4,45 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short (_:_:_:_) = False
+short arr = True
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely array = short array || array!!2 == 14
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = [(a, b, c) | c <- [1..], b <- [1..c], a <- [1..b], a*a + b*b == c*c]
+
+getFizzBuzz :: Int -> String
+getFizzBuzz num
+  | num `mod` 15 == 0 = "FizzBuzz"
+  | num `mod` 3 == 0 = "Fizz"
+  | num `mod` 5 == 0 = "Buzz"
+  | otherwise = show num 
+
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = map getFizzBuzz [1..]
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds 
+  | planet == "Mercury" = onEarth / 0.2408467 
+  | planet == "Venus"   = onEarth / 0.61519726
+  | planet == "Earth"   = onEarth
+  | planet == "Mars"    = onEarth / 1.8808158
+  | planet == "Jupiter" = onEarth / 11.862615
+  | planet == "Saturn"  = onEarth / 29.447498
+  | planet == "Uranus"  = onEarth / 84.016846
+  | planet == "Neptune" = onEarth / 164.79132
+  | otherwise           = error "Unknown planet"
+  where onEarth = ageInSeconds / 31557600
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year 
+ | year `mod` 400 == 0 = True
+ | year `mod` 100 == 0 = False
+ | year `mod` 4 == 0 = True
+ | otherwise = False
 
 main = do
   runTests
