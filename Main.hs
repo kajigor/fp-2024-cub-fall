@@ -4,22 +4,46 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short (h : x : y : t) = False
+short _ = True
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely l
+    | short(l) = True
+    | l!!2 == 14 = True
+    | otherwise = False
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = [(x, y, z) |z <- [1..], y <- [1..z], x <- [1..y], x * x + y * y == z * z]
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = [logic x | x <- [1..]]
+    where
+        logic x  
+            | x `mod` 15 == 0 = "FizzBuzz"
+            | x `mod` 5 == 0 = "Buzz"
+            | x `mod` 3 == 0 = "Fizz"
+            | otherwise = show(x)
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds 
+    | planet == "Mercury" = ageInSeconds / (0.2408467 * 31557600)
+    | planet == "Venus" = ageInSeconds / (0.61519726 * 31557600)
+    | planet == "Earth" = ageInSeconds / (1  * 31557600)
+    | planet == "Mars" = ageInSeconds / (1.8808158  * 31557600)
+    | planet == "Jupiter" = ageInSeconds / (11.862615  * 31557600)
+    | planet == "Saturn" = ageInSeconds / (29.447498 * 31557600)
+    | planet == "Uranus" = ageInSeconds / (84.016846 * 31557600)
+    | planet == "Neptune" = ageInSeconds / (164.79132 * 31557600)
+    | otherwise = error "no planet"
+
+
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year
+    | year `mod` 400 == 0 = True
+    | year `mod` 4 == 0 && year `mod` 100 /= 0 = True
+    | otherwise = False
 
 main = do
   runTests
