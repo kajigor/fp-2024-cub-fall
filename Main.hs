@@ -4,10 +4,7 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short [] = True
-short [_] = True
-short [_, _] = True
-short _ = False
+short xs = length (take 3 xs) < 3
 
 lovely :: [Int] -> Bool
 lovely lst = short lst || lst !! 2 == 14
@@ -26,17 +23,18 @@ fizzBuzzHelper n
     | otherwise = show n
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = case planet of
-    "Mercury" -> (ageInSeconds / 31557600.0) * (1/0.2408467)
-    "Venus" -> (ageInSeconds / 31557600.0) * (1/0.61519726)
-    "Earth" -> ageInSeconds / 31557600.0
-    "Mars" -> (ageInSeconds / 31557600.0) * (1/1.8808158)
-    "Jupiter" -> (ageInSeconds / 31557600.0) * (1/11.862615 )
-    "Saturn" -> (ageInSeconds / 31557600.0) * (1/29.447498)
-    "Uranus" -> (ageInSeconds / 31557600.0) * (1/84.016846)
-    "Neptune" -> (ageInSeconds / 31557600.0) * (1/164.79132)
-    "Pluto" -> error "Pluto is not a planet!"
-    _ -> error "Unrecognized planet name !"
+ageOn planet ageInSeconds =
+    let ageInEarthYears = ageInSeconds / 31557600.0
+    in case planet of
+        "Mercury"  -> ageInEarthYears / 0.2408467
+        "Venus"    -> ageInEarthYears / 0.61519726
+        "Earth"    -> ageInEarthYears
+        "Mars"     -> ageInEarthYears / 1.8808158
+        "Jupiter"  -> ageInEarthYears / 11.862615
+        "Saturn"   -> ageInEarthYears / 29.447498
+        "Uranus"   -> ageInEarthYears / 84.016846
+        "Neptune"  -> ageInEarthYears / 164.79132
+        _          -> error "Unknown planet"
 
 isLeapYear :: Int -> Bool
 isLeapYear year 
