@@ -4,22 +4,43 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short xs = length xs < 3
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely xs = short xs || (head xs >= 3 && 2 == 14)
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = [(a, b, c) | a <-[1..], b <-[a..], let c=floor (sqrt (fromIntegral (a^2 + b^2))), a^2 + b^2 == c^2] 
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = [fizzBuzz n | n <- [1..]]
+  where 
+    fizzBuzz n
+      | n `mod` 15 == 0 = "FizzBuzz"
+      | n `mod` 3 == 0 = "Fizz"
+      | n `mod` 5 == 0 = "Buzz"
+      | otherwise = show n
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds = case planet of
+  "Mercury"-> ageInSeconds / (0.2408467 * 31557600)
+  "Venus"-> ageInSeconds / (0.61519726 * 31557600)
+  "Earth"-> ageInSeconds / 31557600
+  "Mars"-> ageInSeconds / (1.8808158 * 31557600)
+  "Jupiter"-> ageInSeconds / (11.862615 * 31557600)
+  "Saturn"-> ageInSeconds / (29.447498 * 31557600)
+  "Uranus"-> ageInSeconds / (84.016846 * 31557600)
+  "Neptune"-> ageInSeconds / (164.79132 * 31557600)
+  "Pluto"-> error "Pluto is not a planet."
+  _-> error "Unknown planet."
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year
+  | year < 0 = error "Year cannot be negative."
+  | year `mod` 400 == 0 = True
+  | year `mod` 100 == 0 = False
+  | year `mod` 4 == 0 = True
+  | otherwise = False 
 
 main = do
   runTests
