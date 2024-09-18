@@ -4,22 +4,56 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short xs = case xs of
+    [] -> True
+    [_] -> True
+    [_,_] -> True
+    _ -> False
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely a = short a || case a of
+    [] -> False
+    [_] -> False
+    [_,_] -> False
+    (_:_:x:_) -> x == 14
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = [(a, b, c) | c <- [1..], b <- [1..c], a <- [1..b], a^2 + b^2 == c^2]
+
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = [fizzBuzzHelper x | x <-[1..]]
+
+fizzBuzzHelper :: Int -> String
+fizzBuzzHelper x
+  | x `mod` 15 == 0 = "FizzBuzz"
+  | x `mod` 3 == 0  = "Fizz"
+  | x `mod` 5 == 0  = "Buzz"
+  | otherwise       = show x
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds = case planet of
+    "Mercury" -> convertAge 0.2408467
+    "Venus"   -> convertAge 0.61519726
+    "Earth"   -> convertAge 1.0
+    "Mars"    -> convertAge 1.8808158
+    "Jupiter" -> convertAge 11.862615
+    "Saturn"  -> convertAge 29.447498
+    "Uranus"  -> convertAge 84.016846
+    "Neptune" -> convertAge 164.79132
+    "Pluto"   -> error "Pluto is not a planet."
+    _         -> error "Unrecognized planet."
+  where
+    earthYearInSeconds = 31557600
+    convertAge orbitalPeriod = ageInSeconds / (orbitalPeriod * earthYearInSeconds) 
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year
+  | year < 0          = error "Year cannot be negative."
+  | year `mod` 400 == 0 = True
+  | year `mod` 100 == 0 = False
+  | year `mod` 4 == 0   = True
+  | otherwise         = False
 
 main = do
   runTests
@@ -50,7 +84,6 @@ runTests = do
       where
         test (input, exp) = eqTest "short" "unexpected result" input exp (short input)
         cases = [([], True), ([1], True), ([1, 2], True), ([1, 2, 3], False), ([1, 2, 3, 4], False), ([1 ..], False)]
-
     runLovelyTests =
       mapM_ test cases
       where
