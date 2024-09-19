@@ -2,24 +2,56 @@ module Main where
 
 import Control.Monad (unless)
 import Text.Printf (printf)
+import Data.List
+
+shorterThan :: Int -> [a] -> Bool
+shorterThan 0 [] = False
+shorterThan 0 xs = False
+shorterThan n [] = True
+shorterThan n (x:xs) = shorterThan (n-1) xs
 
 short :: [a] -> Bool
-short = undefined 
+short = shorterThan 3
+
+element :: Int -> [a] -> a
+element 0 (x:xs) = x
+element n [] = error "no element found"
+element n (x:xs) = element (n-1) xs
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely xs = short xs || (element 2 xs == 14)
+
+pointsWithNorm :: Int -> [(Int, Int)]
+pointsWithNorm n = [(x,y) | y <- [1..n], x <- [1..y], x*x+y*y == n]
+
+rightTrianglesWithHypotenuse :: Int -> [(Int, Int, Int)]
+rightTrianglesWithHypotenuse n = [(x,y,n) | (x,y) <- pointsWithNorm (n*n)]
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = concat [rightTrianglesWithHypotenuse n | n <- [5..]]
+
+fizzBuzzElement :: Int -> String
+fizzBuzzElement n | n `mod` 15 == 0 = "FizzBuzz"
+                  | n `mod` 3 == 0 = "Fizz"
+                  | n `mod` 5 == 0 = "Buzz"
+                  | otherwise = show n
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = map fizzBuzzElement [1..]
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet | planet == "Mercury" = flip (/) (31557600 * 0.2408467)
+             | planet == "Venus" = flip (/) (31557600 * 0.61519726)
+             | planet == "Earth" = flip (/) 31557600
+             | planet == "Mars" = flip (/) (31557600 * 1.8808158)
+             | planet == "Jupiter" = flip (/) (31557600 * 11.862615)
+             | planet == "Saturn" = flip (/) (31557600 * 29.447498)
+             | planet == "Uranus" = flip (/) (31557600 * 84.016846)
+             | planet == "Neptune" = flip (/) (31557600 * 164.79132)
+             | otherwise = error (planet ++ " is not a planet")
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year = (&&)(year `mod` 4 == 0) $ not (year `mod` 100 == 0) || (year `mod` 400 == 0)
 
 main = do
   runTests
@@ -63,9 +95,10 @@ runTests = do
       unless (take n rightTriangles == exp) $
         putStrLn $
           printf
-            "rightTriangles produces a wrong result. The first %s answers are supposed to be: %s"
+            "rightTriangles produces a wrong result. The first %s answers are supposed to be: %s, but are %s"
             (show n)
             (show exp)
+            (show $ take n rightTriangles)
 
     runFizzBuzzTests = do
       let n = 20
