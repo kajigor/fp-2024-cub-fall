@@ -5,7 +5,7 @@ import Text.Printf (printf)
 
 short :: [a] -> Bool
 short (_:_:_:_) = False
-short A = True
+short a = True
 
 lovely :: [Int] -> Bool
 lovely xs = short xs || xs !! 2 == 14
