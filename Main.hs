@@ -4,7 +4,8 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short xs = length xs < 3
+short (_:_:_:_) = False
+short A = True
 
 lovely :: [Int] -> Bool
 lovely xs = short xs || xs !! 2 == 14
