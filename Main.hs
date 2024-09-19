@@ -4,7 +4,7 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short (h : x : y : t) = False
+short (_ : _ : _ : _ ) = False
 short _ = True
 
 lovely :: [Int] -> Bool
@@ -27,15 +27,17 @@ fizzBuzz = [logic x | x <- [1..]]
 
 ageOn :: String -> Float -> Float
 ageOn planet ageInSeconds 
-    | planet == "Mercury" = ageInSeconds / (0.2408467 * 31557600)
-    | planet == "Venus" = ageInSeconds / (0.61519726 * 31557600)
-    | planet == "Earth" = ageInSeconds / (1  * 31557600)
-    | planet == "Mars" = ageInSeconds / (1.8808158  * 31557600)
-    | planet == "Jupiter" = ageInSeconds / (11.862615  * 31557600)
-    | planet == "Saturn" = ageInSeconds / (29.447498 * 31557600)
-    | planet == "Uranus" = ageInSeconds / (84.016846 * 31557600)
-    | planet == "Neptune" = ageInSeconds / (164.79132 * 31557600)
+    | planet == "Mercury" = time(ageInSeconds,0.2408467)
+    | planet == "Venus" = time(ageInSeconds,0.61519726)
+    | planet == "Earth" = time(ageInSeconds,1)
+    | planet == "Mars" = time(ageInSeconds,1.8808158)
+    | planet == "Jupiter" = time(ageInSeconds,11.862615)
+    | planet == "Saturn" = time(ageInSeconds,29.447498)
+    | planet == "Uranus" = time(ageInSeconds,84.016846)
+    | planet == "Neptune" = time(ageInSeconds,164.79132)
     | otherwise = error "no planet"
+    where 
+        time (sec,frac) = sec / (frac * 31557600)
 
 
 
