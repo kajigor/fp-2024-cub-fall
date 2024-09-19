@@ -2,24 +2,49 @@ module Main where
 
 import Control.Monad (unless)
 import Text.Printf (printf)
+import System.Win32 (COORD(xPos))
 
 short :: [a] -> Bool
-short = undefined 
+short [] = True
+short [_] = True
+short [_,_] = True
+short _ = False
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely xs
+    | short xs = True
+    | otherwise = case xs of
+        (_:_:14:_) -> True
+        _ -> False
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = [(a, b, c) | c <- [1..], b <- [1..c], a <- [1..b], c^2 == a^2 + b^2]
+
+fizzBuzzValue :: Int -> String
+fizzBuzzValue x
+    | x `mod` 15 == 0 = "FizzBuzz"
+    | x `mod` 5 == 0 = "Buzz"
+    | x `mod` 3 == 0 = "Fizz"
+    | otherwise = show x
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = [fizzBuzzValue x | x <- [1..]]
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds = case planet of
+    "Mercury" -> ageInYears / 0.2408467
+    "Venus" -> ageInYears / 0.61519726
+    "Earth" -> ageInYears
+    "Mars" -> ageInYears / 1.8808158
+    "Jupiter" -> ageInYears / 11.862615
+    "Saturn" -> ageInYears / 29.447498
+    "Uranus" -> ageInYears / 84.016846
+    "Neptune" -> ageInYears / 164.79132
+    _ -> error "There is no such planet"
+    where ageInYears = ageInSeconds / 31557600
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year = (year `mod` 4 == 0) && (not (year `mod` 100 == 0) || (year `mod` 400 == 0))
 
 main = do
   runTests
