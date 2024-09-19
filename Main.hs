@@ -8,7 +8,7 @@ short xs = length xs < 3
 
 lovely :: [Int] -> Bool
 lovely [] = True 
-lovely xs = short xs || (head xs >= 3 && 2 == 14)
+lovely xs = short xs || (head xs >= 3 && last xs == 14)
 
 rightTriangles :: [(Int, Int, Int)]
 rightTriangles = [(a, b, c) | a <-[1..], b <-[a..], let c=floor (sqrt (fromIntegral (a^2 + b^2))), a^2 + b^2 == c^2] 
