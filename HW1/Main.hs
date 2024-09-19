@@ -29,15 +29,17 @@ fizzBuzz =
 
 ageOn :: String -> Float -> Float
 ageOn planet ageInSeconds
-  | planet == "Earth" = ageInSeconds / 31557600
-  | planet == "Mercury" = ageInSeconds / (0.2408467 * 31557600)
-  | planet == "Venus" = ageInSeconds / (0.61519726 * 31557600)
-  | planet == "Mars" = ageInSeconds / (1.8808158 * 31557600)
-  | planet == "Jupiter" = ageInSeconds / (11.862615 * 31557600)
-  | planet == "Saturn" = ageInSeconds / (29.447498 * 31557600)
-  | planet == "Uranus" = ageInSeconds / (84.016846 * 31557600)
-  | planet == "Neptune" = ageInSeconds / (164.79132 * 31557600)
+  | planet == "Earth" = ageInSeconds / constt
+  | planet == "Mercury" = ageInSeconds / (0.2408467 * constt)
+  | planet == "Venus" = ageInSeconds / (0.61519726 * constt)
+  | planet == "Mars" = ageInSeconds / (1.8808158 * constt)
+  | planet == "Jupiter" = ageInSeconds / (11.862615 * constt)
+  | planet == "Saturn" = ageInSeconds / (29.447498 * constt)
+  | planet == "Uranus" = ageInSeconds / (84.016846 * constt)
+  | planet == "Neptune" = ageInSeconds / (164.79132 * constt)
   | otherwise = error "planet undifined"
+  where
+    constt = 31557600
 
 isLeapYear :: Int -> Bool
 isLeapYear year
