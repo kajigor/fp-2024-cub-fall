@@ -1,25 +1,54 @@
 module Main where
 
 import Control.Monad (unless)
+import Data.List (sortOn)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short (_ : _ : _ : _) = False -- Matches a list with 3 or more elements
+short _ = True -- Matches lists with less than 3 elements
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely xs = short xs || xs !! 2 == 14
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles = [(x, y, z) | z <- [1 ..], y <- [1 .. z - 1], x <- [1 .. y - 1], x ^ 2 + y ^ 2 == z ^ 2]
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = [fizzBuzzValue n | n <- [1 ..]]
+  where
+    fizzBuzzValue n
+      | n `mod` 15 == 0 = "FizzBuzz"
+      | n `mod` 3 == 0 = "Fizz"
+      | n `mod` 5 == 0 = "Buzz"
+      | otherwise = show n
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds = case planet of
+  "Mercury" -> ageOnPlanet 0.2408467
+  "Venus" -> ageOnPlanet 0.61519726
+  "Earth" -> ageOnPlanet 1.0
+  "Mars" -> ageOnPlanet 1.8808158
+  "Jupiter" -> ageOnPlanet 11.862615
+  "Saturn" -> ageOnPlanet 29.447498
+  "Uranus" -> ageOnPlanet 84.016846
+  "Neptune" -> ageOnPlanet 164.79132
+  "Pluto" -> error "Pluto is not a planet!"
+  _ -> error "Unrecognized planet!"
+  where
+    seconds :: Float
+    seconds = 31557600
+
+    ageOnPlanet :: Float -> Float
+    ageOnPlanet x = ageInSeconds / (x * seconds)
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year
+  | year < 0 = error "Year cannot be negative!"
+  | year `mod` 400 == 0 = True
+  | year `mod` 100 == 0 = False
+  | year `mod` 4 == 0 = True
+  | otherwise = False
 
 main = do
   runTests
