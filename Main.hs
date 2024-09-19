@@ -1,7 +1,6 @@
 module Main where
 
 import Control.Monad (unless)
-import Data.List (sortOn)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
