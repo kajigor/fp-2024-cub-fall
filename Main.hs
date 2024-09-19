@@ -1,25 +1,59 @@
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module Main where
 
 import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short = undefined 
+short [] = True
+short [x] = True
+short [x, y] = True
+short xs = False
 
 lovely :: [Int] -> Bool
-lovely = undefined 
+lovely [_, _ , 14, _] = True
+lovely xs = short xs
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = undefined 
+rightTriangles =  [(c, b, a) | a <- [1..], b <- [1..a-1], c <-[1..b-1], a^2 == c^2 + b^2]
+
 
 fizzBuzz :: [String]
-fizzBuzz = undefined 
+fizzBuzz = [ if x `mod` 15 == 0 
+                then "FizzBuzz" 
+              else if x `mod` 5 == 0 
+                then "Buzz" 
+              else if x `mod` 3 == 0 
+                then "Fizz" 
+              else show x | x <- [1..]] 
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = undefined 
+ageOn planet ageInSeconds =
+  let earthYearInSeconds = 31557600
+      orbitalPeriod planetName = case planetName of
+        "Mercury" -> 0.2408467
+        "Venus"   -> 0.61519726
+        "Earth"   -> 1.0
+        "Mars"    -> 1.8808158
+        "Jupiter" -> 11.862615
+        "Saturn"  -> 29.447498
+        "Uranus"  -> 84.016846
+        "Neptune" -> 164.79132
+        _         -> error "Unknown planet."
+      ageInYears planetName = ageInSeconds / (earthYearInSeconds * orbitalPeriod planetName)
+  in case planet of
+      "Pluto" -> error "Pluto is not a planet."
+      _       -> ageInYears planet
 
 isLeapYear :: Int -> Bool
-isLeapYear year = undefined 
+isLeapYear year = case year `mod` 4 of
+  0 -> case year `mod` 100 of
+              0 -> case year `mod` 400 of
+                        0 -> True
+                        _ -> False
+              _ -> True
+  _ -> False
+
 
 main = do
   runTests
