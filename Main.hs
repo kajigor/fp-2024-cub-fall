@@ -7,6 +7,7 @@ short :: [a] -> Bool
 short xs = length xs < 3
 
 lovely :: [Int] -> Bool
+lovely [] = True 
 lovely xs = short xs || (head xs >= 3 && 2 == 14)
 
 rightTriangles :: [(Int, Int, Int)]
