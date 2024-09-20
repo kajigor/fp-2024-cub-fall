@@ -5,27 +5,23 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 short :: [a] -> Bool
-short [] = True
-short [x] = True
-short [x, y] = True
-short xs = False
+short xs = length (take 3 xs) <= 2
 
 lovely :: [Int] -> Bool
-lovely [_, _ , 14, _] = True
-lovely xs = short xs
+lovely xs = short xs || (xs !! 2 == 14)
 
 rightTriangles :: [(Int, Int, Int)]
 rightTriangles =  [(c, b, a) | a <- [1..], b <- [1..a-1], c <-[1..b-1], a^2 == c^2 + b^2]
 
 
 fizzBuzz :: [String]
-fizzBuzz = [ if x `mod` 15 == 0 
-                then "FizzBuzz" 
-              else if x `mod` 5 == 0 
-                then "Buzz" 
-              else if x `mod` 3 == 0 
-                then "Fizz" 
-              else show x | x <- [1..]] 
+fizzBuzz = [ if x `mod` 15 == 0
+                then "FizzBuzz"
+              else if x `mod` 5 == 0
+                then "Buzz"
+              else if x `mod` 3 == 0
+                then "Fizz"
+              else show x | x <- [1..]]
 
 ageOn :: String -> Float -> Float
 ageOn planet ageInSeconds =
@@ -46,14 +42,17 @@ ageOn planet ageInSeconds =
       _       -> ageInYears planet
 
 isLeapYear :: Int -> Bool
-isLeapYear year = case year `mod` 4 of
-  0 -> case year `mod` 100 of
-              0 -> case year `mod` 400 of
-                        0 -> True
-                        _ -> False
-              _ -> True
-  _ -> False
-
+isLeapYear year = if year >= 0
+  then
+    case year `mod` 4 of
+      0 -> case year `mod` 100 of
+                  0 -> case year `mod` 400 of
+                            0 -> True
+                            _ -> False
+                  _ -> True
+      _ -> False
+  else
+    error "Negative year"
 
 main = do
   runTests
