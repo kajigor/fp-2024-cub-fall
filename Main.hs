@@ -4,31 +4,15 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 import Data.List
 
-shorterThan :: Int -> [a] -> Bool
-shorterThan 0 [] = False
-shorterThan 0 xs = False
-shorterThan n [] = True
-shorterThan n (x:xs) = shorterThan (n-1) xs
-
 short :: [a] -> Bool
-short = shorterThan 3
-
-element :: Int -> [a] -> a
-element 0 (x:xs) = x
-element n [] = error "no element found"
-element n (x:xs) = element (n-1) xs
+short (_:_:_:_) = False
+short _ = True
 
 lovely :: [Int] -> Bool
-lovely xs = short xs || (element 2 xs == 14)
-
-pointsWithNorm :: Int -> [(Int, Int)]
-pointsWithNorm n = [(x,y) | y <- [1..n], x <- [1..y], x*x+y*y == n]
-
-rightTrianglesWithHypotenuse :: Int -> [(Int, Int, Int)]
-rightTrianglesWithHypotenuse n = [(x,y,n) | (x,y) <- pointsWithNorm (n*n)]
+lovely xs = short xs || xs !! 2 == 14
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = concat [rightTrianglesWithHypotenuse n | n <- [5..]]
+rightTriangles = [(x, y, z) | z <- [5..], y <- [1..z], x <- [1..y], x*x + y*y == z*z]
 
 fizzBuzzElement :: Int -> String
 fizzBuzzElement n | n `mod` 15 == 0 = "FizzBuzz"
@@ -40,18 +24,23 @@ fizzBuzz :: [String]
 fizzBuzz = map fizzBuzzElement [1..]
 
 ageOn :: String -> Float -> Float
-ageOn planet | planet == "Mercury" = flip (/) (31557600 * 0.2408467)
-             | planet == "Venus" = flip (/) (31557600 * 0.61519726)
-             | planet == "Earth" = flip (/) 31557600
-             | planet == "Mars" = flip (/) (31557600 * 1.8808158)
-             | planet == "Jupiter" = flip (/) (31557600 * 11.862615)
-             | planet == "Saturn" = flip (/) (31557600 * 29.447498)
-             | planet == "Uranus" = flip (/) (31557600 * 84.016846)
-             | planet == "Neptune" = flip (/) (31557600 * 164.79132)
+ageOn planet | planet == "Mercury" = convertAge 0.2408467
+             | planet == "Venus" = convertAge 0.61519726
+             | planet == "Earth" = convertAge 1
+             | planet == "Mars" = convertAge 1.8808158
+             | planet == "Jupiter" = convertAge 11.862615
+             | planet == "Saturn" = convertAge 29.447498
+             | planet == "Uranus" = convertAge 84.016846
+             | planet == "Neptune" = convertAge 164.79132
              | otherwise = error (planet ++ " is not a planet")
+             where convertAge multiplier = flip (/) (31557600 * multiplier)
 
 isLeapYear :: Int -> Bool
-isLeapYear year = (&&)(year `mod` 4 == 0) $ not (year `mod` 100 == 0) || (year `mod` 400 == 0)
+isLeapYear year | year < 0 = error "year cannot be negative"
+                | year `mod` 400 == 0 = True
+                | year `mod` 100 == 0 = False
+                | year `mod` 4 == 0 = True
+                | otherwise = False
 
 main = do
   runTests
