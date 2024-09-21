@@ -11,28 +11,34 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex xs = [x * i | (x, i) <- zip xs [0..]]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = [x ^ i | (x, i) <- zip xs [0..]]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference (a:b:[]) = a - b
+productOfDifference (a:b:xs) = productOfDifference (a:b:[]) * productOfDifference (b:xs)
+productOfDifference _ = error "List is too short"
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted (x:y:xs) = x <= y && isSorted (y:xs)
+isSorted [_] = True
+isSorted [] = True
 
-countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement :: Int -> [Int] -> Int
+countElement x xs = length [y | y <- xs, x == y]
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct xs ys = sum [x * y | (x, y) <- zip xs ys]
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll funcs x = [func x | func <- funcs]
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave [] _ = []
+interleave _ [] = []
+interleave (x:xs) (y:ys) = x:y:interleave xs ys
 
 main = do
   runTests
