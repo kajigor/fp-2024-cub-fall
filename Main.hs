@@ -11,28 +11,39 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex xs = [ elem * index | (elem, index) <- zip xs [0..] ]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = [ elem ^ index | (elem, index) <- zip xs [0..] ]
+
+productOfDifferenceHelper :: [Int] -> Int
+productOfDifferenceHelper [_] = 1
+productOfDifferenceHelper (first:tail@(second:_))= (first - second) *  productOfDifferenceHelper tail
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference [] = error "The list is too short"
+productOfDifference [_] = error "The list is too short"
+productOfDifference xs = productOfDifferenceHelper xs
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted [] = True
+isSorted [_] = True
+isSorted (first:tail@(second:xs)) = first <= second && isSorted tail 
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement target [] = 0
+countElement target (x:xs) = countElement target xs + if x == target then 1 else 0
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct lhs rhs = sum [ first * second | (first, second) <- zip lhs rhs ]
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll functions arg = [f arg | f <- functions]
 
-interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave :: [a] -> [a] -> [a]
+interleave _ [] = []
+interleave [] _ = [] 
+interleave (x:xs) (y:ys) = x:y:interleave xs ys
 
 main = do
   runTests
