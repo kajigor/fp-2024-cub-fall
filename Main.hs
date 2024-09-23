@@ -11,28 +11,32 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex xs = zipWith (*) xs [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference xs
+  | length (xs) < 2 = error "List is too short"
+  | otherwise = product $ zipWith (-) xs (drop 1 xs)
 
-isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted :: [Int] -> Bool
+isSorted xs = and $ zipWith (<=) xs (drop 1 xs)
 
-countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement :: Int -> [Int] -> Int
+countElement x xs = length $ filter (==x) xs
 
-dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct :: [Int] -> [Int] -> Int
+dotProduct xs ys = sum $ zipWith (*) xs ys
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll fs x = map ($ x) fs
 
-interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave :: [a] -> [a] -> [a]
+interleave [] ys = ys
+interleave xs [] = xs
+interleave (x:xs) (y:ys) = x:y:interleave xs ys
 
 main = do
   runTests
