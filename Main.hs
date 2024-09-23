@@ -5,13 +5,13 @@ import Text.Printf (printf)
 
 short :: [a] -> Bool
 short []        = True
-short [x]       = True
-short [x, y]    = True
-short [x, y, z] = False
-short (x:y:z:_) = False
+short [_]       = True
+short [_, _]    = True
+short [_, _, _] = False
+short (_:_:_:_) = False
 
 lovely :: [Int] -> Bool
-lovely a = (short a) || thirdElement a
+lovely a = short a || thirdElement a
    where 
       thirdElement (_:_:x:_) = if x == 14 then True else False
       thirdElement _ = False
