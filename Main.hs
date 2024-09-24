@@ -9,7 +9,6 @@ module Main where
 import Control.Monad (unless)
 import Data.List qualified as L
 import Text.Printf (printf)
-import Text.Parsec.Token (GenTokenParser(dot))
 
 multByIndex :: [Int] -> [Int]
 multByIndex = zipWith (*) [0 ..]
