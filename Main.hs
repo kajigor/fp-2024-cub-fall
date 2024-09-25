@@ -12,32 +12,30 @@ import Text.Printf (printf)
 import System.Win32 (COORD(xPos))
 
 multByIndex :: [Int] -> [Int]
-multByIndex xs = [x*i | (x, i) <- zip xs [0..]]
+multByIndex = zipWith (*) [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex xs = [x^i | (x, i) <- zip xs [1..]]
+powerByIndex = zipWith (^) [1..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference xs
   | length xs < 2 = error "list too short"
   | otherwise = product [x - y | (x, y) <- zip xs (tail xs)]
 
-isSorted :: [Int] -> Bool 
-isSorted [] = True
-isSorted [_] = True
-isSorted (x:y:xs) = x <= y && isSorted (y:xs)
+isSorted :: [Int] -> Bool
+isSorted xs = and $ zipWith (<=) xs (tail xs)
 
 countElement :: Int -> [Int] -> Int 
-countElement n xs = length [x | x <- xs, x == n]
+countElement n = length . filter (==n)
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct xs ys = sum [x * y | (x, y) <- zip xs ys]
+dotProduct xs ys = sum $ zipWith (*) xs ys
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll fs x = [f x | f <- fs]
+applyAll fs x = map ($ x) fs
 
-interleave :: [a] -> [a] -> [a] 
-interleave xs ys = concat [ [x, y] | (x, y) <- zip xs ys ]
+interleave :: [a] -> [a] -> [a]
+interleave xs ys = concat $ zipWith (\x y -> [x, y]) xs ys
 
 main = do
   runTests
