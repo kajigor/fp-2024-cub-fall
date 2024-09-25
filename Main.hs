@@ -11,7 +11,7 @@ lovely :: [Int] -> Bool
 lovely xs = short xs || xs !! 2 == 14
 
 rightTriangles :: [(Int, Int, Int)]
-rightTriangles = [(a, b, c) | a <-[1..], b <-[a..], let c=floor (sqrt (fromIntegral (a^2 + b^2))), a^2 + b^2 == c^2] 
+rightTriangles = [(a, b, c) | a <- [1..], b <- [a..], c <- [b..], a^2 + b^2 == c^2] 
 
 fizzBuzz :: [String]
 fizzBuzz = [fizzBuzz n | n <- [1..]]
@@ -23,17 +23,19 @@ fizzBuzz = [fizzBuzz n | n <- [1..]]
       | otherwise = show n
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds = case planet of
-  "Mercury"-> ageInSeconds / (0.2408467 * 31557600)
-  "Venus"-> ageInSeconds / (0.61519726 * 31557600)
-  "Earth"-> ageInSeconds / 31557600
-  "Mars"-> ageInSeconds / (1.8808158 * 31557600)
-  "Jupiter"-> ageInSeconds / (11.862615 * 31557600)
-  "Saturn"-> ageInSeconds / (29.447498 * 31557600)
-  "Uranus"-> ageInSeconds / (84.016846 * 31557600)
-  "Neptune"-> ageInSeconds / (164.79132 * 31557600)
-  "Pluto"-> error "Pluto is not a planet."
-  _-> error "Unknown planet."
+ageOn planet ageInSeconds = ageInSeconds / (orbitalPeriod planet * 31557600)
+  where
+    orbitalPeriod :: String -> Float
+    orbitalPeriod "Mercury" = 0.2408467
+    orbitalPeriod "Venus" = 0.61519726
+    orbitalPeriod "Earth" = 1.0
+    orbitalPeriod "Mars" = 1.8808158
+    orbitalPeriod "Jupiter" = 11.862615
+    orbitalPeriod "Saturn" = 29.447498
+    orbitalPeriod "Uranus" = 84.016846
+    orbitalPeriod "Neptune" = 164.79132
+    orbitalPeriod "Pluto" = error "Pluto is not a planet."
+    orbitalPeriod _ = error "Unknown planet."
 
 isLeapYear :: Int -> Bool
 isLeapYear year
