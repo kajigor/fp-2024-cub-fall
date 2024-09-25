@@ -11,28 +11,30 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex = zipWith (*) [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference ps@(_:pss@(_:_)) = foldl (*) 1 $ zipWith (-) ps pss
+productOfDifference _ = error "list is too short"
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted [] = True
+isSorted xs@(x:xss) = all (uncurry (<=)) $ zip xs xss
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement x xs = length $ filter (== x) xs
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct xs ys = foldl (+) 0 $ zipWith (*) xs ys
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll fs a = zipWith ($) fs $ repeat a
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave as1 as2 = concat $ zipWith (\a1 a2 -> [a1, a2]) as1 as2
 
 main = do
   runTests
@@ -147,6 +149,8 @@ runTests = do
           [ ([], [], [])
           , ([1], [2], [1,2])
           , ([1..10], [10,9..1], [1,10,2,9,3,8,4,7,5,6,6,5,7,4,8,3,9,2,10,1])
+          , ([], [1..10], [])
+          , ([1..], [0], [1,0])
           ]
    
     describeFailure :: (Show a, Show b) => String -> a -> b -> b -> IO ()
