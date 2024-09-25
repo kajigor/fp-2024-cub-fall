@@ -9,30 +9,39 @@ module Main where
 import Control.Monad (unless)
 import qualified Data.List as L
 import Text.Printf (printf)
+import Data.ByteString (count)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex xs  = zipWith (*) xs [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference xs@(_:_:_)= product (zipWith (-) xs (tail xs))
+productOfDifference _ = error "List too short"
+
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted [] = True 
+isSorted [_] = True
+isSorted (x:y:xs) = x <= y && isSorted (y:xs)
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement x [] = 0
+countElement z (x:xs) = 
+  (if z == x then 1 else 0) + countElement z xs
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct xs ys = sum [x * y | (x, y) <- zip xs ys]
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll funs x = map ($ x) funs
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave [] _ = []
+interleave _ [] = []
+interleave (x:xs) (y:ys) = x:y: interleave xs ys
 
 main = do
   runTests
