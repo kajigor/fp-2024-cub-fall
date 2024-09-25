@@ -24,7 +24,8 @@ productOfDifference xs
 isSorted :: [Int] -> Bool 
 isSorted xs
   | length (take 2 xs)  < 2 = True
-  | otherwise = head xs <= xs !! 1 && isSorted (tail xs)
+  | otherwise = foldl (\y (a,b) ->  y && (b >= a)) True (zip xs (tail xs))
+          
 
 countElement :: Int -> [Int] -> Int 
 countElement x xs = length (filter (== x) xs)
@@ -33,8 +34,7 @@ dotProduct :: [Int] -> [Int] -> Int
 dotProduct x y = foldl (+) 0 (zipWith (*) x y)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll [] _ = []
-applyAll xs x =  head xs x : applyAll (tail xs) x
+applyAll xs x =  zipWith (\f a -> f a) xs (repeat x)
 
 interleave :: [a] -> [a] -> [a] 
 interleave xs ys = concat (zipWith (\x y -> [x, y]) xs ys)
