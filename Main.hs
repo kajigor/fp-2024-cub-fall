@@ -11,39 +11,32 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex xs = [ elem * index | (elem, index) <- zip xs [0..] ]
+multByIndex xs = zipWith (*) xs [0..]
+
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex xs = [ elem ^ index | (elem, index) <- zip xs [0..] ]
-
-productOfDifferenceHelper :: [Int] -> Int
-productOfDifferenceHelper [_] = 1
-productOfDifferenceHelper (first:tail@(second:_))= (first - second) *  productOfDifferenceHelper tail
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference [] = error "The list is too short"
 productOfDifference [_] = error "The list is too short"
-productOfDifference xs = productOfDifferenceHelper xs
+productOfDifference xs = foldl (*) 1 (zipWith (flip (-)) (tail xs) xs)
 
 isSorted :: [Int] -> Bool 
 isSorted [] = True
-isSorted [_] = True
-isSorted (first:tail@(second:xs)) = first <= second && isSorted tail 
+isSorted xs = and (zipWith (>=) (tail xs) xs)
 
 countElement :: Int -> [Int] -> Int 
-countElement target [] = 0
-countElement target (x:xs) = countElement target xs + if x == target then 1 else 0
+countElement target = foldl (\acc x -> acc + (if x == target then 1 else 0)) 0
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct lhs rhs = sum [ first * second | (first, second) <- zip lhs rhs ]
+dotProduct lhs rhs = foldl (+) 0 (zipWith (*) lhs rhs)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll functions arg = [f arg | f <- functions]
+applyAll functions arg = map (\f -> f arg) functions
 
 interleave :: [a] -> [a] -> [a]
-interleave _ [] = []
-interleave [] _ = [] 
-interleave (x:xs) (y:ys) = x:y:interleave xs ys
+interleave xs ys = foldr (\(x, y) acc -> x : y : acc) [] (zip xs ys)
 
 main = do
   runTests
