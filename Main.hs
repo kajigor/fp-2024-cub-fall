@@ -34,9 +34,7 @@ applyAll :: [a -> b] -> a -> [b]
 applyAll fs x = map ($ x) fs
 
 interleave :: [a] -> [a] -> [a]
-interleave [] ys = ys
-interleave xs [] = xs
-interleave (x:xs) (y:ys) = x:y:interleave xs ys
+interleave xs ys = concat $ zipWith (\x y -> [x, y]) xs ys
 
 main = do
   runTests
