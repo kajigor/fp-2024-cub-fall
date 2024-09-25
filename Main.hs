@@ -3,8 +3,10 @@ module Main where
 import Control.Monad (unless)
 import Text.Printf (printf)
 
+-- did it using pattern matching
 short :: [a] -> Bool
-short xs = length (take 3 xs) < 3 
+short (_:_:_:_) = False
+short _         = True
 
 lovely :: [Int] -> Bool
 lovely xs = short xs || xs !! 2 == 14
@@ -22,20 +24,22 @@ fizzBuzz = [fizzBuzz' x | x <- [1..]]
       | otherwise       = show n
 
 ageOn :: String -> Float -> Float
-ageOn planet ageInSeconds =
-  case planet of
-    "Mercury" -> ageInSeconds / (0.2408467 * earthYearInSeconds)
-    "Venus"   -> ageInSeconds / (0.61519726 * earthYearInSeconds)
-    "Earth"   -> ageInSeconds / earthYearInSeconds
-    "Mars"    -> ageInSeconds / (1.8808158 * earthYearInSeconds)
-    "Jupiter" -> ageInSeconds / (11.862615 * earthYearInSeconds)
-    "Saturn"  -> ageInSeconds / (29.447498 * earthYearInSeconds)
-    "Uranus"  -> ageInSeconds / (84.016846 * earthYearInSeconds)
-    "Neptune" -> ageInSeconds / (164.79132 * earthYearInSeconds)
-    "Pluto"   -> error "Pluto is not a planet!"
-    _         -> error "Unknown planet"
+ageOn planet ageInSeconds = ageOnPlanet orbitalPeriod
   where
     earthYearInSeconds = 31557600
+    ageOnPlanet period = ageInSeconds / (period * earthYearInSeconds)
+    
+    orbitalPeriod = case planet of
+      "Mercury" -> 0.2408467
+      "Venus"   -> 0.61519726
+      "Earth"   -> 1.0
+      "Mars"    -> 1.8808158
+      "Jupiter" -> 11.862615
+      "Saturn"  -> 29.447498
+      "Uranus"  -> 84.016846
+      "Neptune" -> 164.79132
+      "Pluto"   -> error "Pluto is not a planet!"
+      _         -> error "Unknown planet"
 
 isLeapYear :: Int -> Bool
 isLeapYear year
