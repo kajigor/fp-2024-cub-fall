@@ -18,29 +18,23 @@ powerByIndex a = zipWith (^) a [0 ..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference [] = error "List cannot be empty"
-productOfDifference [a] = 1
-productOfDifference (x : xs) = productOfDifference xs * (x - head xs)
+productOfDifference [a] = error "List cannot be empty"
+productOfDifference xs = foldl (*) 1 (zipWith (-) xs (tail xs))
 
 isSorted :: [Int] -> Bool
-isSorted [] = True
-isSorted [a] = True
-isSorted (x:xs) = x <= head xs && isSorted xs
+isSorted xs = and (zipWith (<=) xs (tail xs))
 
 countElement :: Int -> [Int] -> Int
-countElement n xs= length (filter (== n) xs)
+countElement n xs = length (filter (== n) xs)
 
 dotProduct :: [Int] -> [Int] -> Int
-dotProduct a [] = 0
-dotProduct [] a = 0
-dotProduct (a:as) (b:bs) = a*b + dotProduct as bs
+dotProduct xs ys = foldl (+) 0 (zipWith (*) xs ys)
 
 applyAll :: [a -> b] -> a -> [b]
 applyAll fs x = map (\func -> func x) fs
 
 interleave :: [a] -> [a] -> [a]
-interleave a [] = []
-interleave [] a = []
-interleave as bs = concat (zipWith (\ a b -> [a,b]) as bs)
+interleave as bs = concat (zipWith (\a b -> [a, b]) as bs)
 
 main = do
   runTests
