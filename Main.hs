@@ -23,25 +23,21 @@ productOfDifference _ = error "List too short"
 
 
 isSorted :: [Int] -> Bool 
-isSorted [] = True 
-isSorted [_] = True
-isSorted (x:y:xs) = x <= y && isSorted (y:xs)
+isSorted xs = all (uncurry (<=)) (zip xs (tail xs))
 
-countElement :: Int -> [Int] -> Int 
-countElement x [] = 0
-countElement z (x:xs) = 
-  (if z == x then 1 else 0) + countElement z xs
 
-dotProduct :: [Int] -> [Int] -> Int 
-dotProduct xs ys = sum [x * y | (x, y) <- zip xs ys]
+countElement :: Int -> [Int] -> Int
+countElement x = length . filter (== x)
+
+dotProduct :: [Int] -> [Int] -> Int
+dotProduct xs ys = sum (zipWith (*) xs ys)
+
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll funs x = map ($ x) funs
+applyAll fs x = map ($ x) fs
 
-interleave :: [a] -> [a] -> [a] 
-interleave [] _ = []
-interleave _ [] = []
-interleave (x:xs) (y:ys) = x:y: interleave xs ys
+interleave :: [a] -> [a] -> [a]
+interleave xs ys = concat (zipWith (\x y -> [x, y]) xs ys)
 
 main = do
   runTests
