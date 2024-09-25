@@ -11,40 +11,31 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex xs = [x * i | (x, i) <- zip xs [0 ..]]
+multByIndex xs = zipWith (*) xs [0 ..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex xs = [x ^ i | (x, i) <- zip xs [0 ..]]
+powerByIndex xs = zipWith (^) xs [0 ..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference xs@(_ : _ : _) = product (diff xs)
   where
-    diff (x : y : xs) = (x - y) : diff (y : xs)
-    diff _ = []
+    diff xs = zipWith (-) xs (tail xs)
 productOfDifference _ = error "List is too short"
 
 isSorted :: [Int] -> Bool
-isSorted [] = True
-isSorted [_] = True
-isSorted (x : y : xs) = if y < x then False else isSorted (y : xs)
+isSorted xs = all (uncurry (<=)) (zip xs (tail xs))
 
 countElement :: Int -> [Int] -> Int
-countElement _ [] = 0
-countElement a (x : xs) = cnt + countElement a xs
-  where
-    cnt = if a == x then 1 else 0
+countElement a = foldl (\cnt x -> if x == a then cnt + 1 else cnt) 0
 
 dotProduct :: [Int] -> [Int] -> Int
 dotProduct x y = sum (zipWith (*) x y)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll [] _ = []
-applyAll (f : fs) a = f a : applyAll fs a
+applyAll fs a = map ($ a) fs
 
 interleave :: [a] -> [a] -> [a]
-interleave [] _ = []
-interleave _ [] = []
-interleave (x : xs) (y : ys) = x : y : interleave xs ys
+interleave xs ys = concat (zipWith (\x y -> [x, y]) xs ys)
 
 main = do
   runTests
