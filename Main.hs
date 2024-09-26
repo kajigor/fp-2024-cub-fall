@@ -11,28 +11,31 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex a = zipWith (*) [0..] a  
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
-
+powerByIndex a = zipWith (^) a [0..] 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference a
+    | length(a) < 2 = error "too short"
+    | otherwise = foldr (*) 1 (zipWith (-) (a) (tail a))
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted a = and (zipWith (<=) a (tail a))
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement a x = length(filter (check a) x)
+    where check eq var = (eq == var)
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct a b = sum (zipWith (*) a b)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll f x = map ($ x) f
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave x y= concat (zipWith (arr) x y)
+    where arr x1 y1 = [x1,y1]
 
 main = do
   runTests
