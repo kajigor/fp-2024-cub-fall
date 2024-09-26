@@ -1,9 +1,3 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
-{-# HLINT ignore "Use foldr" #-}
-{-# HLINT ignore "Use map" #-}
-{-# HLINT ignore "Use product" #-}
-{-# HLINT ignore "Use sum" #-}
 module Main where
 
 import Control.Monad (unless)
@@ -11,28 +5,31 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex xs = zipWith (*) xs [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference xs@(x:_:_) = product (zipWith (-) xs (tail xs))
+productOfDifference _          = error "List too short for productOfDifference"
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted xs = and $ zipWith (<=) xs (tail xs)
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement n = length . filter (== n)
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct xs ys = sum $ zipWith (*) xs ys
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll fs x = map ($ x) fs
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave [] _ = []
+interleave _ [] = []
+interleave (x:xs) (y:ys) = x : y : interleave xs ys
 
 main = do
   runTests
@@ -151,13 +148,8 @@ runTests = do
    
     describeFailure :: (Show a, Show b) => String -> a -> b -> b -> IO ()
     describeFailure functionName input exp actual =
-      putStrLn $
-        printf
-          "Test for a function %s has failed:\n  Input: %s\n  Expected: %s\n  But got: %s\n"
-          functionName
-          (show input)
-          (show exp)
-          (show actual)
+      putStrLn $ printf "Test for a function %s has failed:\n  Input: %s\n  Expected: %s\n  But got: %s\n"
+          functionName (show input) (show exp) (show actual)
     
     test1 :: (Show a, Show b, Eq b) => String -> (a -> b) -> a -> b -> IO () 
     test1 functionName f inp exp = 
