@@ -11,28 +11,33 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex xs = zipWith (*) xs [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference [] = error "empty list"
+productOfDifference [_] = error "1 element, no difference to calculate"
+productOfDifference xs = foldl (*) 1 $ zipWith (-) xs (tail xs)
 
 isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted [] = True
+isSorted [_] = True
+isSorted xs = and (zipWith (>=) (tail xs) xs)
+
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
+countElement target xs = sum (map (fromEnum . (== target)) xs)
 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct lhs rhs = sum (zipWith (*) lhs rhs)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll functions arg = map ($ arg) functions 
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave xs ys = concatMap (\(x, y) -> [x, y]) (zip xs ys)
 
 main = do
   runTests
