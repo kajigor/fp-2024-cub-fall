@@ -9,7 +9,6 @@ module Main where
 import Control.Monad (unless)
 import qualified Data.List as L
 import Text.Printf (printf)
-import System.Win32 (COORD(xPos))
 
 multByIndex :: [Int] -> [Int]
 multByIndex = zipWith (*) [0..]
