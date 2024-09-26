@@ -11,28 +11,52 @@ import qualified Data.List as L
 import Text.Printf (printf)
 
 multByIndex :: [Int] -> [Int]
-multByIndex = undefined
+multByIndex [] = []
+multByIndex x = zipWith (*) [0..] x 
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = undefined
+powerByIndex [] = []
+powerByIndex x = zipWith (^) x [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference = undefined
+productOfDifference [] = error "List too short!"
+productOfDifference [_] = error "List too short!"
+productOfDifference x = 
+    let z = zipWith (-) x (drop 1 x)
+    in product z
 
-isSorted :: [Int] -> Bool 
-isSorted xs = undefined
+isSorted :: [Int] -> Bool
+isSorted [] = True
+isSorted [_] = True 
+isSorted xs = 
+    let z = zipWith (<=) xs (drop 1 xs)
+    in all (==True) z 
 
 countElement :: Int -> [Int] -> Int 
-countElement = undefined
-
+countElement _ [] = 0
+countElement x y =
+    let z = filter (==x) y
+    in length z
+ 
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct = undefined
+dotProduct [] [] = 0
+dotProduct x y =
+    let z = zipWith (*) x y
+    in sum z
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll = undefined
+applyAll [] _ = []
+applyAll (x:xs) y = x y : applyAll (xs) y 
 
 interleave :: [a] -> [a] -> [a] 
-interleave = undefined
+interleave xs ys = interleave' (take n xs) (take n ys)
+    where n = min (length xs) (length ys)
+
+interleave' :: [a] -> [a] -> [a]
+interleave' [] [] = []
+interleave' _ [] = []
+interleave' [] _ = []
+interleave' (x:xs) (y:ys) = x : y : interleave' xs ys
 
 main = do
   runTests
