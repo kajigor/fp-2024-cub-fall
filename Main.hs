@@ -16,42 +16,27 @@ multByIndex xs = zipWith (*) xs [0..]
 powerByIndex :: [Int] -> [Int]
 powerByIndex xs = zipWith (^) xs [0..]
 
-prodList [] = 1
-prodList (h:t) = h * prodList t
 
-short :: [a] -> Bool
-short [] = True
-short [_] = True
-short _ = False
 productOfDifference :: [Int] -> Int
 productOfDifference xs
-    | short xs = error "The list is too short"
-    | otherwise = prodList (zipWith (-) xs (tail xs))
+    | null xs = error "The list is empty"
+    | xs == [head xs] = error "The list is too short"
+    | otherwise = foldl (*) 1 (zipWith (-) xs (tail xs))
 
 isSorted :: [Int] -> Bool
 isSorted xs = and (zipWith (<=) xs (tail xs))
 
 countElement :: Int -> [Int] -> Int
-countElement x [] = 0
-countElement x (y:ys)
-    | x == y = 1 + compareNextNumber
-    | otherwise = compareNextNumber
-    where compareNextNumber = countElement x ys
+countElement x = length . filter (x==)
 
-sumList [] = 0
-sumList (h:t) = h + sumList t
 dotProduct :: [Int] -> [Int] -> Int
-dotProduct xs ys = sumList (zipWith (*) xs ys)
+dotProduct xs ys = foldl (+) 0 (zipWith (*) xs ys)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll [] x = []
-applyAll [f] x = [f x]
-applyAll (f:fs) x = f x : applyAll fs x
+applyAll fs x = map (\f -> f x) fs
 
 interleave :: [a] -> [a] -> [a]
-interleave (x:xs) (y:ys) = x : y : interleave xs ys
-interleave xs [] = []
-interleave [] ys = []
+interleave xs ys = concat (zipWith (\x y -> [x,y]) xs ys)
 
 main = do
   runTests
