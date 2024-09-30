@@ -14,12 +14,12 @@ multByIndex :: [Int] -> [Int]
 multByIndex = zipWith (*) [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex xs = zipWith (^) xs [0..]
+powerByIndex = zipWith (flip (^)) [0..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference xs
   | length xs < 2 = error "list too short"
-  | otherwise = product [x - y | (x, y) <- zip xs (tail xs)]
+  | otherwise     = product $ zipWith (-) xs (tail xs)
 
 isSorted :: [Int] -> Bool
 isSorted xs = and $ zipWith (<=) xs (tail xs)
