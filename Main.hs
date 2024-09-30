@@ -14,7 +14,7 @@ multByIndex :: [Int] -> [Int]
 multByIndex = zipWith (*) [0..]
 
 powerByIndex :: [Int] -> [Int]
-powerByIndex = zipWith (^) [1..]
+powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference xs
