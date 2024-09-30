@@ -26,7 +26,7 @@ isSorted :: [Int] -> Bool
 isSorted xs = all (uncurry (<=)) (zip xs (tail xs))
 
 countElement :: Int -> [Int] -> Int
-countElement a = foldl (\cnt x -> if x == a then cnt + 1 else cnt) 0
+countElement x xs = length (filter (== x) xs)
 
 dotProduct :: [Int] -> [Int] -> Int
 dotProduct x y = sum (zipWith (*) x y)
