@@ -9,6 +9,7 @@ module Main where
 import Control.Monad (unless)
 import qualified Data.List as L
 import Text.Printf (printf)
+import Distribution.Compat.Lens (_1)
 
 multByIndex :: [Int] -> [Int]
 multByIndex xs = zipWith (*) xs [0..]
@@ -18,22 +19,21 @@ powerByIndex :: [Int] -> [Int]
 powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
-productOfDifference [] = error "The list is too short"
-productOfDifference [_] = error "The list is too short"
-productOfDifference xs = foldl (*) 1 (zipWith (flip (-)) (tail xs) xs)
+productOfDifference xs@(_:t@(_:_)) = foldl (*) 1 (zipWith (flip (-)) t xs)
+productOfDifference _ = error "The list is too short"
 
 isSorted :: [Int] -> Bool 
 isSorted [] = True
 isSorted xs = and (zipWith (>=) (tail xs) xs)
 
 countElement :: Int -> [Int] -> Int 
-countElement target = foldl (\acc x -> acc + (if x == target then 1 else 0)) 0
+countElement target = length . filter (== target)
 
 dotProduct :: [Int] -> [Int] -> Int 
 dotProduct lhs rhs = foldl (+) 0 (zipWith (*) lhs rhs)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll functions arg = map (\f -> f arg) functions
+applyAll functions arg = map ($ arg) functions  
 
 interleave :: [a] -> [a] -> [a]
 interleave xs ys = foldr (\(x, y) acc -> x : y : acc) [] (zip xs ys)
