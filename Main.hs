@@ -21,7 +21,6 @@ instance Show Expr where
   show (Divide a b) = "(" ++ show a ++ ") / (" ++ show b ++ ")"
   show (Exp a b) = "(" ++ show a ++ ") ^ (" ++ show b ++ ")"
 
-
 instance Eq Expr where
   (==) :: Expr -> Expr -> Bool
   (==) a b = show a == show b
@@ -48,7 +47,6 @@ evalBinaryOperands a b =
       case eval b of
         Left err -> Left err
         Right eval_b -> Right (eval_a, eval_b)
-
 
 eval :: Expr -> Either Error Double
 eval (Number x)= Right x
