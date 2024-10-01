@@ -16,12 +16,11 @@ multByIndex xs = zipWith (*) xs [0..]
 powerByIndex :: [Int] -> [Int]
 powerByIndex xs = zipWith (^) xs [0..]
 
-
 productOfDifference :: [Int] -> Int
-productOfDifference xs
-    | null xs = error "The list is empty"
-    | xs == [head xs] = error "The list is too short"
-    | otherwise = foldl (*) 1 (zipWith (-) xs (tail xs))
+productOfDifference xs = case xs of
+    [] -> error "The list is empty"
+    [_] -> error "The list is too short"
+    _ -> foldl (*) 1 (zipWith (-) xs (tail xs))
 
 isSorted :: [Int] -> Bool
 isSorted xs = and (zipWith (<=) xs (tail xs))
@@ -32,8 +31,10 @@ countElement x = length . filter (x==)
 dotProduct :: [Int] -> [Int] -> Int
 dotProduct xs ys = foldl (+) 0 (zipWith (*) xs ys)
 
+apply :: (a -> b) -> a -> b
+apply f = f
 applyAll :: [a -> b] -> a -> [b]
-applyAll fs x = map (\f -> f x) fs
+applyAll fs x = map (`apply` x) fs --or applyAll fs x = map ($ x) fs
 
 interleave :: [a] -> [a] -> [a]
 interleave xs ys = concat (zipWith (\x y -> [x,y]) xs ys)
