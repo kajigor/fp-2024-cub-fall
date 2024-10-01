@@ -36,18 +36,13 @@ data Error
   = DivisionByZero Expr
   | RootOfNegative Expr
   | ZeroToNegativePower Expr
+  deriving (Eq)
 
 instance Show Error where
   show e = "ERROR! " ++ case e of
     DivisionByZero expr -> "Cannot divide by zero in \"" ++ show expr ++ "\""
     RootOfNegative expr -> "Cannot take a root of a negative number in \"" ++ show expr ++ "\""
     ZeroToNegativePower expr -> "Cannot raise 0 to a negative power in \"" ++ show expr ++ "\""
-
-instance Eq Error where
-  (==) (DivisionByZero exp1) (DivisionByZero exp2) = exp1 == exp2
-  (==) (RootOfNegative exp1) (RootOfNegative exp2) = exp1 == exp2
-  (==) (ZeroToNegativePower exp1) (ZeroToNegativePower exp2) = exp1 == exp2
-  (==) _ _ = False
 
 evalBinaryOperands :: Expr -> Expr -> (Double -> Double -> Double)-> Either Error Double
 evalBinaryOperands a b op =
