@@ -21,42 +21,22 @@ powerByIndex x = zipWith (^) x [0..]
 productOfDifference :: [Int] -> Int
 productOfDifference [] = error "List too short!"
 productOfDifference [_] = error "List too short!"
-productOfDifference x = 
-    let z = zipWith (-) x (drop 1 x)
-    in product z
+productOfDifference x = product $ zipWith (-) x (drop 1 x)
 
 isSorted :: [Int] -> Bool
-isSorted [] = True
-isSorted [_] = True 
-isSorted xs = 
-    let z = zipWith (<=) xs (drop 1 xs)
-    in all (==True) z 
+isSorted xs = all (==True) $ zipWith (<=) xs (drop 1 xs)
 
 countElement :: Int -> [Int] -> Int 
-countElement _ [] = 0
-countElement x y =
-    let z = filter (==x) y
-    in length z
+countElement x y = length $ filter (==x) y
  
 dotProduct :: [Int] -> [Int] -> Int 
-dotProduct [] [] = 0
-dotProduct x y =
-    let z = zipWith (*) x y
-    in sum z
+dotProduct x y = sum $ zipWith (*) x y
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll [] _ = []
-applyAll (x:xs) y = x y : applyAll (xs) y 
+applyAll xs y = map ($ y) xs
 
 interleave :: [a] -> [a] -> [a] 
-interleave xs ys = interleave' (take n xs) (take n ys)
-    where n = min (length xs) (length ys)
-
-interleave' :: [a] -> [a] -> [a]
-interleave' [] [] = []
-interleave' _ [] = []
-interleave' [] _ = []
-interleave' (x:xs) (y:ys) = x : y : interleave' xs ys
+interleave xs ys = concatMap (\(x, y) -> [x, y]) (zip xs ys)
 
 main = do
   runTests
