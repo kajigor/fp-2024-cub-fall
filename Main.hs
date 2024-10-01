@@ -23,7 +23,14 @@ instance Show Expr where
 
 instance Eq Expr where
   (==) :: Expr -> Expr -> Bool
-  (==) a b = eval a == eval b
+  (==) (Number a) (Number b) = a == b
+  (==) (Sqrt a) (Sqrt b) = a == b
+  (==) (Plus a b) (Plus c d) = a == c && b == d
+  (==) (Minus a b) (Minus c d) = a == c && b == d
+  (==) (Prod a b) (Prod c d) = a == c && b == d
+  (==) (Divide a b) (Divide c d) = a == c && b == d
+  (==) (Exp a b) (Exp c d) = a == c && b == d
+  (==) _ _ = False
 
 data Error
   = DivisionByZero Expr
@@ -37,9 +44,9 @@ instance Show Error where
     ZeroToNegativePower expr -> "Cannot raise 0 to a negative power in \"" ++ show expr ++ "\""
 
 instance Eq Error where
-  (==) (DivisionByZero _) (DivisionByZero _) = True
-  (==) (RootOfNegative _) (RootOfNegative _) = True
-  (==) (ZeroToNegativePower _) (ZeroToNegativePower _) = True
+  (==) (DivisionByZero exp1) (DivisionByZero exp2) = exp1 == exp2
+  (==) (RootOfNegative exp1) (RootOfNegative exp2) = exp1 == exp2
+  (==) (ZeroToNegativePower exp1) (ZeroToNegativePower exp2) = exp1 == exp2
   (==) _ _ = False
 
 evalBinaryOperands :: Expr -> Expr -> (Double -> Double -> Double)-> Either Error Double
@@ -59,30 +66,21 @@ eval expr@(Sqrt x) =
   Right eval_x
       | eval_x >= 0 -> Right (sqrt eval_x)
       | otherwise -> Left (RootOfNegative expr)
-eval (Plus a b) =
-  case evalBinaryOperands a b (+) of 
-    Left err -> Left err
-    Right res -> Right res
-eval (Minus a b) =
-  case evalBinaryOperands a b (-) of 
-    Left err -> Left err
-    Right res -> Right res
-eval (Prod a b) =
-  case evalBinaryOperands a b (*) of 
-    Left err -> Left err
-    Right res -> Right res
+eval (Plus a b) = evalBinaryOperands a b (+)
+eval (Minus a b) = evalBinaryOperands a b (-)
+eval (Prod a b) = evalBinaryOperands a b (*)
 eval expr@(Divide a b) =
   case evalBinaryOperands a b (/) of 
     Left err -> Left err
     Right res
-      | res == 1 / 0 -> Left (DivisionByZero expr)
+      | isInfinite res -> Left (DivisionByZero expr)
       | otherwise -> Right res
 eval expr@(Exp a b) =
   case evalBinaryOperands a b (**) of 
     Left err -> Left err
     Right res
       | isNaN res -> Left (RootOfNegative expr)
-      | res == 1 / 0 -> Left (ZeroToNegativePower expr)
+      | isInfinite res -> Left (ZeroToNegativePower expr)
       | otherwise -> Right res
 
 cases :: [(Expr, Either Error Double)]
