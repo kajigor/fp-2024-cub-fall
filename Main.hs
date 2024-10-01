@@ -32,19 +32,16 @@ instance Eq Expr where
   _ == _ = False
 
 data Error
-  = DivByZero
-  | NegativeSqrtNum
-  | OtherError String 
+  = DivByZero Expr Expr
+  | NegativeSqrtNum Expr
 
 instance Show Error where
-  show DivByZero = "Division by zero error"
-  show NegativeSqrtNum = "Cannot take square root of negative number"
-  show (OtherError s) = "Error: " ++ s
+  show (DivByZero a b) = "Division by zero error: " ++ show a ++ "/" ++ show b
+  show (NegativeSqrtNum s) = "Cannot take square root of negative number" ++ show s
 
 instance Eq Error where
-  DivByZero == DivByZero = True
-  NegativeSqrtNum == NegativeSqrtNum = True
-  OtherError s == OtherError t = s == t
+  DivByZero _ _== DivByZero _ _ = True
+  NegativeSqrtNum _ == NegativeSqrtNum _ = True
   _ == _ = False
 
 evalHelper :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
@@ -68,7 +65,7 @@ eval (PowerExpr a b) = evalHelper (**) a b
 eval (DivExpr a b) = 
     case (eval a, eval b) of
         (Right a, Right b) 
-            | b == 0 -> Left DivByZero
+            | b == 0 -> Left (DivByZero (NumExpr a) (NumExpr b))
             | otherwise -> Right (a / b)
         (Left err, _) -> Left err
         (_, Left err) -> Left err
@@ -77,7 +74,7 @@ eval (SqrtExpr x) =
     case eval x of
         Right x 
           | x >= 0 -> Right (sqrt x)
-          | otherwise -> Left NegativeSqrtNum
+          | otherwise -> Left (NegativeSqrtNum (NumExpr x))
         Left err -> Left err
 
 cases :: [(Expr, Either Error Double)]
@@ -87,9 +84,9 @@ cases =
   , (SubExpr (NumExpr 10) (NumExpr 4), Right 6)
   , (MulExpr (NumExpr 2) (NumExpr 5), Right 10)
   , (DivExpr (NumExpr 10) (NumExpr 2), Right 5)
-  , (DivExpr (NumExpr 10) (NumExpr 0), Left DivByZero)
+  , (DivExpr (NumExpr 10) (NumExpr 0), Left (DivByZero (NumExpr 10) (NumExpr 0)))
   , (SqrtExpr (NumExpr 9), Right 3)
-  , (SqrtExpr (NumExpr (-9)), Left NegativeSqrtNum)
+  , (SqrtExpr (NumExpr (-9)), Left (NegativeSqrtNum (NumExpr (-9))))
   , (PowerExpr (NumExpr 2) (NumExpr 3), Right 8)
   , (AddExpr (MulExpr (NumExpr 2) (NumExpr 3)) (NumExpr 4), Right 10)
   ]
