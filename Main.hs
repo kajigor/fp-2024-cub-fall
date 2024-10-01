@@ -23,69 +23,67 @@ instance Show Expr where
 
 instance Eq Expr where
   (==) :: Expr -> Expr -> Bool
-  (==) a b = show a == show b
+  (==) a b = eval a == eval b
 
 data Error
   = DivisionByZero Expr
   | RootOfNegative Expr
+  | ZeroToNegativePower Expr
 
 instance Show Error where
   show e = "ERROR! " ++ case e of
     DivisionByZero expr -> "Cannot divide by zero in \"" ++ show expr ++ "\""
     RootOfNegative expr -> "Cannot take a root of a negative number in \"" ++ show expr ++ "\""
+    ZeroToNegativePower expr -> "Cannot raise 0 to a negative power in \"" ++ show expr ++ "\""
 
 instance Eq Error where
-  (==) (DivisionByZero exp1) (DivisionByZero exp2) = exp1 == exp2
-  (==) (RootOfNegative exp1) (RootOfNegative exp2) = exp1 == exp2
+  (==) (DivisionByZero _) (DivisionByZero _) = True
+  (==) (RootOfNegative _) (RootOfNegative _) = True
+  (==) (ZeroToNegativePower _) (ZeroToNegativePower _) = True
   (==) _ _ = False
 
-evalBinaryOperands :: Expr -> Expr -> Either Error (Double, Double)
-evalBinaryOperands a b =
+evalBinaryOperands :: Expr -> Expr -> (Double -> Double -> Double)-> Either Error Double
+evalBinaryOperands a b op =
   case eval a of
     Left err -> Left err
     Right eval_a ->
       case eval b of
         Left err -> Left err
-        Right eval_b -> Right (eval_a, eval_b)
+        Right eval_b -> Right (op eval_a eval_b)
 
 eval :: Expr -> Either Error Double
 eval (Number x)= Right x
 eval expr@(Sqrt x) =
   case eval x of
   Left err -> Left err
-  Right eval_x ->
-    if eval_x >= 0
-      then Right (sqrt eval_x)
-      else Left (RootOfNegative expr)
+  Right eval_x
+      | eval_x >= 0 -> Right (sqrt eval_x)
+      | otherwise -> Left (RootOfNegative expr)
 eval (Plus a b) =
-  case evalBinaryOperands a b of 
+  case evalBinaryOperands a b (+) of 
     Left err -> Left err
-    Right (left, right) -> Right (left + right)
+    Right res -> Right res
 eval (Minus a b) =
-  case evalBinaryOperands a b of 
+  case evalBinaryOperands a b (-) of 
     Left err -> Left err
-    Right (left, right) -> Right (left - right)
+    Right res -> Right res
 eval (Prod a b) =
-  case evalBinaryOperands a b of 
+  case evalBinaryOperands a b (*) of 
     Left err -> Left err
-    Right (left, right) -> Right (left * right)
+    Right res -> Right res
 eval expr@(Divide a b) =
-  case evalBinaryOperands a b of 
+  case evalBinaryOperands a b (/) of 
     Left err -> Left err
-    Right (left, right) -> 
-      if right == 0 
-        then Left (DivisionByZero expr) 
-        else Right (left / right)
+    Right res
+      | res == 1 / 0 -> Left (DivisionByZero expr)
+      | otherwise -> Right res
 eval expr@(Exp a b) =
-  case evalBinaryOperands a b of 
+  case evalBinaryOperands a b (**) of 
     Left err -> Left err
-    Right (left, right) -> 
-      let isWholeNumber x = x == fromIntegral (round x) in
-      if left == 0 && right < 0 
-        then Left (DivisionByZero expr) 
-      else if left < 0 && not (isWholeNumber right)
-        then Left (RootOfNegative expr)
-        else Right (left ** right)
+    Right res
+      | isNaN res -> Left (RootOfNegative expr)
+      | res == 1 / 0 -> Left (ZeroToNegativePower expr)
+      | otherwise -> Right res
 
 cases :: [(Expr, Either Error Double)]
 cases = [
@@ -105,12 +103,14 @@ cases = [
   -- Test errors
   (testNegativeSquareRoot, Left (RootOfNegative testNegativeSquareRoot)),
   (testDivideByZero, Left (DivisionByZero testDivideByZero)),
-  (testNegativeRoot, Left (RootOfNegative testNegativeRoot))
+  (testNegativeRoot, Left (RootOfNegative testNegativeRoot)),
+  (testZeroToNegative, Left (ZeroToNegativePower testZeroToNegative))
   ] 
   where
     testNegativeSquareRoot = Sqrt (Prod (Number (-3)) (Number 44))
     testDivideByZero = Divide (Number 5) (Minus (Number 4) (Number 4))
     testNegativeRoot = Exp (Number (-1)) (Divide (Number 1) (Number 2))
+    testZeroToNegative = Exp (Number 0) (Minus (Number 0) (Number 10))
 
 test :: Expr -> Either Error Double -> IO ()
 test expr expected =
