@@ -4,26 +4,100 @@ import Control.Monad (unless)
 import Text.Printf (printf)
 
 data Expr
+  = NumExpr Double
+  | SqrtExpr Expr
+  | AddExpr Expr Expr
+  | SubExpr Expr Expr
+  | MulExpr Expr Expr
+  | DivExpr Expr Expr
+  | PowerExpr Expr Expr
 
 instance Show Expr where
-  show = undefined
+  show (NumExpr a) = show a
+  show (SqrtExpr a) = "(" ++ show a ++ ")"
+  show (AddExpr a b) = "(" ++ show a ++ "+" ++ show b ++ ")"
+  show (SubExpr a b) = "(" ++ show a ++ "-" ++ show b ++ ")"
+  show (MulExpr a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
+  show (DivExpr a b) = "(" ++ show a ++ "/" ++ show b ++ ")"
+  show (PowerExpr a b) = "(" ++ show a ++ "^" ++ show b ++ ")"
 
 instance Eq Expr where
-  (==) = undefined
+  NumExpr a == NumExpr b = a == b
+  SqrtExpr a == SqrtExpr b = a == b
+  AddExpr a b == AddExpr c d = (a==c) && (b==d)
+  SubExpr a b == SubExpr c d = (a==c) && (b==d)
+  MulExpr a b == MulExpr c d = (a==c) && (b==d)
+  DivExpr a b == DivExpr c d = (a==c) && (b==d)
+  PowerExpr a b == PowerExpr c d = (a==c) && (b==d)
+  _ == _ = False
 
 data Error
+  = DivByZero
+  | NegativeSqrtNum
 
 instance Show Error where
-  show = undefined
+  show DivByZero = "Division by zero error"
+  show (NegativeSqrtNum) = "Cannot take square root of negative number"
 
 instance Eq Error where
-  (==) = undefined
+  DivByZero == DivByZero = True
+  NegativeSqrtNum == NegativeSqrtNum = True
+  _ == _ = False
 
 eval :: Expr -> Either Error Double
-eval = undefined
+eval (NumExpr x) = Right x
+eval (SqrtExpr x) = 
+    case eval x of
+        Right x 
+          | x >= 0 -> Right (sqrt x)
+          | otherwise -> Left NegativeSqrtNum
+        Left err -> Left err
+
+eval (AddExpr a b) = 
+    case (eval a, eval b) of
+        (Right a, Right b) -> Right (a + b)
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
+
+eval (SubExpr a b) = 
+    case (eval a, eval b) of
+        (Right a, Right b) -> Right (a - b)
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
+
+eval (MulExpr a b) = 
+    case (eval a, eval b) of
+        (Right a, Right b) -> Right (a * b)
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
+
+eval (DivExpr a b) = 
+    case (eval a, eval b) of
+        (Right a, Right b) 
+            | b == 0 -> Left DivByZero
+            | otherwise -> Right (a / b)
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
+
+eval (PowerExpr a b) = 
+    case (eval a, eval b) of
+        (Right a, Right b) -> Right (a ** b)
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
 
 cases :: [(Expr, Either Error Double)]
-cases = undefined
+cases = 
+  [ (NumExpr 5, Right 5)
+  , (AddExpr (NumExpr 2) (NumExpr 4), Right 6)
+  , (SubExpr (NumExpr 10) (NumExpr 4), Right 6)
+  , (MulExpr (NumExpr 2) (NumExpr 5), Right 10)
+  , (DivExpr (NumExpr 10) (NumExpr 2), Right 5)
+  , (DivExpr (NumExpr 10) (NumExpr 0), Left DivByZero)
+  , (SqrtExpr (NumExpr 9), Right 3)
+  , (SqrtExpr (NumExpr (-9)), Left NegativeSqrtNum)
+  , (PowerExpr (NumExpr 2) (NumExpr 3), Right 8)
+  , (AddExpr (MulExpr (NumExpr 2) (NumExpr 3)) (NumExpr 4), Right 10)
+  ]
 
 test :: Expr -> Either Error Double -> IO ()
 test expr expected =
@@ -36,4 +110,4 @@ test expr expected =
 main :: IO ()
 main = do
   mapM_ (uncurry test) cases
-  putStrLn "Done" 
+  putStrLn "Done"
