@@ -37,8 +37,8 @@ dotProduct :: [Int] -> [Int] -> Int
 dotProduct x y = foldl (+) 0 (zipWith (*) x y)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll xs x =  map (\f -> f x) xs
-
+applyAll xs x =  map (\f -> f x) xs 
+--         or = map ($ x) xs or 
 interleave :: [a] -> [a] -> [a] 
 interleave xs ys = concat (zipWith (\x y -> [x, y]) xs ys)
 
