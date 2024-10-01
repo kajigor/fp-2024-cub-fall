@@ -89,7 +89,7 @@ cases =
   , (SqrtExpr (NumExpr (-9)), Left (NegativeSqrtNum (NumExpr (-9))))
   , (PowerExpr (NumExpr 2) (NumExpr 3), Right 8)
   , (AddExpr (MulExpr (NumExpr 2) (NumExpr 3)) (NumExpr 4), Right 10)
-  , (DivExpr (NumExpr 10) (NumExpr (1 - 1)), Left (DivByZero (NumExpr 10) (NumExpr (1 - 1))))
+  , (DivExpr (NumExpr 10) (SubExpr (NumExpr 1) (NumExpr 1)), Left (DivByZero (NumExpr 10) (SubExpr (NumExpr 1) (NumExpr 1))))
   ]
 
 test :: Expr -> Either Error Double -> IO ()
