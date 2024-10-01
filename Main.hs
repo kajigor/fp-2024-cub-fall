@@ -24,52 +24,46 @@ instance Show Expr where
 instance Eq Expr where
   NumExpr a == NumExpr b = a == b
   SqrtExpr a == SqrtExpr b = a == b
-  AddExpr a b == AddExpr c d = (a==c) && (b==d)
-  SubExpr a b == SubExpr c d = (a==c) && (b==d)
-  MulExpr a b == MulExpr c d = (a==c) && (b==d)
-  DivExpr a b == DivExpr c d = (a==c) && (b==d)
-  PowerExpr a b == PowerExpr c d = (a==c) && (b==d)
+  AddExpr a b == AddExpr c d = a==c && b==d
+  SubExpr a b == SubExpr c d = a==c && b==d
+  MulExpr a b == MulExpr c d = a==c && b==d
+  DivExpr a b == DivExpr c d = a==c && b==d
+  PowerExpr a b == PowerExpr c d = a==c && b==d
   _ == _ = False
 
 data Error
   = DivByZero
   | NegativeSqrtNum
+  | OtherError String 
 
 instance Show Error where
   show DivByZero = "Division by zero error"
-  show (NegativeSqrtNum) = "Cannot take square root of negative number"
+  show NegativeSqrtNum = "Cannot take square root of negative number"
+  show (OtherError s) = "Error: " ++ s
 
 instance Eq Error where
   DivByZero == DivByZero = True
   NegativeSqrtNum == NegativeSqrtNum = True
+  OtherError s == OtherError t = s == t
   _ == _ = False
+
+evalHelper :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
+evalHelper op a b = 
+    case (eval a, eval b) of
+        (Right aVal, Right bVal) -> Right (aVal `op` bVal)
+        (Left err, _) -> Left err
+        (_, Left err) -> Left err
 
 eval :: Expr -> Either Error Double
 eval (NumExpr x) = Right x
-eval (SqrtExpr x) = 
-    case eval x of
-        Right x 
-          | x >= 0 -> Right (sqrt x)
-          | otherwise -> Left NegativeSqrtNum
-        Left err -> Left err
 
-eval (AddExpr a b) = 
-    case (eval a, eval b) of
-        (Right a, Right b) -> Right (a + b)
-        (Left err, _) -> Left err
-        (_, Left err) -> Left err
+eval (AddExpr a b) = evalHelper (+) a b
 
-eval (SubExpr a b) = 
-    case (eval a, eval b) of
-        (Right a, Right b) -> Right (a - b)
-        (Left err, _) -> Left err
-        (_, Left err) -> Left err
+eval (SubExpr a b) = evalHelper (-) a b
 
-eval (MulExpr a b) = 
-    case (eval a, eval b) of
-        (Right a, Right b) -> Right (a * b)
-        (Left err, _) -> Left err
-        (_, Left err) -> Left err
+eval (MulExpr a b) = evalHelper (*) a b
+
+eval (PowerExpr a b) = evalHelper (**) a b
 
 eval (DivExpr a b) = 
     case (eval a, eval b) of
@@ -79,11 +73,12 @@ eval (DivExpr a b) =
         (Left err, _) -> Left err
         (_, Left err) -> Left err
 
-eval (PowerExpr a b) = 
-    case (eval a, eval b) of
-        (Right a, Right b) -> Right (a ** b)
-        (Left err, _) -> Left err
-        (_, Left err) -> Left err
+eval (SqrtExpr x) = 
+    case eval x of
+        Right x 
+          | x >= 0 -> Right (sqrt x)
+          | otherwise -> Left NegativeSqrtNum
+        Left err -> Left err
 
 cases :: [(Expr, Either Error Double)]
 cases = 
