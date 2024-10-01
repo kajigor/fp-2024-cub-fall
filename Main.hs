@@ -114,7 +114,7 @@ cases = [
 
 test :: Expr -> Either Error Double -> IO ()
 test expr expected =
-    let actual = eval expr in
+    let actual = eval expr in 
     unless (expected == actual) $ describeFailure actual
   where
     describeFailure actual =
