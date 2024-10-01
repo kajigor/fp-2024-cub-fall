@@ -10,6 +10,9 @@ import Control.Monad (unless)
 import qualified Data.List as L
 import Text.Printf (printf)
 
+short:: [a] -> Bool
+short xs = length (take 2 xs) < 2 
+
 multByIndex :: [Int] -> [Int]
 multByIndex xs = zipWith (*) xs [0..]
 
@@ -18,12 +21,12 @@ powerByIndex xs = zipWith (^) xs [0..]
 
 productOfDifference :: [Int] -> Int
 productOfDifference xs
-  | length (take 3 xs) < 2 = error "undefined"
+  | short xs = error "undefined"
   | otherwise = foldl (*) 1 (zipWith (-) xs (drop 1 xs))
                             
 isSorted :: [Int] -> Bool 
 isSorted xs
-  | length (take 2 xs)  < 2 = True
+  | short xs = True
   | otherwise = foldl (\y (a,b) ->  y && (b >= a)) True (zip xs (tail xs))
           
 
@@ -34,7 +37,7 @@ dotProduct :: [Int] -> [Int] -> Int
 dotProduct x y = foldl (+) 0 (zipWith (*) x y)
 
 applyAll :: [a -> b] -> a -> [b]
-applyAll xs x =  zipWith (\f a -> f a) xs (repeat x)
+applyAll xs x =  map (\f -> f x) xs
 
 interleave :: [a] -> [a] -> [a] 
 interleave xs ys = concat (zipWith (\x y -> [x, y]) xs ys)
