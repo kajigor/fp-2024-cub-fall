@@ -24,8 +24,7 @@ isSorted :: [Int] -> Bool
 isSorted a = and (zipWith (<=) a (tail a))
 
 countElement :: Int -> [Int] -> Int 
-countElement a x = length(filter (check a) x)
-    where check eq var = (eq == var)
+countElement a x = length(filter (==a) x) 
 
 dotProduct :: [Int] -> [Int] -> Int 
 dotProduct a b = sum (zipWith (*) a b)
