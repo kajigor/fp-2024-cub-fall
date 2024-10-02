@@ -11,6 +11,7 @@ data Expr
   | Prod Expr Expr
   | Divide Expr Expr
   | Exp Expr Expr
+  deriving Eq
 
 instance Show Expr where
   show (Number x) = show x
@@ -21,22 +22,11 @@ instance Show Expr where
   show (Divide a b) = "(" ++ show a ++ ") / (" ++ show b ++ ")"
   show (Exp a b) = "(" ++ show a ++ ") ^ (" ++ show b ++ ")"
 
-instance Eq Expr where
-  (==) :: Expr -> Expr -> Bool
-  (==) (Number a) (Number b) = a == b
-  (==) (Sqrt a) (Sqrt b) = a == b
-  (==) (Plus a b) (Plus c d) = a == c && b == d
-  (==) (Minus a b) (Minus c d) = a == c && b == d
-  (==) (Prod a b) (Prod c d) = a == c && b == d
-  (==) (Divide a b) (Divide c d) = a == c && b == d
-  (==) (Exp a b) (Exp c d) = a == c && b == d
-  (==) _ _ = False
-
 data Error
   = DivisionByZero Expr
   | RootOfNegative Expr
   | ZeroToNegativePower Expr
-  deriving (Eq)
+  deriving Eq
 
 instance Show Error where
   show e = "ERROR! " ++ case e of
