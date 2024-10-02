@@ -22,9 +22,9 @@ instance Show Expr where
   show (Div e1 e2) = "(" ++ (show e1) ++ ") / (" ++ (show e2) ++ ")"
   show (Pow e1 e2) = "(" ++ (show e1) ++ ") ^ (" ++ (show e2) ++ ")"
 
-data SimpleError = NegSqrt Double 
-                | DivByZero
-                | ZeroNonPositivePow Double
+data SimpleError = DivByZero
+                 | ZeroNonPositivePow Double
+                 | NegNonNaturalPow Double Double
   deriving Eq
 data Error = Error SimpleError Expr
   deriving Eq
@@ -32,9 +32,9 @@ data Error = Error SimpleError Expr
 instance Show Error where
   show (Error simpleError expr) = (errorMsg simpleError) ++
                  " (while evaluating the expression " ++ (show expr) ++ ")"
-    where errorMsg (NegSqrt x) = "error: cannot take sqrt of negative number " ++ show x
-          errorMsg DivByZero = "error: division by zero"
+    where errorMsg DivByZero = "error: division by zero"
           errorMsg (ZeroNonPositivePow x) = "error: raising 0 to non-positive power " ++ show x
+          errorMsg (NegNonNaturalPow x y) = "error: raising negative (" ++ show x ++ ") to non-natural power " ++ show y
 
 addContext :: Expr -> (Double -> Double -> Either SimpleError Double) -> Double -> Double -> Either Error Double
 addContext expr f x y = either (\res -> Left $ Error res expr) Right (f x y)
@@ -45,23 +45,20 @@ evalBinary f (Left e) _ = Left e
 evalBinary f (Right x) (Right y) = f x y
 
 wrap :: (Double -> Double -> Double) -> Double -> Double -> Either Error Double
-wrap f x y = Right (f x y)
+wrap f x y = Right $ f x y
 
 safeDiv :: Double -> Double -> Either SimpleError Double
 safeDiv x y | y == 0 = Left DivByZero
-            | otherwise = Right (x / y)
+            | otherwise = Right $ x / y
 
 safePow :: Double -> Double -> Either SimpleError Double
 safePow x y | (x == 0 && y <= 0) = Left $ ZeroNonPositivePow y
+            | (x < 0 && (y < 0 || y /= fromIntegral (floor y))) = Left $ NegNonNaturalPow x y
             | otherwise = Right $ x ** y
-
-safeSqrt :: Double -> Double -> Either SimpleError Double
-safeSqrt x _ | x < 0 = Left $ NegSqrt x
-             | otherwise = Right $ sqrt x
 
 eval :: Expr -> Either Error Double
 eval (Number x) = Right x
-eval expr@(Sqrt x) = evalBinary (addContext expr safeSqrt) (eval x) (Right 0)
+eval expr@(Sqrt x) = evalBinary (addContext expr safePow) (eval x) (Right 0.5)
 eval (Plus x y) = evalBinary (wrap (+)) (eval x) (eval y)
 eval (Minus x y) = evalBinary (wrap (-)) (eval x) (eval y)
 eval (Mult x y) = evalBinary (wrap (*)) (eval x) (eval y)
@@ -80,7 +77,7 @@ cases = [
   (Pow (Number 6.0) (Number 4.0), Right 1296),
 
   -- Errors
-  (Sqrt (Number (-1)), Left $ Error (NegSqrt (-1)) (Sqrt (Number (-1)))),
+  (Sqrt (Number (-1)), Left $ Error (NegNonNaturalPow (-1) 0.5) (Sqrt (Number (-1)))),
   (Div (Number 5) (Number 0), Left $ Error DivByZero (Div (Number 5) (Number 0))),
   (Pow (Number 0) (Number (-1)), Left $ Error (ZeroNonPositivePow (-1)) (Pow (Number 0) (Number (-1)))),
   (Pow (Number 0) (Number 0), Left $ Error (ZeroNonPositivePow 0) (Pow (Number 0) (Number 0))),
