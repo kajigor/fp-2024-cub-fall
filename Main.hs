@@ -39,41 +39,32 @@ data Error
   | SqrtOfNegNumber Expr
 
 instance Show Error where
-  show (DivisionByZero a b) = printf "Error: tried to do devision by zero: %s / %s" (show a) (show b)
+  show (DivisionByZero a b) = printf "Error: tried to do division by zero: %s / %s" (show a) (show b)
   show (SqrtOfNegNumber a) = printf "Error: tried to find the square root of a negative number: sqrt %s" (show a)
 
 instance Eq Error where
-  DivisionByZero _ _ == DivisionByZero _ _ = True
-  SqrtOfNegNumber _ == SqrtOfNegNumber _ = True
+  DivisionByZero a _ == DivisionByZero b _ = a == b
+  SqrtOfNegNumber a == SqrtOfNegNumber b = a == b
   _ == _ = False
+
+helper :: (Double -> Double -> Either Error Double) -> Expr -> Expr -> Either Error Double
+helper op a b = do
+  val1 <- eval a
+  val2 <- eval b
+  op val1 val2
 
 eval :: Expr -> Either Error Double
 eval (Num a) = Right a
 eval (Sqrt a) = do
   val <- eval a
   if val >= 0 then Right (sqrt val) else Left (SqrtOfNegNumber a)
-eval (Minus a b) = do
-  val1 <- eval a
-  val2 <- eval b
-  Right (val1 - val2)
-eval (Plus a b) = do
-  val1 <- eval a
-  val2 <- eval b
-  Right (val1 + val2)
-eval (Multi a b) = do
-  val1 <- eval a
-  val2 <- eval b
-  Right (val1 * val2)
-eval (Div a b) = do
-  val1 <- eval a
-  val2 <- eval b
-  if val2 == 0
-    then Left (DivisionByZero a b)
-    else Right (val1 / val2)
-eval (Power a b) = do
-  val1 <- eval a
-  val2 <- eval b
-  Right (val1 ** val2)
+eval (Minus a b) = helper (\x y -> Right (x - y)) a b
+eval (Plus a b) = helper (\x y -> Right (x + y)) a b
+eval (Multi a b) = helper (\x y -> Right (x * y)) a b
+eval (Div a b) = helper op a b
+  where
+    op x y = if y == 0 then Left (DivisionByZero a (Num y)) else Right (x / y)
+eval (Power a b) = helper (\x y -> Right (x ** y)) a b
 
 cases :: [(Expr, Either Error Double)]
 cases =
