@@ -47,7 +47,7 @@ eval (Sqrt x) = case eval x of
 eval (Divide x y) = do
   valY <- eval y
   case valY of
-    0 -> Left (DivisionByZero y)
+    0 -> Left (DivisionByZero (Divide x y))
     _ -> evalBinary (/) x y
 eval (Add x y)      = evalBinary (+)  x y
 eval (Subtract x y) = evalBinary (-)  x y
