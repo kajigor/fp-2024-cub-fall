@@ -11,6 +11,7 @@ data Expr
   | Multiply Expr Expr
   | Divide   Expr Expr
   | Power    Expr Expr
+  deriving (Eq)
 
 instance Show Expr where
   show (Number x)     = show x
@@ -21,28 +22,14 @@ instance Show Expr where
   show (Divide x y)   = "(" ++ show x ++ " / " ++ show y ++ ")"
   show (Power x y)    = "(" ++ show x ++ " ^ " ++ show y ++ ")"
 
-instance Eq Expr where
-  (Number x)       == (Number y)       = x == y
-  (Sqrt x)         == (Sqrt y)         = x == y
-  (Add x1 y1)      == (Add x2 y2)      = x1 == x2 && y1 == y2
-  (Subtract x1 y1) == (Subtract x2 y2) = x1 == x2 && y1 == y2
-  (Multiply x1 y1) == (Multiply x2 y2) = x1 == x2 && y1 == y2
-  (Divide x1 y1)   == (Divide x2 y2)   = x1 == x2 && y1 == y2
-  (Power x1 y1)    == (Power x2 y2)    = x1 == x2 && y1 == y2
-  _ == _ = False
-
 data Error
   = NegativeSqrt Expr
   | DivisionByZero Expr
+  deriving (Eq)
 
 instance Show Error where
   show (NegativeSqrt expr)   = "Error: Square root of a negative number: \"" ++ show expr ++ "\""
   show (DivisionByZero expr) = "Error: Division by zero: \"" ++ show expr ++ "\""
-
-instance Eq Error where
-  (NegativeSqrt _)   == (NegativeSqrt _) = True
-  (DivisionByZero _) == (DivisionByZero _) = True
-  _ == _ = False
 
 evalBinary :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
 evalBinary op x y = do
