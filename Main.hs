@@ -10,73 +10,77 @@ data Expr
   | Sub Expr Expr       
   | Mul Expr Expr       
   | Div Expr Expr       
-  | Pow Expr Expr                 
+  | Pow Expr Expr                
 
 instance Show Expr where
-  show (Num a) = printf "%s" (show a)
-  show (Sqrt a) = printf ("Square root of %s") (show a) 
-  show (Add a b) = printf ("%s + %s") (show a) (show b)
-  show (Sub a b) = printf ("%s - %s") (show a) (show b)
-  show (Mul a b) = printf ("%s * %s") (show a) (show b)
-  show (Div a b) = printf ("%s / %s") (show a) (show b)
-  show (Pow a b) = printf ("%s ^ %s") (show a) (show b)
+  show (Num a) = show a
+  show (Sqrt a) = printf "sqrt(%s)" (show a)
+  show (Add a b) = printf "(%s + %s)" (show a) (show b)
+  show (Sub a b) = printf "(%s - %s)" (show a) (show b)
+  show (Mul a b) = printf "(%s * %s)" (show a) (show b)
+  show (Div a b) = printf "(%s / %s)" (show a) (show b)
+  show (Pow a b) = printf "(%s ^ %s)" (show a) (show b)
 
 instance Eq Expr where
   Num a == Num b = a == b
   Sqrt a == Sqrt b = a == b
+  Add a b == Add c d = a == c && b == d
+  Sub a b == Sub c d = a == c && b == d
+  Mul a b == Mul c d = a == c && b == d
+  Div a b == Div c d = a == c && b == d
+  Pow a b == Pow c d = a == c && b == d
   _ == _ = False 
 
-data Error = DivByZero | NegativeSqrt
+data Error = DivByZero Expr Expr
+            | NegativeSqrt Expr
 
 instance Show Error where
-  show (DivByZero) = printf "Cannot divide by zero" 
-  show (NegativeSqrt) = printf "Cannot take the square root of a negative number"
+  show (DivByZero a b ) = printf "Cannot divide %s by %s" (show a) (show b)
+  show (NegativeSqrt a ) = printf "Cannot take the square root of a negative number: %s" (show a)
 
 instance Eq Error where
-  DivByZero == DivByZero = True
-  NegativeSqrt == NegativeSqrt = True
+  DivByZero _ _ == DivByZero _ _ = True
+  NegativeSqrt _ == NegativeSqrt _ = True
   _ == _ = False
 
+evalBinary :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
+evalBinary op x y = do
+    ex <- eval x
+    ey <- eval y
+    return (ex `op` ey)
+
 eval :: Expr -> Either Error Double
-eval (Num x) = Right x
-eval (Add x y) = do
-    ex <- eval x
-    ey <- eval y
-    return (ex + ey)
-eval (Sub x y) = do
-    ex <- eval x
-    ey <- eval y
-    return (ex - ey)
-eval (Mul x y) = do
-    ex <- eval x
-    ey <- eval y
-    return (ex * ey)
-eval (Div x y) = do
+eval (Num x)     = Right x
+eval (Add x y)   = evalBinary (+) x y
+eval (Sub x y)   = evalBinary (-) x y
+eval (Mul x y)   = evalBinary (*) x y
+eval (Div x y)   = do
     ex <- eval x
     ey <- eval y
     if ey == 0
-        then Left DivByZero
+        then Left ( DivByZero x y )
         else return (ex / ey)
-eval (Pow x y) = do
-    ex <- eval x
-    ey <- eval y
-    return (ex ** ey)
-eval (Sqrt x) = do
+eval (Pow x y)   = evalBinary (**) x y
+eval (Sqrt x)    = do
     ex <- eval x
     if ex < 0
-        then Left NegativeSqrt
+        then Left ( NegativeSqrt x )
         else return (sqrt ex)
 
-
-
 cases :: [(Expr, Either Error Double)]
-cases = [   ( Add (Num 2.0) (Num 3.0), Right 5.0 )
-          , ( Sqrt (Num 16.0), Right 4.0 )
-          , ( Sub (Num 10.0) (Num 7.0), Right 3.0 )
-          , ( Div (Num 2.0) (Num 0.0), Left DivByZero )
-          , ( Sqrt (Num (-16.0)), Left NegativeSqrt )
+cases = [   (Num 5, Right 5.0),
+            (Add (Num 2) (Num 3), Right 5.0),
+            (Sub (Num 10) (Num 7), Right 3.0),
+            (Mul (Num 4) (Num 5), Right 20.0),
+            (Div (Num 20) (Num 4), Right 5.0),
+            (Div (Num 10) (Num 0), Left ( DivByZero (Num 10) (Num 0.0)) ),
+            (Pow (Num 2) (Num 3), Right 8.0),
+            (Sqrt (Num 9), Right 3.0),
+            (Sqrt (Num (-4)), Left ( NegativeSqrt (Num (-4)) )),
+            (Add (Mul (Num 2) (Num 3)) (Div (Num 10) (Num 2)), Right 11.0),
+            (Sub (Pow (Num 2) (Num 3)) (Sqrt (Num 16)), Right 4.0),
+            (Div (Mul (Num 2) (Num 5)) (Add (Num 4) (Num (-4))), Left ( DivByZero (Num 7) (Num 0) ))
         ]
-
 
 test :: Expr -> Either Error Double -> IO ()
 test expr expected =
