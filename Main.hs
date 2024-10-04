@@ -43,7 +43,7 @@ instance Show Error where
   show (SqrtOfNegNumber a) = printf "Error: tried to find the square root of a negative number: sqrt %s" (show a)
 
 instance Eq Error where
-  DivisionByZero a _ == DivisionByZero b _ = a == b
+  DivisionByZero a c == DivisionByZero b d = a == b && c == d
   SqrtOfNegNumber a == SqrtOfNegNumber b = a == b
   _ == _ = False
 
