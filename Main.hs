@@ -15,11 +15,11 @@ data Expr =
 instance Show Expr where
   show (Number a) = show a
   show (Sqrt a) = printf "sqrt (%s)" (show a)
-  show (Add a b) = printf "%s + %s" (show a) (show b)
-  show (Sub a b) = printf "%s - %s" (show a) (show b)
-  show (Mult a b) = printf "%s * %s" (show a) (show b)
-  show (Div a b) = printf "%s / %s" (show a) (show b)
-  show (Exp a b) = printf "%s ^ %s" (show a) (show b)
+  show (Add a b) = printf "(%s + %s)" (show a) (show b)
+  show (Sub a b) = printf "(%s - %s)" (show a) (show b)
+  show (Mult a b) = printf "(%s * %s)" (show a) (show b)
+  show (Div a b) = printf "(%s / %s)" (show a) (show b)
+  show (Exp a b) = printf "(%s ^ %s)" (show a) (show b)
   
 data Error = 
   DividedByZero Expr
