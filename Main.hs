@@ -14,13 +14,21 @@ data Expr
   deriving (Eq)
 
 instance Show Expr where
-  show (Num x) = show x
-  show (Sqrt e) = "sqrt" ++ show e
-  show (Add e1 e2) = show e1 ++ " + " ++ show e2
-  show (Sub e1 e2) = show e1 ++ " - " ++ show e2
-  show (Mul e1 e2) = show e1 ++ " * " ++ show e2
-  show (Div e1 e2) = show e1 ++ " / " ++ show e2
-  show (Pow e1 e2) = show e1 ++ " ^ " ++ show e2
+  show = showWithPrec 0
+
+showWithPrec :: Int -> Expr -> String
+showWithPrec _ (Num x) = show x
+showWithPrec _ (Sqrt e) = "sqrt(" ++ show e ++ ")"
+showWithPrec p (Add e1 e2) = wrapIfNeeded p 1 $ showWithPrec 1 e1 ++ " + " ++ showWithPrec 1 e2
+showWithPrec p (Sub e1 e2) = wrapIfNeeded p 1 $ showWithPrec 1 e1 ++ " - " ++ showWithPrec 1 e2
+showWithPrec p (Mul e1 e2) = wrapIfNeeded p 2 $ showWithPrec 2 e1 ++ " * " ++ showWithPrec 2 e2
+showWithPrec p (Div e1 e2) = wrapIfNeeded p 2 $ showWithPrec 2 e1 ++ " / " ++ showWithPrec 2 e2
+showWithPrec p (Pow e1 e2) = wrapIfNeeded p 3 $ showWithPrec 3 e1 ++ " ^ " ++ showWithPrec 3 e2
+
+wrapIfNeeded :: Int -> Int -> String -> String
+wrapIfNeeded currentPrec opPrec s
+  | currentPrec > opPrec = "(" ++ s ++ ")"
+  | otherwise = s
 
 data Error = 
   NegativeSqrt Expr |
@@ -63,9 +71,12 @@ cases =
   , (Div (Num 10) (Num 2), Right 5)
   , (Pow (Num 2) (Num 3), Right 8)
   , (Sqrt (Num 9), Right 3)
+  , (Sqrt (Mul (Num 9) (Num 4)), Right 6)
   , (Sqrt (Num (-1)), Left (NegativeSqrt (Sqrt (Num (-1)))))
   , (Div (Num 1) (Num 0), Left (DivisionByZero (Div (Num 1) (Num 0))))
   , (Mul (Div (Num 4) (Num 2)) (Sqrt (Num 16)), Right 8)
+  , (Add (Num 1) (Mul (Num 2) (Num 3)), Right 7)
+  , (Mul (Add (Num 1) (Num 2)) (Num 3), Right 9)
   ]
 
 test :: Expr -> Either Error Double -> IO ()
