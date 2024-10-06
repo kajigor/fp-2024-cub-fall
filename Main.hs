@@ -13,8 +13,10 @@ data Expr =
   | Div Expr Expr
   | Pow Expr Expr
 
-x = Add (Num 4) (Mul (Num 4) (Num 6))
-y = Sqrt (Num 4)
+x = Pow (Num (-8)) (Num (1/3))
+
+y = Pow (Num 8) (Num (1/3))
+
 z = Add (Num 2) (Num 4)
 instance Show Expr where
   show (Num a) = show a
@@ -26,67 +28,77 @@ instance Show Expr where
   show (Pow x y) = "(" ++ show x ++ " ^ " ++ show y ++ ")"
 
 instance Eq Expr where
-  (==) x y = show x == show y
+  (==) (Num a) (Num b) = a == b
+  (==) (Sqrt a) (Sqrt b) = a == b
+  (==) (Add a b) (Add c d) = (a == c) && (b == d)
+  (==) (Sub a b) (Sub c d) = (a == c) && (b == d)
+  (==) (Mul a b) (Mul c d) = (a == c) && (b == d)
+  (==) (Div a b) (Div c d) = (a == c) && (b == d)
+  (==) (Pow a b) (Pow c d) = (a == c) && (b == d)
+  (==) _ _ = False
 
-data Error = DivZero | SqrNeg
+
+data Error = DivZero Expr | NegRoot Expr
 
 instance Show Error where
-  show DivZero = "division by zero is forbidden"
-  show SqrNeg = "sqrt of a negative number is forbidden"
+  show (DivZero expr) = "division by zero is forbidden " ++ show expr
+  show (NegRoot expr) = "sqrt of a negative number is forbidden " ++ show expr
 
 instance Eq Error where
   (==) x y = show x == show y
 
-isError :: Either Error Double -> Bool
-isError (Left _) = True
-isError (Right _) = False
+evenRoots = [1/x | x<-[2,4..31]]  -- we can take more here but I think 1e-9 is pretty small enough
+
+performOperation :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
+performOperation func a b
+  | isLeft x = x
+  | isLeft y = y
+  | otherwise = Right (func (fromRight 1 x) (fromRight 1 y))
+  where 
+    x = eval a
+    y = eval b
 
 
 eval :: Expr -> Either Error Double
 eval (Num a) = Right a
-eval (Add a b)
-  | isError x = x
-  | isError y = y
-  | otherwise = Right (fromRight 0 x + fromRight 0 y)
-  where
-      x = eval a
-      y = eval b
-eval (Sub a b)
-  | isError x = x
-  | isError y = y
-  | otherwise = Right (fromRight 0 x - fromRight 0 y)
-  where
-      x = eval a
-      y = eval b
-eval (Mul a b)
-  | isError x = x
-  | isError y = y
-  | otherwise = Right (fromRight 1 x * fromRight 1 y)
-  where
-      x = eval a
-      y = eval b
-eval (Div a b)
-  | isError x = x
-  | isError y = y
-  | fromRight 1 y == 0 = Left DivZero
-  | otherwise = Right (fromRight 1 x / fromRight 1 y)
-  where
-      x = eval a
-      y = eval b
-eval (Sqrt a)
-  | isError x = x
-  | fromRight 0 x < 0 = Left SqrNeg
-  | otherwise = Right (sqrt (fromRight 0 x))
-  where
-      x = eval a
-eval (Pow a b)
-  | isError x = x
-  | isError y = y
-  | otherwise = Right (fromRight 0 x ** fromRight 0 y)
-  where
-      x = eval a
-      y = eval b
+eval (Sqrt a) = case eval a of
+  (Left x) -> Left x
+  (Right x) -> if x < 0 then Left (NegRoot (Sqrt a)) else Right (sqrt x) 
+eval (Add a b) = performOperation (+) a b
+eval (Sub a b) = performOperation (-) a b
+eval (Mul a b) = performOperation (*) a b
+eval (Div a b) = 
+  if fromRight 1 (eval b) == 0 
+    then Left (DivZero (Div a b)) 
+  else 
+    performOperation (/) a b  
 
+-- I needed to handle myself negative roots because for negative bases since it uses logarithms for the calculations gives nan
+eval (Pow a b) 
+  | isLeft x = x
+  | isLeft y = y  
+  | fromRight 0 x < 0 && fromRight 0 y < 1 =
+    if fromRight 0 y `elem` evenRoots
+      then Left (NegRoot (Pow a b)) 
+    else   --make it positive first then take the power and then multiply it again
+      Right (negate (abs (fromRight 0 x) ** fromRight 0 y))
+  | otherwise = performOperation (**) a b
+  where 
+    x = eval a
+    y = eval b
+
+
+{-  Why this doesn't work?, somehow for negative numbers and odd powers it gives NaN. It would be nice to have an 
+explanation
+eval (Pow a b) 
+  | y `elem` evenRoots && x < 0 = Left (NegRoot (Pow a b))
+  | otherwise = performOperation (**) a b
+  where 
+    x = fromRight 0 (eval a)
+    y = fromRight 0 (eval b)
+-}  
+    
+    
 
 cases :: [(Expr, Either Error Double)]
 cases = [ (Num 5, Right 5)  -- Simple case
@@ -99,20 +111,33 @@ cases = [ (Num 5, Right 5)  -- Simple case
   
   , (Div (Num 10) (Num 2), Right 5)  -- 10 / 2 = 5
   
-  , (Div (Num 10) (Num 0), Left DivZero)  -- Division by 0, must give an error
+  , (Div (Num 10) (Num 0), Left (DivZero (Div (Num 10) (Num 0))))  -- Division by 0, must give an error
   
   , (Pow (Num 2) (Num 3), Right 8)  -- 2 ^ 3 = 8
   
-  , (Pow (Num 9) (Num 0.5), Right 3)  -- 9 ^ 0.5 = sqrt(9) = 3
+  , (Pow (Num 9.0) (Num 0.5), Right 3)  -- 9 ^ 0.5 = sqrt(9) = 3
   
   , (Sqrt (Num 16), Right 4)  -- sqrt(16) = 4
   
-  , (Sqrt (Num (-9)), Left SqrNeg)  -- sqrt of a negative number must give an error
+  , (Sqrt (Num (-9)), Left (NegRoot (Sqrt (Num (-9)))))  -- sqrt of a negative number must give an error
+  
+  , (Pow (Num (-8.0)) (Num (1/3)), Right (-2))  -- (-8)^(1/3) = -2, should work for odd roots
+  
+  , (Pow (Num (-8)) (Num (1/2)), Left (NegRoot (Pow (Num (-8)) (Num (1/2)))))  -- (-8)^(1/2) = error for even roots
   
   , (Add (Mul (Num 2) (Num 3)) (Div (Num 10) (Num 2)), Right 11)  -- (2 * 3) + (10 / 2) = 6 + 5 = 11
   
-  , (Sub (Num 0) (Sqrt (Num (-4))), Left SqrNeg)  -- sqrt of a negative number
+  , (Sub (Num 0) (Sqrt (Num (-4))), Left (NegRoot (Sqrt (Num (-4)))))  -- sqrt of a negative number
+  
+  , (Mul (Pow (Num (-4)) (Num (1/2))) (Num 2), Left (NegRoot (Pow (Num (-4)) (Num (1/2))))) -- sqrt of a negative number in a more complex expression
+  
+  , (Pow (Num 16) (Num (1/4)), Right 2)  -- 16^(1/4) = 2
+  
+  , (Pow (Num 27) (Num (1/3)), Right 3)  -- 27^(1/3) = 3, cube root
+  
+  , (Div (Pow (Num 16) (Num (1/2))) (Num 0), Left (DivZero (Div (Pow (Num 16) (Num (1/2))) (Num 0)))) -- sqrt(16) / 0 should return division by zero error
   ]
+
 
 
 test :: Expr -> Either Error Double -> IO ()
