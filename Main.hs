@@ -13,11 +13,6 @@ data Expr =
   | Div Expr Expr
   | Pow Expr Expr
 
-x = Pow (Num (-8)) (Num (1/3))
-
-y = Pow (Num 8) (Num (1/3))
-
-z = Add (Num 2) (Num 4)
 instance Show Expr where
   show (Num a) = show a
   show (Sqrt a) = show "sqrt(" ++ show a ++ ")" 
