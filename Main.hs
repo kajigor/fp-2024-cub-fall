@@ -32,9 +32,9 @@ instance Show Error where
 
 performOperation :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
 performOperation func a b = case (eval a, eval b) of
-  (Left a, _) -> Left a -- Not using fromRight here
-  (_, Left a) -> Left a
-  (Right a, Right b) -> Right (func a b)
+  (Left x, _) -> Left x -- Not using fromRight here
+  (_, Left x) -> Left x
+  (Right x, Right y) -> Right (func x y)
 
 
 eval :: Expr -> Either Error Double
