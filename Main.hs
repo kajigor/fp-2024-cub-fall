@@ -12,6 +12,7 @@ data Expr =
   | Mul Expr Expr
   | Div Expr Expr
   | Pow Expr Expr
+  deriving Eq
 
 instance Show Expr where
   show (Num a) = show a
@@ -22,36 +23,18 @@ instance Show Expr where
   show (Div x y) = "(" ++ show x ++ " / " ++ show y ++ ")"
   show (Pow x y) = "(" ++ show x ++ " ^ " ++ show y ++ ")"
 
-instance Eq Expr where
-  (==) (Num a) (Num b) = a == b
-  (==) (Sqrt a) (Sqrt b) = a == b
-  (==) (Add a b) (Add c d) = (a == c) && (b == d)
-  (==) (Sub a b) (Sub c d) = (a == c) && (b == d)
-  (==) (Mul a b) (Mul c d) = (a == c) && (b == d)
-  (==) (Div a b) (Div c d) = (a == c) && (b == d)
-  (==) (Pow a b) (Pow c d) = (a == c) && (b == d)
-  (==) _ _ = False
-
-
-data Error = DivZero Expr | NegRoot Expr
+data Error = DivZero Expr | NegRoot Expr deriving Eq
 
 instance Show Error where
   show (DivZero expr) = "division by zero is forbidden " ++ show expr
   show (NegRoot expr) = "sqrt of a negative number is forbidden " ++ show expr
 
-instance Eq Error where
-  (==) x y = show x == show y
-
-evenRoots = [1/x | x<-[2,4..31]]  -- we can take more here but I think 1e-9 is pretty small enough
 
 performOperation :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
-performOperation func a b
-  | isLeft x = x
-  | isLeft y = y
-  | otherwise = Right (func (fromRight 1 x) (fromRight 1 y))
-  where 
-    x = eval a
-    y = eval b
+performOperation func a b = case (eval a, eval b) of
+  (Left a, _) -> Left a -- Not using fromRight here
+  (_, Left a) -> Left a
+  (Right a, Right b) -> Right (func a b)
 
 
 eval :: Expr -> Either Error Double
@@ -62,38 +45,11 @@ eval (Sqrt a) = case eval a of
 eval (Add a b) = performOperation (+) a b
 eval (Sub a b) = performOperation (-) a b
 eval (Mul a b) = performOperation (*) a b
-eval (Div a b) = 
-  if fromRight 1 (eval b) == 0 
-    then Left (DivZero (Div a b)) 
-  else 
-    performOperation (/) a b  
-
--- I needed to handle myself negative roots because for negative bases since it uses logarithms for the calculations gives nan
-eval (Pow a b) 
-  | isLeft x = x
-  | isLeft y = y  
-  | fromRight 0 x < 0 && fromRight 0 y < 1 =
-    if fromRight 0 y `elem` evenRoots
-      then Left (NegRoot (Pow a b)) 
-    else   --make it positive first then take the power and then multiply it again
-      Right (negate (abs (fromRight 0 x) ** fromRight 0 y))
-  | otherwise = performOperation (**) a b
-  where 
-    x = eval a
-    y = eval b
-
-
-{-  Why this doesn't work?, somehow for negative numbers and odd powers it gives NaN. It would be nice to have an 
-explanation
-eval (Pow a b) 
-  | y `elem` evenRoots && x < 0 = Left (NegRoot (Pow a b))
-  | otherwise = performOperation (**) a b
-  where 
-    x = fromRight 0 (eval a)
-    y = fromRight 0 (eval b)
--}  
-    
-    
+eval (Div a b) = case eval b of
+  Right 0 -> Left (DivZero (Div a b)) -- Not using fromRight
+  _ -> performOperation (/) a b
+eval (Pow a b) = performOperation (**) a b   -- deleted the cases with negatives 
+                                -- bases since they are not required in the task 
 
 cases :: [(Expr, Either Error Double)]
 cases = [ (Num 5, Right 5)  -- Simple case
@@ -115,17 +71,11 @@ cases = [ (Num 5, Right 5)  -- Simple case
   , (Sqrt (Num 16), Right 4)  -- sqrt(16) = 4
   
   , (Sqrt (Num (-9)), Left (NegRoot (Sqrt (Num (-9)))))  -- sqrt of a negative number must give an error
-  
-  , (Pow (Num (-8.0)) (Num (1/3)), Right (-2))  -- (-8)^(1/3) = -2, should work for odd roots
-  
-  , (Pow (Num (-8)) (Num (1/2)), Left (NegRoot (Pow (Num (-8)) (Num (1/2)))))  -- (-8)^(1/2) = error for even roots
-  
+
   , (Add (Mul (Num 2) (Num 3)) (Div (Num 10) (Num 2)), Right 11)  -- (2 * 3) + (10 / 2) = 6 + 5 = 11
   
   , (Sub (Num 0) (Sqrt (Num (-4))), Left (NegRoot (Sqrt (Num (-4)))))  -- sqrt of a negative number
-  
-  , (Mul (Pow (Num (-4)) (Num (1/2))) (Num 2), Left (NegRoot (Pow (Num (-4)) (Num (1/2))))) -- sqrt of a negative number in a more complex expression
-  
+    
   , (Pow (Num 16) (Num (1/4)), Right 2)  -- 16^(1/4) = 2
   
   , (Pow (Num 27) (Num (1/3)), Right 3)  -- 27^(1/3) = 3, cube root
