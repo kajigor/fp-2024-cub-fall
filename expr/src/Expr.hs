@@ -1,50 +1,36 @@
-module Expr where
+module Expr (Expr(..)) where
+import Text.Printf (printf)
 
-import qualified Data.Map.Strict as M
-import GHC.Num (integerToInt)
-
-data Expr = Lit Int | Plus Expr Expr | Var String
+data Expr 
+  = Num Double
+  | Sqrt Expr 
+  | Add Expr Expr       
+  | Sub Expr Expr       
+  | Mul Expr Expr       
+  | Div Expr Expr       
+  | Pow Expr Expr   
+  | Var String
+  | Let String Expr Expr             
 
 instance Show Expr where
-  show (Lit n) = show n
-  show (Plus x y) = '(' : show x ++ '+' : show y ++ ")"
-  show (Var v) = v
+  show (Num a) = show a
+  show (Sqrt a) = printf "sqrt(%s)" (show a)
+  show (Add a b) = printf "(%s + %s)" (show a) (show b)
+  show (Sub a b) = printf "(%s - %s)" (show a) (show b)
+  show (Mul a b) = printf "(%s * %s)" (show a) (show b)
+  show (Div a b) = printf "(%s / %s)" (show a) (show b)
+  show (Pow a b) = printf "(%s ^ %s)" (show a) (show b)
+  show (Var a) = show a
+  show (Let a b c) = printf "let %s = %s in %s" (show a) (show b) (show c)
 
-instance Num Expr where
-  (+) = Plus
-  (*) = undefined
-  abs = undefined
-  signum = undefined
-  fromInteger = Lit . integerToInt
-  negate = undefined
-
-eval :: M.Map String Expr -> Expr -> Maybe Int
-eval _ (Lit n) = Just n
-eval state (Plus x y) =
-  case (eval state x, eval state y) of
-    (Just x, Just y) -> Just $ x + y
-    _ -> Nothing
-eval state (Var v) = do
-  case M.lookup v state of
-    Just v -> eval state v
-    Nothing -> Nothing
-
-run :: Expr -> M.Map String Expr -> IO ()
-run expr state = do
-  print expr
-  print state
-  print (eval state expr)
-  putStrLn ""
-
-main = do
-  let expr1 = Var "x"
-  let expr2 = Plus (Lit 2) (Lit 2)
-  let expr3 = Plus (Var "x") (Lit 1)
-  let state1 = M.fromList [("x", Lit 42), ("y", Lit 13)]
-  let state2 = M.empty
-  run expr1 state1
-  run expr2 state1
-  run expr3 state1
-  run expr1 state2
-  run expr2 state2
-  run expr3 state2
+instance Eq Expr where
+  Num a == Num b = a == b
+  Sqrt a == Sqrt b = a == b
+  Add a b == Add c d = a == c && b == d
+  Sub a b == Sub c d = a == c && b == d
+  Mul a b == Mul c d = a == c && b == d
+  Div a b == Div c d = a == c && b == d
+  Pow a b == Pow c d = a == c && b == d
+  Var a == Var b = a == b
+  Let a b c == Let d e f = a == d && b == e && c == f
+  _ == _ = False 

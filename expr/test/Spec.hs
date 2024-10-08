@@ -1,41 +1,69 @@
-import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
+import Test.Tasty
+import Test.Tasty.HUnit
+import Text.Printf (printf)
+import qualified Data.Map as Map
+import qualified Expr
+import qualified Error
+import qualified Interpretor
 
-testEval :: TestTree
-testEval =
-  testGroup "Eval" [testAdd, testVar]
-  where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
-      testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
-        ]
-    testVar =
-      testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
-        ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+-- Numeric cases: Simple evaluations for numbers and square roots
+numCases :: [(Expr.Expr, Either Error.Error Double)]
+numCases = 
+  [ (Expr.Num 7, Right 7)
+  , (Expr.Num 0, Right 0)
+  , (Expr.Num (-1), Right (-1))
+  , (Expr.Sqrt (Expr.Num 16), Right 4)
+  , (Expr.Sqrt (Expr.Num 0), Right 0)
+  , (Expr.Sqrt (Expr.Num (-3)), Left (Error.NegativeSqrt (Expr.Num (-3))))
+  ]
+
+-- Arithmetic cases: Testing various arithmetic operations
+arithmeticCases :: [(Expr.Expr, Either Error.Error Double)]
+arithmeticCases = 
+  [ (Expr.Add (Expr.Num 3) (Expr.Num 5), Right 8)
+  , (Expr.Sub (Expr.Num 11) (Expr.Num 4), Right 7)
+  , (Expr.Mul (Expr.Num 3) (Expr.Num 5), Right 15)
+  , (Expr.Div (Expr.Num 16) (Expr.Num 2), Right 8)
+  , (Expr.Div (Expr.Num 11) (Expr.Num 0), Left (Error.DivByZero (Expr.Num 11) (Expr.Num 0)))
+  , (Expr.Pow (Expr.Num 4) (Expr.Num 3), Right 64)
+  , (Expr.Add (Expr.Mul (Expr.Num 3) (Expr.Num 3)) (Expr.Num 3), Right 12)
+  , (Expr.Div (Expr.Num 10) (Expr.Sub (Expr.Num 1) (Expr.Num 1)), Left (Error.DivByZero (Expr.Num 10) (Expr.Sub (Expr.Num 1) (Expr.Num 1))))
+  , (Expr.Add (Expr.Num (-5)) (Expr.Num 6), Right 1) 
+  , (Expr.Sub (Expr.Num 5) (Expr.Num 11), Right (-6))
+  ]
+
+-- Let cases: Testing variable bindings and nested let expressions
+letCases :: [(Expr.Expr, Either Error.Error Double)]
+letCases = 
+  [ (Expr.Let "x" (Expr.Num 5) (Expr.Var "x"), Right 5)
+  , (Expr.Let "y" (Expr.Num 10) (Expr.Add (Expr.Var "y") (Expr.Num 6)), Right 16)
+  , (Expr.Let "z" (Expr.Num 0) (Expr.Sqrt (Expr.Var "z")), Right 0)
+  , (Expr.Let "a" (Expr.Num 5) (Expr.Div (Expr.Num 10) (Expr.Var "a")), Right 2)
+  , (Expr.Let "b" (Expr.Num 4) (Expr.Sub (Expr.Var "b") (Expr.Var "b")), Right 0)
+  , (Expr.Let "x" (Expr.Num 6) (Expr.Let "x" (Expr.Num 2) (Expr.Var "x")), Right 2)
+  , (Expr.Let "x" (Expr.Num 5) (Expr.Add (Expr.Var "x") (Expr.Num 2)), Right 7)
+  , (Expr.Let "x" (Expr.Num 12) (Expr.Let "y" (Expr.Num 22) (Expr.Add (Expr.Var "x") (Expr.Var "y"))), Right 34)
+  , (Expr.Let "x" (Expr.Num 4) (Expr.Sqrt (Expr.Var "x")), Right 2)
+  , (Expr.Let "y" (Expr.Num (-5)) (Expr.Sqrt (Expr.Var "y")), Left (Error.NegativeSqrt (Expr.Var "y")))
+  , (Expr.Let "a" (Expr.Num 0) (Expr.Div (Expr.Num 10) (Expr.Var "a")), Left (Error.DivByZero (Expr.Num 10) (Expr.Var "a")))
+  ]
+
+testExpr :: (Expr.Expr, Either Error.Error Double) -> TestTree
+testExpr (expr, expected) = testCase (printf "Testing: %s" (show expr)) $ 
+    let actual = Interpretor.eval Map.empty expr in
+    case (expected, actual) of
+        (Right expVal, Right actVal) -> assertEqual "" expVal actVal
+        (Left expErr, Left actErr)   -> assertEqual "" expErr actErr
+        _ -> assertFailure $ printf "Expected %s but got %s" (show expected) (show actual)
+
+numTests :: TestTree
+numTests = testGroup "Numerical Expressions Tests" $ map testExpr numCases
+
+arithmeticTests :: TestTree
+arithmeticTests = testGroup "Arithmetic Operations Tests" $ map testExpr arithmeticCases
+
+letTests :: TestTree
+letTests = testGroup "Let Expressions Tests" $ map testExpr letCases
 
 main :: IO ()
-main =
-  defaultMain $ testGroup "Expressions" [testEval]
+main = defaultMain $ testGroup "Expression Tests" [numTests, arithmeticTests, letTests]
