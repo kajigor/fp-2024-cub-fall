@@ -1,50 +1,35 @@
-module Expr where
+module Expr (Expr(..)) where
 
-import qualified Data.Map.Strict as M
-import GHC.Num (integerToInt)
-
-data Expr = Lit Int | Plus Expr Expr | Var String
+data Expr
+  = NumExpr Double
+  | SqrtExpr Expr
+  | AddExpr Expr Expr
+  | SubExpr Expr Expr
+  | MulExpr Expr Expr
+  | DivExpr Expr Expr
+  | PowerExpr Expr Expr
+  | VarExpr String
+  | Let String Expr Expr
 
 instance Show Expr where
-  show (Lit n) = show n
-  show (Plus x y) = '(' : show x ++ '+' : show y ++ ")"
-  show (Var v) = v
+  show (NumExpr a) = show a
+  show (SqrtExpr a) = "sqrt(" ++ show a ++ ")"
+  show (AddExpr a b) = "(" ++ show a ++ "+" ++ show b ++ ")"
+  show (SubExpr a b) = "(" ++ show a ++ "-" ++ show b ++ ")"
+  show (MulExpr a b) = "(" ++ show a ++ "*" ++ show b ++ ")"
+  show (DivExpr a b) = "(" ++ show a ++ "/" ++ show b ++ ")"
+  show (PowerExpr a b) = "(" ++ show a ++ "^" ++ show b ++ ")"
+  show (VarExpr a) = a
+  show (Let a b c) = "let " ++ a ++ " = " ++ show b ++ "in" ++ show c
 
-instance Num Expr where
-  (+) = Plus
-  (*) = undefined
-  abs = undefined
-  signum = undefined
-  fromInteger = Lit . integerToInt
-  negate = undefined
-
-eval :: M.Map String Expr -> Expr -> Maybe Int
-eval _ (Lit n) = Just n
-eval state (Plus x y) =
-  case (eval state x, eval state y) of
-    (Just x, Just y) -> Just $ x + y
-    _ -> Nothing
-eval state (Var v) = do
-  case M.lookup v state of
-    Just v -> eval state v
-    Nothing -> Nothing
-
-run :: Expr -> M.Map String Expr -> IO ()
-run expr state = do
-  print expr
-  print state
-  print (eval state expr)
-  putStrLn ""
-
-main = do
-  let expr1 = Var "x"
-  let expr2 = Plus (Lit 2) (Lit 2)
-  let expr3 = Plus (Var "x") (Lit 1)
-  let state1 = M.fromList [("x", Lit 42), ("y", Lit 13)]
-  let state2 = M.empty
-  run expr1 state1
-  run expr2 state1
-  run expr3 state1
-  run expr1 state2
-  run expr2 state2
-  run expr3 state2
+instance Eq Expr where
+  NumExpr a == NumExpr b = a == b
+  SqrtExpr a == SqrtExpr b = a == b
+  AddExpr a b == AddExpr c d = a == c && b == d
+  SubExpr a b == SubExpr c d = a == c && b == d
+  MulExpr a b == MulExpr c d = a == c && b == d
+  DivExpr a b == DivExpr c d = a == c && b == d
+  PowerExpr a b == PowerExpr c d = a == c && b == d
+  VarExpr a == VarExpr b = a == b
+  Let a b c == Let d e f = a == d && b == e && c == f
+  _ == _ = False
