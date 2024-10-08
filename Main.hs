@@ -1,18 +1,18 @@
 module Main where
 
 import Control.Monad (unless)
+import Data.Either (fromRight, isLeft)
 import Text.Printf (printf)
-import Language.Haskell.TH (Exp, safe)
-import Data.Either (isLeft, fromRight)
-import Control.Arrow (ArrowChoice(right))
 
-data Expr = Numb Double
-      | SqrtExpr Expr
-      | BinOpAdd Expr Expr
-      | BinOpSub Expr Expr
-      | BinOpMul Expr Expr
-      | BinOpDiv Expr Expr
-      | BinOpPow Expr Expr
+data Expr
+  = Numb Double
+  | SqrtExpr Expr
+  | BinOpAdd Expr Expr
+  | BinOpSub Expr Expr
+  | BinOpMul Expr Expr
+  | BinOpDiv Expr Expr
+  | BinOpPow Expr Expr
+  deriving (Eq)
 
 instance Show Expr where
   show (Numb a) = printf "%s" (show a)
@@ -23,114 +23,67 @@ instance Show Expr where
   show (BinOpDiv a b) = printf "(%s / %s)" (show a) (show b)
   show (BinOpPow a b) = printf "(%s ^ %s)" (show a) (show b)
 
-instance Eq Expr where
-  Numb a == Numb b = a == b
-  SqrtExpr a == SqrtExpr b = a == b
-  BinOpAdd a b == BinOpAdd c d = (a == c) && (b == d)
-  BinOpSub a b == BinOpSub c d = (a == c) && (b == d)
-  BinOpMul a b == BinOpMul c d = (a == c) && (b == d)
-  BinOpDiv a b == BinOpDiv c d = (a == c) && (b == d)
-  BinOpPow a b == BinOpPow c d = (a == c) && (b == d)
-  _ == _ = False
-
-data Error = DivByZero String | SqrtNeg String
+data Error = DivByZero Expr | SqrtNeg Expr
+  deriving (Eq)
 
 instance Show Error where
-  show (DivByZero s) = printf "%s" (show s)
-  show (SqrtNeg s) = show s
+  show (DivByZero s) = printf "Expression evaluation failed in %s. Second arg for div cannot be zero\n" (show s)
+  show (SqrtNeg s) = printf "Expression evaluation failed in %s. Arg for sqrt cannot be negative\n" (show s)
 
-instance Eq Error where
-  DivByZero s1 == DivByZero s2 = s1 == s2
-  SqrtNeg s1 == SqrtNeg s2 = s1 == s2
-  _ == _ = False
+
+evalBinOp :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
+evalBinOp op a b
+  | isLeft aAfterEval = aAfterEval
+  | isLeft bAfterEval = bAfterEval
+  | otherwise = Right (aVal `op` bVal)
+  where
+    aAfterEval = eval a
+    bAfterEval = eval b
+    aVal = fromRight 0 aAfterEval
+    bVal = fromRight 0 bAfterEval
 
 eval :: Expr -> Either Error Double
 eval (Numb a) = Right a
 eval (SqrtExpr a)
-    | isLeft aAfterEval = aAfterEval
-    | aVal < 0 = Left (SqrtNeg "Arg for sqrt cannot be negative")
-    | otherwise = Right (sqrt aVal )
-    where aAfterEval = eval a
-          aVal = fromRight 0 aAfterEval
-eval (BinOpAdd a b)
-    | isLeft aAfterEval = aAfterEval
-    | isLeft bAfterEval = bAfterEval
-    | otherwise = Right (aVal + bVal)
-    where aAfterEval = eval a
-          bAfterEval = eval b
-          aVal = fromRight 0 aAfterEval
-          bVal = fromRight 0 bAfterEval
-eval (BinOpSub a b)
   | isLeft aAfterEval = aAfterEval
-  | isLeft bAfterEval = bAfterEval
-  | otherwise = Right (aVal - bVal)
+  | aVal < 0 = Left (SqrtNeg (SqrtExpr a))
+  | otherwise = Right (sqrt aVal)
   where
     aAfterEval = eval a
-    bAfterEval = eval b
     aVal = fromRight 0 aAfterEval
-    bVal = fromRight 0 bAfterEval
-eval (BinOpMul a b)
-  | isLeft aAfterEval = aAfterEval
-  | isLeft bAfterEval = bAfterEval
-  | otherwise = Right (aVal * bVal)
-  where
-    aAfterEval = eval a
-    bAfterEval = eval b
-    aVal = fromRight 0 aAfterEval
-    bVal = fromRight 0 bAfterEval
-eval (BinOpDiv a b)
-  | isLeft aAfterEval = aAfterEval
-  | isLeft bAfterEval = bAfterEval
-  | bVal == 0 = Left (DivByZero "Second arg for div cannot be zero")
-  | otherwise = Right (aVal / bVal)
-  where
-    aAfterEval = eval a
-    bAfterEval = eval b
-    aVal = fromRight 0 aAfterEval
-    bVal = fromRight 0 bAfterEval
-eval (BinOpPow a b)
-  | isLeft aAfterEval = aAfterEval
-  | isLeft bAfterEval = bAfterEval
-  | otherwise = Right (aVal ** bVal)
-  where
-    aAfterEval = eval a
-    bAfterEval = eval b
-    aVal = fromRight 0 aAfterEval
-    bVal = fromRight 0 bAfterEval
+eval (BinOpAdd a b) = evalBinOp (+) a b
+eval (BinOpSub a b) = evalBinOp (-) a b
+eval (BinOpMul a b) = evalBinOp (*) a b
+eval (BinOpDiv a b) = case eval b of
+  (Left x) -> Left x
+  (Right x) -> if x==0 then Left (DivByZero (BinOpDiv a b)) else evalBinOp (/) a b
+eval (BinOpPow a b) = evalBinOp (**) a b
 
 cases :: [(Expr, Either Error Double)]
 cases =
-  [
-    (Numb 5, Right 5),
-
+  [ (Numb 5, Right 5),
     (BinOpAdd (Numb 2) (Numb 3), Right 5),
-
     (BinOpSub (Numb 5) (Numb 3), Right 2),
-
     (BinOpMul (Numb 2) (Numb 4), Right 8),
-
     (BinOpDiv (Numb 10) (Numb 2), Right 5),
-
-    (BinOpDiv (Numb 10) (Numb 0), Left (DivByZero "Second arg for div cannot be zero")),
-
+    (BinOpDiv (Numb 10) (Numb 0), Left (DivByZero (BinOpDiv (Numb 10) (Numb 0)))),
     (BinOpPow (Numb 2) (Numb 3), Right 8),
-
     (SqrtExpr (Numb 4), Right 2),
-
-    (SqrtExpr (Numb (-9)), Left (SqrtNeg "Arg for sqrt cannot be negative")),
-
-    (BinOpDiv 
-        (BinOpMul 
-            (BinOpAdd (Numb 2) (Numb 3)) 
-            (SqrtExpr (Numb 16))) 
-        (Numb 2), 
-     Right 10)
+    (SqrtExpr (Numb (-9)), Left (SqrtNeg (SqrtExpr (Numb (-9))))),
+    ( BinOpDiv
+        ( BinOpMul
+            (BinOpAdd (Numb 2) (Numb 3))
+            (SqrtExpr (Numb 16))
+        )
+        (Numb 2),
+      Right 10
+    )
   ]
 
 test :: Expr -> Either Error Double -> IO ()
 test expr expected =
-    let actual = eval expr in 
-    unless (expected == actual) $ describeFailure actual
+  let actual = eval expr
+   in unless (expected == actual) $ describeFailure actual
   where
     describeFailure actual =
       printf "eval (%s) should be %s but it was %s" (show expr) (show expected) (show actual)
@@ -138,4 +91,4 @@ test expr expected =
 main :: IO ()
 main = do
   mapM_ (uncurry test) cases
-  putStrLn "Done" 
+  putStrLn "Done"
