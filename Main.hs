@@ -11,6 +11,7 @@ data Expr
   | Mul Expr Expr
   | Div Expr Expr
   | Pow Expr Expr
+  deriving (Eq)
 
 instance Show Expr where
   show (Num n) = show n
@@ -21,16 +22,6 @@ instance Show Expr where
   show (Div a b) = "(" ++ show a ++ " / " ++ show b ++ ")"
   show (Pow a b) = "(" ++ show a ++ " ^ " ++ show b ++ ")"
 
-instance Eq Expr where
-  (Num a) == (Num b) = a == b
-  (Sqrt a) == (Sqrt b) = a == b
-  (Add a1 b1) == (Add a2 b2) = a1 == a2 && b1 == b2
-  (Sub a1 b1) == (Sub a2 b2) = a1 == a2 && b1 == b2
-  (Mul a1 b1) == (Mul a2 b2) = a1 == a2 && b1 == b2
-  (Div a1 b1) == (Div a2 b2) = a1 == a2 && b1 == b2
-  (Pow a1 b1) == (Pow a2 b2) = a1 == a2 && b1 == b2
-  _ == _ = False
-
 data Error
   = DivByZero Expr Expr
   | NegativeSqrt Expr
@@ -40,26 +31,36 @@ instance Show Error where
   show (NegativeSqrt e) = "Square root of negative number: " ++ show e
 
 instance Eq Error where
-  (DivByZero _ _) == (DivByZero _ _) = True
-  (NegativeSqrt _) == (NegativeSqrt _) = True
+  (DivByZero a1 b1) == (DivByZero a2 b2) = a1 == a2 && b1 == b2
+  (NegativeSqrt a) == (NegativeSqrt b) = a == b
   _ == _ = False
 
 eval :: Expr -> Either Error Double
 eval (Num n) = Right n
+
 eval (Sqrt e) =
   case eval e of
     Right x | x >= 0    -> Right (sqrt x)
             | otherwise -> Left (NegativeSqrt e)
     Left err -> Left err
+
 eval (Add a b) = (+) <$> eval a <*> eval b
 eval (Sub a b) = (-) <$> eval a <*> eval b
 eval (Mul a b) = (*) <$> eval a <*> eval b
+
 eval (Div a b) =
   case eval b of
     Right 0  -> Left (DivByZero a b)
     Right x  -> (/ x) <$> eval a
     Left err -> Left err
-eval (Pow a b) = (**) <$> eval a <*> eval b
+
+eval (Pow a b) =
+  case (eval a, eval b) of
+    (Right base, Right exp)
+      | base < 0 && exp < 1 -> Left (NegativeSqrt (Pow a b))
+      | otherwise           -> Right (base ** exp)
+    (Left err, _) -> Left err
+    (_, Left err) -> Left err
 
 cases :: [(Expr, Either Error Double)]
 cases =
