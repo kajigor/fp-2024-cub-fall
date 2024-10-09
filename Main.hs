@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad (unless)
-import Data.Either (fromRight, isLeft)
+import Data.Either (isLeft)
 import Text.Printf (printf)
 
 data Expr
@@ -29,28 +29,18 @@ data Error = DivByZero Expr | SqrtNeg Expr
 instance Show Error where
   show (DivByZero s) = printf "Expression evaluation failed in %s. Second arg for div cannot be zero\n" (show s)
   show (SqrtNeg s) = printf "Expression evaluation failed in %s. Arg for sqrt cannot be negative\n" (show s)
-
-
+  
 evalBinOp :: (Double -> Double -> Double) -> Expr -> Expr -> Either Error Double
-evalBinOp op a b
-  | isLeft aAfterEval = aAfterEval
-  | isLeft bAfterEval = bAfterEval
-  | otherwise = Right (aVal `op` bVal)
-  where
-    aAfterEval = eval a
-    bAfterEval = eval b
-    aVal = fromRight 0 aAfterEval
-    bVal = fromRight 0 bAfterEval
+evalBinOp op a b = case (eval a, eval b) of
+  (Left err, _) -> Left err
+  (_, Left err) -> Left err
+  (Right aVal, Right bVal) -> Right (aVal `op` bVal)
 
 eval :: Expr -> Either Error Double
 eval (Numb a) = Right a
-eval (SqrtExpr a)
-  | isLeft aAfterEval = aAfterEval
-  | aVal < 0 = Left (SqrtNeg (SqrtExpr a))
-  | otherwise = Right (sqrt aVal)
-  where
-    aAfterEval = eval a
-    aVal = fromRight 0 aAfterEval
+eval (SqrtExpr a) = case eval a of
+  Left err -> Left err
+  Right aVal -> if aVal < 0 then Left (SqrtNeg (SqrtExpr a)) else Right (sqrt aVal)
 eval (BinOpAdd a b) = evalBinOp (+) a b
 eval (BinOpSub a b) = evalBinOp (-) a b
 eval (BinOpMul a b) = evalBinOp (*) a b
