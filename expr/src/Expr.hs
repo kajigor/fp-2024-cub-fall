@@ -1,5 +1,4 @@
 module Expr where
-import Text.Printf(printf)
 
 data Expr
   = Num Double
@@ -13,7 +12,6 @@ data Expr
   | Pow Expr Expr
   deriving (Eq)
 
-
 precedence :: Expr -> Int
 precedence expr = case expr of
   Num _ -> 5
@@ -26,22 +24,20 @@ precedence expr = case expr of
   Add _ _ -> 1
   Sub _ _ -> 1
 
-
-showsPrec :: Int -> Expr -> String
-showsPrec p expr = case expr of
-  Num x -> show x
-  Var v -> v
-  Let v e1 e2 -> parenthesize p 0 $ "let " ++ v ++ " = " ++ show e1 ++ " in " ++ show e2
-  Sqrt e -> "sqrt(" ++ showsPrec 4 e ++ ")"
-  Add e1 e2 -> parenthesize p 1 $ showsPrec 1 e1 ++ " + " ++ showsPrec 1 e2
-  Sub e1 e2 -> parenthesize p 1 $ showsPrec 1 e1 ++ " - " ++ showsPrec 2 e2
-  Mul e1 e2 -> parenthesize p 2 $ showsPrec 2 e1 ++ " * " ++ showsPrec 2 e2
-  Div e1 e2 -> parenthesize p 2 $ showsPrec 2 e1 ++ " / " ++ showsPrec 3 e2
-  Pow e1 e2 -> parenthesize p 3 $ showsPrec 3 e1 ++ " ^ " ++ showsPrec 4 e2
+showExprPrec :: Int -> Expr -> String
+showExprPrec _ (Num x) = show x
+showExprPrec _ (Var v) = v
+showExprPrec p (Let v e1 e2) = parenthesize p 0 $ "let " ++ v ++ " = " ++ show e1 ++ " in " ++ show e2
+showExprPrec _ (Sqrt e) = "sqrt(" ++ show e ++ ")"
+showExprPrec p (Add e1 e2) = parenthesize p 1 $ showExprPrec 1 e1 ++ " + " ++ showExprPrec 1 e2
+showExprPrec p (Sub e1 e2) = parenthesize p 1 $ showExprPrec 1 e1 ++ " - " ++ showExprPrec 2 e2
+showExprPrec p (Mul e1 e2) = parenthesize p 2 $ showExprPrec 2 e1 ++ " * " ++ showExprPrec 2 e2
+showExprPrec p (Div e1 e2) = parenthesize p 2 $ showExprPrec 2 e1 ++ " / " ++ showExprPrec 3 e2
+showExprPrec p (Pow e1 e2) = parenthesize p 3 $ showExprPrec 3 e1 ++ " ^ " ++ showExprPrec 4 e2
   where
     parenthesize outerPrec innerPrec str
       | outerPrec > innerPrec = "(" ++ str ++ ")"
       | otherwise = str
 
 instance Show Expr where
-  show expr = showsPrec 0 expr
+  show expr = showExprPrec 0 expr
