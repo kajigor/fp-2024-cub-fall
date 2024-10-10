@@ -24,6 +24,11 @@ precedence expr = case expr of
   Add _ _ -> 1
   Sub _ _ -> 1
 
+parenthesize :: Int -> Int -> String -> String
+parenthesize outerPrec innerPrec str
+  | outerPrec > innerPrec = "(" ++ str ++ ")"
+  | otherwise = str
+
 showExprPrec :: Int -> Expr -> String
 showExprPrec _ (Num x) = show x
 showExprPrec _ (Var v) = v
@@ -34,10 +39,6 @@ showExprPrec p (Sub e1 e2) = parenthesize p 1 $ showExprPrec 1 e1 ++ " - " ++ sh
 showExprPrec p (Mul e1 e2) = parenthesize p 2 $ showExprPrec 2 e1 ++ " * " ++ showExprPrec 2 e2
 showExprPrec p (Div e1 e2) = parenthesize p 2 $ showExprPrec 2 e1 ++ " / " ++ showExprPrec 3 e2
 showExprPrec p (Pow e1 e2) = parenthesize p 3 $ showExprPrec 3 e1 ++ " ^ " ++ showExprPrec 4 e2
-  where
-    parenthesize outerPrec innerPrec str
-      | outerPrec > innerPrec = "(" ++ str ++ ")"
-      | otherwise = str
 
 instance Show Expr where
   show expr = showExprPrec 0 expr
