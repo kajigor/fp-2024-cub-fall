@@ -1,4 +1,4 @@
-module Spec where
+module Spec(Spec(..)) where
 
 import Test.Tasty (defaultMain, testGroup, TestTree)
 import Test.Tasty.HUnit (testCase, (@?=))
