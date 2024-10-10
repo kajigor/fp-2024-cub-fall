@@ -4,66 +4,61 @@ import Text.Printf (printf)
 import qualified Data.Map as Map
 import qualified Expr
 import qualified Error
-import qualified Interpretor
+import qualified Interpreter
 
--- Numeric cases: Simple evaluations for numbers and square roots
-numCases :: [(Expr.Expr, Either Error.Error Double)]
-numCases = 
-  [ (Expr.Num 7, Right 7)
-  , (Expr.Num 0, Right 0)
-  , (Expr.Num (-1), Right (-1))
-  , (Expr.Sqrt (Expr.Num 16), Right 4)
-  , (Expr.Sqrt (Expr.Num 0), Right 0)
-  , (Expr.Sqrt (Expr.Num (-3)), Left (Error.NegativeSqrt (Expr.Num (-3))))
-  ]
+testCases :: [(Expr.Expr, Either Error.Error Double)]
+testCases = 
+    [ -- Simple numbers and operations
+      (Expr.Num 5, Right 5.0)
+    , (Expr.Num (-3), Right (-3.0))
+    , (Expr.Add (Expr.Num 2) (Expr.Num 3), Right 5.0)
+    , (Expr.Sub (Expr.Num 10) (Expr.Num 7), Right 3.0)
+    , (Expr.Mul (Expr.Num 4) (Expr.Num 5), Right 20.0)
+    , (Expr.Div (Expr.Num 20) (Expr.Num 4), Right 5.0)
+    , (Expr.Pow (Expr.Num 2) (Expr.Num 3), Right 8.0)
 
--- Arithmetic cases: Testing various arithmetic operations
-arithmeticCases :: [(Expr.Expr, Either Error.Error Double)]
-arithmeticCases = 
-  [ (Expr.Add (Expr.Num 3) (Expr.Num 5), Right 8)
-  , (Expr.Sub (Expr.Num 11) (Expr.Num 4), Right 7)
-  , (Expr.Mul (Expr.Num 3) (Expr.Num 5), Right 15)
-  , (Expr.Div (Expr.Num 16) (Expr.Num 2), Right 8)
-  , (Expr.Div (Expr.Num 11) (Expr.Num 0), Left (Error.DivByZero (Expr.Num 11) (Expr.Num 0)))
-  , (Expr.Pow (Expr.Num 4) (Expr.Num 3), Right 64)
-  , (Expr.Add (Expr.Mul (Expr.Num 3) (Expr.Num 3)) (Expr.Num 3), Right 12)
-  , (Expr.Div (Expr.Num 10) (Expr.Sub (Expr.Num 1) (Expr.Num 1)), Left (Error.DivByZero (Expr.Num 10) (Expr.Sub (Expr.Num 1) (Expr.Num 1))))
-  , (Expr.Add (Expr.Num (-5)) (Expr.Num 6), Right 1) 
-  , (Expr.Sub (Expr.Num 5) (Expr.Num 11), Right (-6))
-  ]
+      -- Square root tests
+    , (Expr.Sqrt (Expr.Num 9), Right 3.0)
+    , (Expr.Sqrt (Expr.Num 0), Right 0.0)
+    , (Expr.Sqrt (Expr.Num (-4)), Left (Error.NegativeSqrt (Expr.Num (-4))))
+    
+      -- Division by zero
+    , (Expr.Div (Expr.Num 10) (Expr.Num 0), Left (Error.DivByZero (Expr.Num 10) (Expr.Num 0)))
 
--- Let cases: Testing variable bindings and nested let expressions
-letCases :: [(Expr.Expr, Either Error.Error Double)]
-letCases = 
-  [ (Expr.Let "x" (Expr.Num 5) (Expr.Var "x"), Right 5)
-  , (Expr.Let "y" (Expr.Num 10) (Expr.Add (Expr.Var "y") (Expr.Num 6)), Right 16)
-  , (Expr.Let "z" (Expr.Num 0) (Expr.Sqrt (Expr.Var "z")), Right 0)
-  , (Expr.Let "a" (Expr.Num 5) (Expr.Div (Expr.Num 10) (Expr.Var "a")), Right 2)
-  , (Expr.Let "b" (Expr.Num 4) (Expr.Sub (Expr.Var "b") (Expr.Var "b")), Right 0)
-  , (Expr.Let "x" (Expr.Num 6) (Expr.Let "x" (Expr.Num 2) (Expr.Var "x")), Right 2)
-  , (Expr.Let "x" (Expr.Num 5) (Expr.Add (Expr.Var "x") (Expr.Num 2)), Right 7)
-  , (Expr.Let "x" (Expr.Num 12) (Expr.Let "y" (Expr.Num 22) (Expr.Add (Expr.Var "x") (Expr.Var "y"))), Right 34)
-  , (Expr.Let "x" (Expr.Num 4) (Expr.Sqrt (Expr.Var "x")), Right 2)
-  , (Expr.Let "y" (Expr.Num (-5)) (Expr.Sqrt (Expr.Var "y")), Left (Error.NegativeSqrt (Expr.Var "y")))
-  , (Expr.Let "a" (Expr.Num 0) (Expr.Div (Expr.Num 10) (Expr.Var "a")), Left (Error.DivByZero (Expr.Num 10) (Expr.Var "a")))
-  ]
+      -- Nested expressions
+    , (Expr.Add (Expr.Mul (Expr.Num 2) (Expr.Num 3)) (Expr.Div (Expr.Num 10) (Expr.Num 2)), Right 11.0)
+    , (Expr.Sub (Expr.Pow (Expr.Num 2) (Expr.Num 3)) (Expr.Sqrt (Expr.Num 16)), Right 4.0)
 
-testExpr :: (Expr.Expr, Either Error.Error Double) -> TestTree
-testExpr (expr, expected) = testCase (printf "Testing: %s" (show expr)) $ 
-    let actual = Interpretor.eval Map.empty expr in
-    case (expected, actual) of
-        (Right expVal, Right actVal) -> assertEqual "" expVal actVal
-        (Left expErr, Left actErr)   -> assertEqual "" expErr actErr
-        _ -> assertFailure $ printf "Expected %s but got %s" (show expected) (show actual)
+      -- Chained operations
+    , (Expr.Add (Expr.Num 1) (Expr.Mul (Expr.Num 2) (Expr.Sub (Expr.Num 7) (Expr.Num 4))), Right 7.0)
+    , (Expr.Div (Expr.Pow (Expr.Num 16) (Expr.Num 0.5)) (Expr.Num 4), Right 1.0)
 
-numTests :: TestTree
-numTests = testGroup "Numerical Expressions Tests" $ map testExpr numCases
+      -- Zero as operand
+    , (Expr.Add (Expr.Num 0) (Expr.Num 10), Right 10.0)
+    , (Expr.Mul (Expr.Num 0) (Expr.Num 100), Right 0.0)
+    
+      -- Variable lookup
+    , (Expr.Variable "x", Left (Error.UnassignedVariable "x"))
+    , (Expr.Let "x" (Expr.Num 5) (Expr.Add (Expr.Variable "x") (Expr.Num 3)), Right 8.0)
+    
+      -- Nested Let bindings
+    , (Expr.Let "x" (Expr.Num 5) (Expr.Let "y" (Expr.Num 3) (Expr.Mul (Expr.Variable "x") (Expr.Variable "y"))), Right 15.0)
+    , (Expr.Let "x" (Expr.Num 2) (Expr.Let "y" (Expr.Add (Expr.Variable "x") (Expr.Num 3)) (Expr.Pow (Expr.Variable "y") (Expr.Variable "x"))), Right 25.0)
+    , (Expr.Let "x" (Expr.Num 13) (Expr.Let "y" (Expr.Add (Expr.Variable "x") (Expr.Num 1)) (Expr.Pow (Expr.Variable "y") (Expr.Num 2))), Right 196.0)
 
-arithmeticTests :: TestTree
-arithmeticTests = testGroup "Arithmetic Operations Tests" $ map testExpr arithmeticCases
+      -- Unassigned Variable within let expression
+    , (Expr.Let "x" (Expr.Num 2) (Expr.Add (Expr.Variable "x") (Expr.Variable "y")), Left (Error.UnassignedVariable "y"))
+    
+      -- Error handling in nested expressions
+    , (Expr.Let "x" (Expr.Div (Expr.Num 10) (Expr.Num 0)) (Expr.Add (Expr.Variable "x") (Expr.Num 5)), Left (Error.DivByZero (Expr.Num 10) (Expr.Num 0)))
+    ]
 
-letTests :: TestTree
-letTests = testGroup "Let Expressions Tests" $ map testExpr letCases
+testEval :: TestTree
+testEval = testGroup "Evaluation Tests"
+    [ testCase (show expr) $
+        assertEqual ("for: " ++ show expr) expected (Interpreter.eval Map.empty expr)
+    | (expr, expected) <- testCases
+    ]
 
 main :: IO ()
-main = defaultMain $ testGroup "Expression Tests" [numTests, arithmeticTests, letTests]
+main = defaultMain testEval

@@ -27,7 +27,7 @@ library
   exposed-modules:
       Error
       Expr
-      Interpretor
+      Interpreter
       Lib
   other-modules:
       Paths_expr
