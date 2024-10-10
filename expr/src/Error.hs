@@ -1,4 +1,4 @@
-module Error where
+module Error(Error(..)) where
 
 import Control.Monad (unless)
 import qualified Data.Map.Strict as M
