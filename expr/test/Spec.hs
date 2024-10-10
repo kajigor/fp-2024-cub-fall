@@ -1,5 +1,3 @@
-module Spec where
-
 import Test.Tasty (defaultMain, testGroup, TestTree)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Data.Map.Strict (Map)
