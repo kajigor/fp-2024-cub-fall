@@ -1,7 +1,5 @@
 module Error(Error(..)) where
 
-import Control.Monad (unless)
-import qualified Data.Map.Strict as M
 import Text.Printf (printf)
 
 import Expr
