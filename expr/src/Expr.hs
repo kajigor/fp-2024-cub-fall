@@ -1,4 +1,4 @@
-module Expr(Expr(..)) where
+module Expr (Expr(..), Operator(..)) where
 
 import Text.Printf (printf)
 
