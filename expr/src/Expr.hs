@@ -1,7 +1,5 @@
 module Expr(Expr(..)) where
 
-import Control.Monad (unless)
-import qualified Data.Map.Strict as M
 import Text.Printf (printf)
 
 data Operator = Add 
