@@ -37,7 +37,7 @@ eval m (CompExpr op a b) =
 eval m (Var x) = 
    case M.lookup x m of
        Just assigned -> Right assigned
-       Nothing -> Left (Unbound x)
+       Nothing -> Left (Unbounded x)
 eval m (Let var expr exprBody) =
    case eval m expr of
       Right assigned -> eval (M.insert var assigned m) exprBody
