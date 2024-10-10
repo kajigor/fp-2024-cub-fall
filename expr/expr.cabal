@@ -25,7 +25,9 @@ source-repository head
 
 library
   exposed-modules:
+      Error
       Expr
+      Interpreter
       Lib
   other-modules:
       Paths_expr
@@ -37,6 +39,8 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , tasty
+    , tasty-hunit
   default-language: Haskell2010
 
 executable expr-exe
@@ -52,6 +56,8 @@ executable expr-exe
       base >=4.7 && <5
     , containers
     , expr
+    , tasty
+    , tasty-hunit
   default-language: Haskell2010
 
 test-suite expr-test

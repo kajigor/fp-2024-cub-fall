@@ -1,41 +1,67 @@
-import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
-
-testEval :: TestTree
-testEval =
-  testGroup "Eval" [testAdd, testVar]
-  where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
-      testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
-        ]
-    testVar =
-      testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
-        ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+import Test.Tasty
+import Test.Tasty.HUnit
+import qualified Data.Map as Map
+import qualified Error
+import qualified Expr
+import qualified Interpreter
 
 main :: IO ()
-main =
-  defaultMain $ testGroup "Expressions" [testEval]
+main = defaultMain tests
+
+tests :: TestTree
+tests = testGroup "Tests"
+  [ basicTests
+  , variableTests
+  , letTests
+  , errorTests
+  ]
+
+basicTests :: TestTree
+basicTests = testGroup "Basic Operations"
+  [ testCase "Addition" $
+      Interpreter.eval Map.empty (Expr.Add (Expr.Num 2) (Expr.Num 3)) @?= Right 5
+  , testCase "Multiplication" $
+      Interpreter.eval Map.empty (Expr.Mul (Expr.Num 4) (Expr.Num 3)) @?= Right 12
+  , testCase "Power" $
+      Interpreter.eval Map.empty (Expr.Pow (Expr.Num 2) (Expr.Num 3)) @?= Right 8
+  , testCase "Sqrt" $
+      Interpreter.eval Map.empty (Expr.Sqrt (Expr.Num 9)) @?= Right 3
+  , testCase "Complex" $
+      Interpreter.eval Map.empty (Expr.Mul (Expr.Div (Expr.Num 4) (Expr.Num 2)) (Expr.Sqrt (Expr.Num 16))) @?= Right 8
+  ]
+
+variableTests :: TestTree
+variableTests = testGroup "Variable Operations"
+  [ testCase "Loookup" $
+      Interpreter.eval (Map.fromList [("x", 5)]) (Expr.Var "x") @?= Right 5
+  , testCase "Variable" $
+      Interpreter.eval (Map.fromList [("x", 5)]) (Expr.Add (Expr.Var "x") (Expr.Num 3)) @?= Right 8
+  , testCase "Unbound variable" $
+      Interpreter.eval Map.empty (Expr.Var "x") @?= Left (Error.UnboundVariable "x")
+  ]
+
+letTests :: TestTree
+letTests = testGroup "Let Tests"
+  [ testCase "Simple let" $
+      Interpreter.eval Map.empty (Expr.Let "x" (Expr.Num 5) (Expr.Var "x")) @?= Right 5
+  , testCase "Nested let" $
+      Interpreter.eval Map.empty 
+        (Expr.Let "x" (Expr.Num 13)
+          (Expr.Let "y" (Expr.Add (Expr.Var "x") (Expr.Num 1))
+            (Expr.Pow (Expr.Var "y") (Expr.Num 2)))) @?= Right 196
+  , testCase "Shadowing let" $
+      Interpreter.eval Map.empty
+        (Expr.Let "x" (Expr.Num 5)
+          (Expr.Let "x" (Expr.Add (Expr.Var "x") (Expr.Num 1))
+            (Expr.Var "x"))) @?= Right 6
+  ]
+
+errorTests :: TestTree
+errorTests = testGroup "Error Tests"
+  [ testCase "Negative square root" $
+      Interpreter.eval Map.empty (Expr.Sqrt (Expr.Num (-1))) @?= Left (Error.NegativeSqrt (Expr.Sqrt (Expr.Num (-1))))
+  , testCase "Division by zero" $
+      Interpreter.eval Map.empty (Expr.Div (Expr.Num 1) (Expr.Num 0)) @?= Left (Error.DivisionByZero (Expr.Div (Expr.Num 1) (Expr.Num 0)))
+  , testCase "Unbound variable" $
+      Interpreter.eval Map.empty (Expr.Add (Expr.Var "x") (Expr.Num 1)) @?= Left (Error.UnboundVariable "x")
+  ]
