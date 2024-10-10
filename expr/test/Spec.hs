@@ -83,7 +83,7 @@ tests = testGroup "Coverage Tests"
                    (CompExpr Pow (Var "y") (Num 2)))) @?= Right 196.0
   
   , testCase "Unbound variable" $
-      eval assigned (Var "a") @?= Left (Unbound "a") 
+      eval assigned (Var "a") @?= Left (Unbounded "a") 
 
   , testCase "Variable division by 0" $
       eval assigned (Let "p" (Num 0) (CompExpr Div (Var "x") (Var "p"))) @?= Left (ZeroDiv (CompExpr Div (Var "x") (Var "p")))
