@@ -1,41 +1,47 @@
-import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
+module Main where
 
-testEval :: TestTree
-testEval =
-  testGroup "Eval" [testAdd, testVar]
-  where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
-      testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
-        ]
-    testVar =
-      testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
-        ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+import Test.Tasty
+import Test.Tasty.HUnit
+
+import Expr
+import Error
+import Interpreter
+
+import qualified Data.Map as Map
 
 main :: IO ()
-main =
-  defaultMain $ testGroup "Expressions" [testEval]
+main = defaultMain tests
+
+tests :: TestTree
+tests = testGroup "Evaluator Tests"
+    [ testCase "Addition" $
+        eval Map.empty (Binary OpAdd (Lit 2) (Lit 3)) @?= Right 5.0
+
+    , testCase "Division by zero" $
+        eval Map.empty (Binary OpDiv (Lit 1) (Lit 0)) @?= Left (ErrDivByZero (Binary OpDiv (Lit 1) (Lit 0)))
+
+    , testCase "Square root of negative number" $
+        eval Map.empty (Unary "sqrt" (Lit (-4))) @?= Left (ErrNegativeSqrt (Unary "sqrt" (Lit (-4))))
+
+    , testCase "Undefined variable" $
+        eval Map.empty (Var "x") @?= Left (ErrUndefinedVar "x")
+
+    , testCase "Let binding and usage" $
+        let expr = Let "x" (Lit 5) (Binary OpMul (Var "x") (Lit 2))
+        in eval Map.empty expr @?= Right 10.0
+
+    , testCase "Variable redefinition error" $
+        let env = Map.fromList [("x", 1)]
+            expr = Let "x" (Lit 2) (Var "x")
+        in eval env expr @?= Left (ErrVarRedefinition "x")
+
+    , testCase "Invalid power operation (zero to negative exponent)" $
+        eval Map.empty (Binary OpPow (Lit 0) (Lit (-1))) @?= Left (ErrInvalidOperation "0 raised to negative exponent" (Binary OpPow (Lit 0) (Lit (-1))))
+
+    , testCase "Invalid power operation (negative base with non-integer exponent)" $
+        eval Map.empty (Binary OpPow (Lit (-2)) (Lit 0.5)) @?= Left (ErrInvalidOperation "Negative base with non-integer exponent" (Binary OpPow (Lit (-2)) (Lit 0.5)))
+
+    , testCase "Nested let expressions" $
+        let expr = Let "x" (Lit 2) (Let "y" (Binary OpAdd (Var "x") (Lit 3)) (Binary OpMul (Var "x") (Var "y")))
+        in eval Map.empty expr @?= Right 10.0
+    ]
