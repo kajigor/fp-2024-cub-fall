@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      BaseExpr
       Expr
       Lib
   other-modules:
