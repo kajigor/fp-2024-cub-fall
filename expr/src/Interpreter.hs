@@ -19,18 +19,18 @@ eval m (CompExpr op a b) =
    case (eval m a, eval m b) of
       (Right val1, Right val2) -> 
          case op of
-            Operator.Add  -> Right (val1 + val2)
-            Operator.Sub  -> Right (val1 - val2)
-            Operator.Mult -> Right (val1 * val2)
-            Operator.Div  -> 
+            Add  -> Right (val1 + val2)
+            Sub  -> Right (val1 - val2)
+            Mult -> Right (val1 * val2)
+            Div  -> 
                if val2 == 0 
-               then Left (ZeroDiv (CompExpr Operator.Div a b))
+               then Left (ZeroDiv (CompExpr Div a b))
                else Right (val1 / val2)
-            Operator.Pow ->
+            Pow ->
                if val1 == 0 && val2 < 0
-               then Left (ZeroDiv (CompExpr Operator.Pow a b))
+               then Left (ZeroDiv (CompExpr Pow a b))
                else if val1 < 0 && (val2 /= fromInteger (round val2))
-               then Left (NegativeSqrt (CompExpr Operator.Pow a b))
+               then Left (NegativeSqrt (CompExpr Pow a b))
                else Right (val1 ** val2)
       (Left err, _) -> Left err
       (_, Left err) -> Left err
