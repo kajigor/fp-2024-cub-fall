@@ -1,50 +1,49 @@
-module Expr where
+src/Expr.hs
+module Expr
+  ( Expr(..)
+  , precedence
+  , showExprPrec
+  ) where
 
-import qualified Data.Map.Strict as M
-import GHC.Num (integerToInt)
+data Expr
+  = Num Double
+  | Var String
+  | Let String Expr Expr
+  | Sqrt Expr
+  | Add Expr Expr
+  | Sub Expr Expr
+  | Mul Expr Expr
+  | Div Expr Expr
+  | Pow Expr Expr
+  deriving (Eq)
 
-data Expr = Lit Int | Plus Expr Expr | Var String
+precedence :: Expr -> Int
+precedence expr = case expr of
+  Num _ -> 5
+  Var _ -> 5
+  Let _ _ _ -> 0
+  Sqrt _ -> 4
+  Pow _ _ -> 3
+  Mul _ _ -> 2
+  Div _ _ -> 2
+  Add _ _ -> 1
+  Sub _ _ -> 1
+
+parenthesize :: Int -> Int -> String -> String
+parenthesize outerPrec innerPrec str
+  | outerPrec > innerPrec = "(" ++ str ++ ")"
+  | otherwise = str
+
+showExprPrec :: Int -> Expr -> String
+showExprPrec _ (Num x) = show x
+showExprPrec _ (Var v) = v
+showExprPrec p (Let v e1 e2) = parenthesize p 0 $ "let " ++ v ++ " = " ++ show e1 ++ " in " ++ show e2
+showExprPrec _ (Sqrt e) = "sqrt(" ++ show e ++ ")"
+showExprPrec p (Add e1 e2) = parenthesize p 1 $ showExprPrec 1 e1 ++ " + " ++ showExprPrec 1 e2
+showExprPrec p (Sub e1 e2) = parenthesize p 1 $ showExprPrec 1 e1 ++ " - " ++ showExprPrec 2 e2
+showExprPrec p (Mul e1 e2) = parenthesize p 2 $ showExprPrec 2 e1 ++ " * " ++ showExprPrec 2 e2
+showExprPrec p (Div e1 e2) = parenthesize p 2 $ showExprPrec 2 e1 ++ " / " ++ showExprPrec 3 e2
+showExprPrec p (Pow e1 e2) = parenthesize p 3 $ showExprPrec 3 e1 ++ " ^ " ++ showExprPrec 4 e2
 
 instance Show Expr where
-  show (Lit n) = show n
-  show (Plus x y) = '(' : show x ++ '+' : show y ++ ")"
-  show (Var v) = v
-
-instance Num Expr where
-  (+) = Plus
-  (*) = undefined
-  abs = undefined
-  signum = undefined
-  fromInteger = Lit . integerToInt
-  negate = undefined
-
-eval :: M.Map String Expr -> Expr -> Maybe Int
-eval _ (Lit n) = Just n
-eval state (Plus x y) =
-  case (eval state x, eval state y) of
-    (Just x, Just y) -> Just $ x + y
-    _ -> Nothing
-eval state (Var v) = do
-  case M.lookup v state of
-    Just v -> eval state v
-    Nothing -> Nothing
-
-run :: Expr -> M.Map String Expr -> IO ()
-run expr state = do
-  print expr
-  print state
-  print (eval state expr)
-  putStrLn ""
-
-main = do
-  let expr1 = Var "x"
-  let expr2 = Plus (Lit 2) (Lit 2)
-  let expr3 = Plus (Var "x") (Lit 1)
-  let state1 = M.fromList [("x", Lit 42), ("y", Lit 13)]
-  let state2 = M.empty
-  run expr1 state1
-  run expr2 state1
-  run expr3 state1
-  run expr1 state2
-  run expr2 state2
-  run expr3 state2
+  show expr = showExprPrec 0 expr
