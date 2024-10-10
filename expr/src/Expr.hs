@@ -4,8 +4,6 @@ import Control.Monad (unless)
 import qualified Data.Map.Strict as M
 import Text.Printf (printf)
 
-import Interpreter
-
 data Operator = Add 
      | Sub 
      | Mult 
