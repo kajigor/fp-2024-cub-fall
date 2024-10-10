@@ -1,41 +1,64 @@
-import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
+import Test.Tasty
+import Test.Tasty.HUnit
+import Text.Printf (printf)
+import qualified Data.Map as Map
+import qualified Expr
+import qualified Error
+import qualified Interpreter
+
+testCases :: [(Expr.Expr, Either Error.Error Double)]
+testCases = 
+    [ -- Simple numbers and operations
+      (Expr.Num 5, Right 5.0)
+    , (Expr.Num (-3), Right (-3.0))
+    , (Expr.Add (Expr.Num 2) (Expr.Num 3), Right 5.0)
+    , (Expr.Sub (Expr.Num 10) (Expr.Num 7), Right 3.0)
+    , (Expr.Mul (Expr.Num 4) (Expr.Num 5), Right 20.0)
+    , (Expr.Div (Expr.Num 20) (Expr.Num 4), Right 5.0)
+    , (Expr.Pow (Expr.Num 2) (Expr.Num 3), Right 8.0)
+
+      -- Square root tests
+    , (Expr.Sqrt (Expr.Num 9), Right 3.0)
+    , (Expr.Sqrt (Expr.Num 0), Right 0.0)
+    , (Expr.Sqrt (Expr.Num (-4)), Left (Error.NegativeSqrt (Expr.Num (-4))))
+    
+      -- Division by zero
+    , (Expr.Div (Expr.Num 10) (Expr.Num 0), Left (Error.DivByZero (Expr.Num 10) (Expr.Num 0)))
+
+      -- Nested expressions
+    , (Expr.Add (Expr.Mul (Expr.Num 2) (Expr.Num 3)) (Expr.Div (Expr.Num 10) (Expr.Num 2)), Right 11.0)
+    , (Expr.Sub (Expr.Pow (Expr.Num 2) (Expr.Num 3)) (Expr.Sqrt (Expr.Num 16)), Right 4.0)
+
+      -- Chained operations
+    , (Expr.Add (Expr.Num 1) (Expr.Mul (Expr.Num 2) (Expr.Sub (Expr.Num 7) (Expr.Num 4))), Right 7.0)
+    , (Expr.Div (Expr.Pow (Expr.Num 16) (Expr.Num 0.5)) (Expr.Num 4), Right 1.0)
+
+      -- Zero as operand
+    , (Expr.Add (Expr.Num 0) (Expr.Num 10), Right 10.0)
+    , (Expr.Mul (Expr.Num 0) (Expr.Num 100), Right 0.0)
+    
+      -- Variable lookup
+    , (Expr.Variable "x", Left (Error.UnassignedVariable "x"))
+    , (Expr.Let "x" (Expr.Num 5) (Expr.Add (Expr.Variable "x") (Expr.Num 3)), Right 8.0)
+    
+      -- Nested Let bindings
+    , (Expr.Let "x" (Expr.Num 5) (Expr.Let "y" (Expr.Num 3) (Expr.Mul (Expr.Variable "x") (Expr.Variable "y"))), Right 15.0)
+    , (Expr.Let "x" (Expr.Num 2) (Expr.Let "y" (Expr.Add (Expr.Variable "x") (Expr.Num 3)) (Expr.Pow (Expr.Variable "y") (Expr.Variable "x"))), Right 25.0)
+    , (Expr.Let "x" (Expr.Num 13) (Expr.Let "y" (Expr.Add (Expr.Variable "x") (Expr.Num 1)) (Expr.Pow (Expr.Variable "y") (Expr.Num 2))), Right 196.0)
+
+      -- Unassigned Variable within let expression
+    , (Expr.Let "x" (Expr.Num 2) (Expr.Add (Expr.Variable "x") (Expr.Variable "y")), Left (Error.UnassignedVariable "y"))
+    
+      -- Error handling in nested expressions
+    , (Expr.Let "x" (Expr.Div (Expr.Num 10) (Expr.Num 0)) (Expr.Add (Expr.Variable "x") (Expr.Num 5)), Left (Error.DivByZero (Expr.Num 10) (Expr.Num 0)))
+    ]
 
 testEval :: TestTree
-testEval =
-  testGroup "Eval" [testAdd, testVar]
-  where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
-      testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
-        ]
-    testVar =
-      testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
-        ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+testEval = testGroup "Evaluation Tests"
+    [ testCase (show expr) $
+        assertEqual ("for: " ++ show expr) expected (Interpreter.eval Map.empty expr)
+    | (expr, expected) <- testCases
+    ]
 
 main :: IO ()
-main =
-  defaultMain $ testGroup "Expressions" [testEval]
+main = defaultMain testEval
