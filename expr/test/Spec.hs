@@ -1,6 +1,7 @@
 import Test.Tasty
 import Test.Tasty.HUnit
 import Text.Printf (printf)
+import Control.Monad (unless)
 import qualified Data.Map as Map
 import qualified Expr
 import qualified Error
@@ -49,12 +50,12 @@ letCases =
   ]
 
 testExpr :: (Expr.Expr, Either Error.Error Double) -> TestTree
-testExpr (expr, expected) = testCase (printf "Testing: %s" (show expr)) $ 
-    let actual = Interpreter.eval Map.empty expr in
-    case (expected, actual) of
-        (Right expVal, Right actVal) -> assertEqual "" expVal actVal
-        (Left expErr, Left actErr)   -> assertEqual "" expErr actErr
-        _ -> assertFailure $ printf "Expected %s but got %s" (show expected) (show actual)
+testExpr (expr, expected) = testCase (printf "Testing: %s" (show expr)) $ do
+    let actual = Interpreter.eval Map.empty expr
+    unless (expected == actual) $ describeFailure actual
+  where
+    describeFailure actual =
+      assertFailure $ printf "eval (%s) should be %s but it was %s" (show expr) (show expected) (show actual)
 
 numTests :: TestTree
 numTests = testGroup "Numerical Expressions Tests" $ map testExpr numCases
