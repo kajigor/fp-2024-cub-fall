@@ -26,7 +26,8 @@ source-repository head
 library
   exposed-modules:
       Expr
-      Lib
+      Error
+      Interpreter
   other-modules:
       Paths_expr
   autogen-modules:
