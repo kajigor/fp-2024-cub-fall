@@ -1,5 +1,4 @@
-module Error where
-
+module Error ( Error(..)) where
 import Expr (Expr)
 
 data Error = 

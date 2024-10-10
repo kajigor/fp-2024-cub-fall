@@ -1,4 +1,9 @@
-module Expr where
+src/Expr.hs
+module Expr
+  ( Expr(..)
+  , precedence
+  , showExprPrec
+  ) where
 
 data Expr
   = Num Double
