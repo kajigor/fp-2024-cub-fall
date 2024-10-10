@@ -21,7 +21,7 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- containers 
+- containers
 
 ghc-options:
 - -Wall
@@ -47,6 +47,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - expr
+    - containers
 
 tests:
   expr-test:
