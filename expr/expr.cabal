@@ -25,6 +25,8 @@ source-repository head
 
 library
   exposed-modules:
+      Error
+      Eval
       Expr
       Lib
   other-modules:
