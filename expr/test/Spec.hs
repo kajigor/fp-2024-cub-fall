@@ -90,7 +90,7 @@ tests = testGroup "Coverage Tests"
       eval assigned (Sqrt (Var "z")) @?= Left (NegativeSqrt (Var "z"))
 
   , testCase "Checking state" $
-      eval assigned (Sqrt (Var "p")) @?= 0.0
+      eval assigned (Var "p") @?= 0.0
   ]
 
 main :: IO ()
