@@ -1,41 +1,52 @@
-import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
+import Test.Tasty
+import Test.Tasty.HUnit
+import qualified Data.Map as Map
 
-testEval :: TestTree
-testEval =
-  testGroup "Eval" [testAdd, testVar]
-  where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
-      testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
-        ]
-    testVar =
-      testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
-        ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+import Expr (Expr(..))
+import Error (Error(..))
+import Interpreter (eval)
+
+testCases :: TestTree
+testCases = testGroup "Expression Evaluator Tests"
+  [ testCase "Num 5" $
+      eval (Num 5) @?= Right 5
+
+  , testCase "Add 2 + 3" $
+      eval (Add (Num 2) (Num 3)) @?= Right 5
+
+  , testCase "Sub 10 - 4" $
+      eval (Sub (Num 10) (Num 4)) @?= Right 6
+
+  , testCase "Mul 3 * 3" $
+      eval (Mul (Num 3) (Num 3)) @?= Right 9
+
+  , testCase "Div 10 / 2" $
+      eval (Div (Num 10) (Num 2)) @?= Right 5
+
+  , testCase "Div by zero" $
+      eval (Div (Num 1) (Num 0)) @?= Left (DivByZero (Num 1) (Num 0))
+
+  , testCase "Sqrt of 16" $
+      eval (Sqrt (Num 16)) @?= Right 4
+
+  , testCase "Sqrt of negative number" $
+      eval (Sqrt (Num (-4))) @?= Left (NegativeSqrt (Num (-4)))
+
+  , testCase "Pow 2^3" $
+      eval (Pow (Num 2) (Num 3)) @?= Right 8
+
+  , testCase "Undefined variable" $
+      eval (Var "x") @?= Left (UndefinedVariable "x")
+
+  , testCase "Let x = 13 in x" $
+      eval (Let "x" (Num 13) (Var "x")) @?= Right 13
+
+  , testCase "Let x = 13 in let y = x + 1 in y ^ 2" $
+      eval (Let "x" (Num 13) (Let "y" (Add (Var "x") (Num 1)) (Pow (Var "y") (Num 2)))) @?= Right 196
+
+  , testCase "Shadowed variable" $
+      eval (Let "x" (Num 3) (Let "x" (Num 4) (Add (Var "x") (Num 2)))) @?= Right 6
+  ]
 
 main :: IO ()
-main =
-  defaultMain $ testGroup "Expressions" [testEval]
+main = defaultMain testCases
