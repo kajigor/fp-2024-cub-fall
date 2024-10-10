@@ -1,4 +1,4 @@
-module Expr where
+module Expr(Expr(..)) where
 
 import Control.Monad (unless)
 import qualified Data.Map.Strict as M
