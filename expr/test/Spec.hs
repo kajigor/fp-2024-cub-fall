@@ -9,7 +9,7 @@ import Expr
 import Error
 import Interpreter
 
-let assigned = Map.fromList [("x", Num 10), ("y", Num 8), ("z", Num (-1))]
+let assigned = Map.fromList [("x", 10.0), ("y", 8.0), ("z", -1.0)]
 
 tests :: TestTree
 tests = testGroup "Coverage Tests"
