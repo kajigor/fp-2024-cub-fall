@@ -1,4 +1,4 @@
-module Interpreter where
+module Interpreter(Interpreter(..)) where
 
 import Control.Monad (unless)
 import qualified Data.Map.Strict as M
