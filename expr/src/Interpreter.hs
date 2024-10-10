@@ -1,7 +1,6 @@
-module Interpreter where
+module Interpreter (eval) where
 
 import qualified Data.Map as Map
-import Control.Monad (unless)
 import qualified Error as E
 import qualified Expr as Ex
 
