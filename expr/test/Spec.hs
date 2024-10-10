@@ -1,41 +1,96 @@
-import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
-import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
+module Spec where
 
-testEval :: TestTree
-testEval =
-  testGroup "Eval" [testAdd, testVar]
-  where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
-      testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
-        ]
-    testVar =
-      testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
-        ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+import Test.Tasty (defaultMain, testGroup, TestTree)
+import Test.Tasty.HUnit (testCase, (@?=))
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
+import Expr  
+import Error
+import Interpreter
+
+let assigned = Map.fromList [("x", Num 10), ("y", Num 8), ("z", Num (-1))]
+
+tests :: TestTree
+tests = testGroup "Coverage Tests"
+  [ testCase "Number literal" $
+      eval Map.empty (Num 3) @?= Right 3.0
+
+  , testCase "Square root of positive number" $
+      eval Map.empty (Sqrt (Num 9)) @?= Right 3.0
+
+  , testCase "Square root of negative number" $
+      eval Map.empty (Sqrt (Num (-9))) @?= Left (NegativeSqrt (Num (-9)))
+
+  , testCase "Addition of two numbers" $
+      eval Map.empty (CompExpr Add (Num 3) (Num 7)) @?= Right 10.0
+
+  , testCase "Subtraction of two numbers" $
+      eval Map.empty (CompExpr Sub (Num 7) (Num 3)) @?= Right 4.0
+  
+  , testCase "Subtraction of two numbers negative" $
+      eval Map.empty (CompExpr Sub (Num 3) (Num 7)) @?= Right (-4.0)
+
+  , testCase "Multiplication of two numbers" $
+      eval Map.empty (CompExpr Mult (Num 2) (Num 10)) @?= Right 20.0
+
+  , testCase "Division of two numbers" $
+      eval Map.empty (CompExpr Div (Num 9) (Num 3)) @?= Right 3.0
+
+  , testCase "Division by 0" $
+      eval Map.empty (CompExpr Div (Num 3) (Num 0)) @?= Left (ZeroDiv (CompExpr Div (Num 3) (Num 0)))
+
+  , testCase "Power" $
+      eval Map.empty (CompExpr Pow (Num 3) (Num 3)) @?= Right 27.0
+
+  , testCase "Composite sqrt" $
+      eval Map.empty (Sqrt (CompExpr Sub (Num 7) (Num 3))) @?= Right 2.0
+
+  , testCase "Composite sqrt error" $
+      eval Map.empty (Sqrt (CompExpr Sub (Num 3) (Num 7))) @?= Left (NegativeSqrt (CompExpr Sub (Num 3) (Num 7)))
+
+  , testCase "Composite addition" $
+      eval Map.empty (CompExpr Add (CompExpr Mult (Num 2) (Num 10)) (CompExpr Sub (Num 10) (Num 2))) @?= Right 28.0
+
+  , testCase "Composite division error" $
+      eval Map.empty (CompExpr Div (CompExpr Mult (Num 2) (Num 10)) (CompExpr Sub (Num 10) (Num 10))) @?= Left (ZeroDiv (CompExpr Div (CompExpr Mult (Num 2) (Num 10)) (CompExpr Sub (Num 10) (Num 10))))
+
+  , testCase "Pow division by 0" $
+      eval Map.empty (CompExpr Pow (Num 0) (Num (-4))) @?= Left (ZeroDiv (CompExpr Pow (Num 0) (Num (-4))))
+
+  , testCase "Pow negative sqrt" $
+      eval Map.empty (CompExpr Pow (Num (-10)) (Num 0.5)) @?= Left (NegativeSqrt (CompExpr Pow (Num (-10)) (Num 0.5)))
+
+  , testCase "Variable evaluation (x)" $
+      eval assigned (Var "x") @?= Right 10.0
+
+  , testCase "Expression with variables (x + y)" $
+      eval assigned (CompExpr Add (Var "x") (Var "y")) @?= Right 18.0
+
+  , testCase "Let expression evaluation" $
+      eval Map.empty (Let "x" (Num 7) (CompExpr Add (Var "x") (Num 5))) @?= Right 12.0
+
+  , testCase "Complex expression with variables and operations" $
+      eval assigned (CompExpr Add (CompExpr Mult (Var "x") (Num 2)) (CompExpr Sub (Var "y") (Num 1))) @?= Right 27.0
+
+  , testCase "Let expression introduces a new variable" $
+      eval Map.empty (Let "d" (Num 1) (CompExpr Add (Var "d") (Num 5))) @?= Right 6.0  
+
+  , testCase "Let x = 13 in Let y = x + 1 in y ** 2" $
+    eval Map.empty (Let "x" (Num 13) 
+                   (Let "y" (CompExpr Add (Var "x") (Num 1)) 
+                   (CompExpr Pow (Var "y") (Num 2)))) @?= Right 196.0
+  
+  , testCase "Unbound variable" $
+      eval assigned (Var "a") @?= Left (Unbound "a") 
+
+  , testCase "Variable division by 0" $
+      eval assigned (Let "p" (Num 0) (CompExpr Div (Var "x") (Var "p"))) @?= Left (ZeroDiv (CompExpr Div (Var "x") (Var "p")))
+
+  , testCase "Variable negative sqrt" $
+      eval assigned (Sqrt (Var "z")) @?= Left (NegativeSqrt (Var "z"))
+  ]
 
 main :: IO ()
 main =
-  defaultMain $ testGroup "Expressions" [testEval]
+  defaultMain $ testGroup "Expressions" [tests]
