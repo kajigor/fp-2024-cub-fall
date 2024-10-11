@@ -1,40 +1,64 @@
 import qualified Data.Map.Strict as M
 import Data.Maybe (isNothing)
-import Expr (Expr (..), eval)
+import Error
+import Interpreter(eval)
+import Expr
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
 
 testEval :: TestTree
 testEval =
-  testGroup "Eval" [testAdd, testVar]
+  testGroup "Eval" [testArithmetic, testVariables, testLet, testErrors]
   where
-    testEvalNoVarSuccess msg expr res =
-      testCase msg $ eval M.empty expr @?= Just res
-    testAdd =
+    testEvalSuccess msg state expr res =
+      testCase msg $ eval state expr @?= Right res
+    
+    testEvalFailure msg state expr expectedError =
+      testCase msg $ eval state expr @?= Left expectedError
+
+    -- Test basic arithmetic expressions
+    testArithmetic =
       testGroup
-        "Add"
-        [ testCase "1 + 2 == 3" $ eval M.empty (Plus (Lit 1) (Lit 2)) @?= Just 3,
-          testCase "2 + 1 == 3" $ eval M.empty (Plus (Lit 2) (Lit 1)) @?= Just 3,
-          testCase "2 + 1 == 3 as Lit instance" $ eval M.empty (2 + 1) @?= Just 3,
-          testEvalNoVarSuccess "0+2 == 2" (0 + 2) 2
+        "Arithmetic"
+        [ testEvalSuccess "1 + 2 == 3" M.empty (Add (Number 1) (Number 2)) 3,
+          testEvalSuccess "5 - 3 == 2" M.empty (Sub (Number 5) (Number 3)) 2,
+          testEvalSuccess "4 * 2 == 8" M.empty (Mult (Number 4) (Number 2)) 8,
+          testEvalSuccess "9 / 3 == 3" M.empty (Div (Number 9) (Number 3)) 3,
+          testEvalSuccess "2 ^ 3 == 8" M.empty (Exp (Number 2) (Number 3)) 8,
+          testEvalSuccess "sqrt(16) == 4" M.empty (Sqrt (Number 16)) 4
         ]
-    testVar =
+    
+    -- Test variable evaluation
+    testVariables =
       testGroup
-        "Var"
-        [ testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 2)) (Plus (Var "x") (Lit 1)) 3,
-          testFailure "x + 1 fails when x isn't assigned" M.empty (Plus (Var "x") (Lit 1)),
-          testSuccess "x + 1 == 3, x == 2" (M.singleton "x" (Lit 1)) (Plus (Var "x") (Lit 1)) 2
+        "Variables"
+        [ testEvalSuccess "x = 5" (M.singleton "x" 5) (Var "x") 5,
+          testEvalFailure "x not found" M.empty (Var "x") (NotVariable "x")
         ]
-    testSuccess msg state expr expected =
-      testCase msg $
-        case eval state expr of
-          Just x -> assertBool "Evaluation result is wrong" (x == expected)
-          Nothing -> assertFailure "Expression failed to evaluate"
-    testFailure msg state expr =
-      testCase msg $
-        assertBool "Expr should fail to evaluate in the state" $
-          isNothing $
-            eval state expr
+
+    -- Test Let expressions
+    testLet =
+      testGroup
+        "Let"
+        [ testEvalSuccess "let x = 5 in x + 1 == 6"
+            M.empty
+            (Let "x" (Number 5) (Add (Var "x") (Number 1)))
+            6,
+          testEvalSuccess "nested let: let x = 5 in let y = x + 1 in y * 2 == 12"
+            M.empty
+            (Let "x" (Number 5) (Let "y" (Add (Var "x") (Number 1)) (Mult (Var "y") (Number 2))))
+            12
+        ]
+
+    -- Test error cases
+    testErrors =
+      testGroup
+        "Errors"
+        [ testEvalFailure "division by zero" M.empty (Div (Number 4) (Number 0)) (DividedByZero (Div (Number 4) (Number 0))),
+          testEvalFailure "sqrt of negative number" M.empty (Sqrt (Number (-1))) (SqrtOfNegative (Sqrt (Number (-1)))),
+          testEvalFailure "negative exponent" M.empty (Exp (Number 2) (Number (-1))) (NegativeExponent (Exp (Number 2) (Number (-1)))),
+          testEvalFailure "multiple declaration of x" M.empty (Let "x" (Number 5) (Let "x" (Number 10) (Var "x"))) (MultipleDeclaration "x")
+        ]
 
 main :: IO ()
 main =
