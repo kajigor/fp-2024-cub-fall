@@ -1,50 +1,35 @@
-module Expr where
+module Expr(Expr(..)) where
+import Text.Printf (printf)
 
-import qualified Data.Map.Strict as M
-import GHC.Num (integerToInt)
-
-data Expr = Lit Int | Plus Expr Expr | Var String
-
+data Expr = 
+  Number Double
+  | Sqrt Expr
+  | Add Expr Expr
+  | Sub Expr Expr
+  | Mult Expr Expr
+  | Div Expr Expr
+  | Exp Expr Expr
+  | Var String
+  | Let String Expr Expr
+  deriving (Eq, Ord)
 instance Show Expr where
-  show (Lit n) = show n
-  show (Plus x y) = '(' : show x ++ '+' : show y ++ ")"
-  show (Var v) = v
+  show (Number a) = show a
+  show (Sqrt a) = printf "sqrt (%s)" (show a)
+  show (Add a b) = printf "(%s + %s)" (show a) (show b)
+  show (Sub a b) = printf "(%s - %s)" (show a) (show b)
+  show (Mult a b) = printf "(%s * %s)" (show a) (show b)
+  show (Div a b) = printf "(%s / %s)" (show a) (show b)
+  show (Exp a b) = printf "(%s ^ %s)" (show a) (show b)
+  show (Var var) = var
+  show (Let var a b) = printf "let "var" = %s in %s" (show a) (show b)
+  
+data Error = 
+  DividedByZero Expr
+  | SqrtOfNegative Expr
+  | NegativeExponent Expr
+  deriving (Eq)
 
-instance Num Expr where
-  (+) = Plus
-  (*) = undefined
-  abs = undefined
-  signum = undefined
-  fromInteger = Lit . integerToInt
-  negate = undefined
-
-eval :: M.Map String Expr -> Expr -> Maybe Int
-eval _ (Lit n) = Just n
-eval state (Plus x y) =
-  case (eval state x, eval state y) of
-    (Just x, Just y) -> Just $ x + y
-    _ -> Nothing
-eval state (Var v) = do
-  case M.lookup v state of
-    Just v -> eval state v
-    Nothing -> Nothing
-
-run :: Expr -> M.Map String Expr -> IO ()
-run expr state = do
-  print expr
-  print state
-  print (eval state expr)
-  putStrLn ""
-
-main = do
-  let expr1 = Var "x"
-  let expr2 = Plus (Lit 2) (Lit 2)
-  let expr3 = Plus (Var "x") (Lit 1)
-  let state1 = M.fromList [("x", Lit 42), ("y", Lit 13)]
-  let state2 = M.empty
-  run expr1 state1
-  run expr2 state1
-  run expr3 state1
-  run expr1 state2
-  run expr2 state2
-  run expr3 state2
+instance Show Error where
+  show (DividedByZero expr) = printf "Any expression divided by 0 is undefined. In the expression: %s" (show expr)
+  show (SqrtOfNegative expr) = printf "Taking a square root of a negative number is undefined. In the expression: %s" (show expr)
+  show (NegativeExponent expr) = printf "Number raised to the power of a negative number is undefined. In the expression: %s" (show expr)
