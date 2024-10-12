@@ -25,7 +25,9 @@ source-repository head
 
 library
   exposed-modules:
+      Error
       Expr
+      Interpreter
       Lib
   other-modules:
       Paths_expr
