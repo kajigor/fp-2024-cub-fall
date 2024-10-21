@@ -1,5 +1,12 @@
 module Main (main) where
 
+import qualified Data.Map as Map
+import Expr (Expr(..))
+import Error (Error(..))
+import Interpreter (eval)
+
 
 main :: IO ()
-main = putStrLn "Main"
+main = do
+  putStrLn "Running expression evaluator tests..."
+

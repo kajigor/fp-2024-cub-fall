@@ -28,7 +28,6 @@ library
       Error
       Expr
       Interpreter
-      Lib
   other-modules:
       Paths_expr
   autogen-modules:
