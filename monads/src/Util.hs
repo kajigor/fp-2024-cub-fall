@@ -15,13 +15,3 @@ thinEnclose :: String -> String
 thinEnclose =
   let thinLine = replicate 30 '-' in
   enclose thinLine thinLine
-
-if' :: Bool -> a -> a -> a
-if' True a _  = a
-if' False _ b = b
-
--- Safe alternative to length
-lengthLessThan :: [a] -> Int -> Bool
-lengthLessThan _ 0      = False
-lengthLessThan [] _     = True
-lengthLessThan (_:xs) n = lengthLessThan xs (n-1)

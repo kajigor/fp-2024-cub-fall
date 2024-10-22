@@ -64,7 +64,8 @@ testRun = testGroup "Run" [testSimple, testError, testMisc]
         testError =
             testGroup
                 "Error"
-                [   testFailure "StackUnderflow" initialState (StackUnderflow Add) ([PushNum 5, Add] :: StackProgram String),
+                [   testFailure "StackUnderflow on Add" initialState (StackUnderflow Add) ([PushNum 5, Add] :: StackProgram String),
+                    testFailure "StackUnderflow on StoreVar" initialState (StackUnderflow $ StoreVar "x") ([StoreVar "x"] :: StackProgram String),
                     testFailure "VarUndefined" initialState (VarUndefined "\"y\"") ([PushNum 13, StoreVar "x", PushVar "y"] :: StackProgram String),
                     testFailure "StackNotExhausted" initialState (StackNotExhausted [21, 21]) ([PushNum 21, PushNum 8, PushNum 13, Add] :: StackProgram String),
                     testFailure "StackEmpty" initialState FinalStackEmpty ([] :: StackProgram String)
