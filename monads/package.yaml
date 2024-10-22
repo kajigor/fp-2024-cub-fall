@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - containers 
 
+
 ghc-options:
 - -Wall
 - -Wcompat
@@ -58,3 +59,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - monads
+    - tasty 
+    - tasty-hunit
