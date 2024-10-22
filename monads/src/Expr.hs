@@ -8,6 +8,9 @@ data Expr v
   | Var v 
   | Plus (Expr v) (Expr v)
   | Let v (Expr v) (Expr v)
+-- let x = 13 in 
+-- let y = 42 in 
+-- x + y + 1
 
 instance Show (Expr String) where 
   show (Num x) = show x 

@@ -26,6 +26,10 @@ source-repository head
 library
   exposed-modules:
       Expr
+      HW.Compiler
+      HW.Eval
+      HW.Main
+      HW.StackMachine
       Reader.Eval
       Reader.Main
       Reader.MyReader
