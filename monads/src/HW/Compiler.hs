@@ -1,7 +1,7 @@
-module HW.Compiler where
+module HW.Compiler (compile) where
 
 import Expr 
-import HW.StackMachine
+import HW.StackMachine as SM
 
 -- let x = 13 in
 -- let y = 42 in
@@ -12,4 +12,7 @@ import HW.StackMachine
 
 -- Compiler of an expression into machine instructions
 compile :: Expr v -> StackProgram v
-compile = undefined 
+compile (Num a) = [PushNum a]
+compile (Var a) = [PushVar a]
+compile (Plus a b) = compile a ++ compile b ++ [Add]
+compile (Let v e b) = compile e ++ [StoreVar v] ++ compile b
