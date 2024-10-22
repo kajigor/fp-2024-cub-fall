@@ -1,9 +1,9 @@
 module Reader.Eval where
 
-import Reader.MyReader
-import Expr
-import qualified Data.Map as M
 import Control.Monad (liftM2)
+import qualified Data.Map as M
+import Expr
+import Reader.MyReader
 
 type VarMap a = M.Map a Int
 
@@ -11,22 +11,22 @@ type VarMap a = M.Map a Int
 -- let y = x + x in
 -- y + 1
 
--- -- Explicit handling of the state 
+-- -- Explicit handling of the state
 -- eval :: (Ord a) => Expr a -> (VarMap a -> Int)
 -- eval (Num x) _ = x
 -- eval (Plus x y) env = eval x env + eval y env
--- eval (Var v) env = 
---   case M.lookup v env of 
---     Just x -> x 
+-- eval (Var v) env =
+--   case M.lookup v env of
+--     Just x -> x
 --     Nothing -> error "Oops"
--- eval (Let x v b) env = 
---   let v' = eval v env in 
---   let env' = M.insert x v' env in 
---   eval b env 
+-- eval (Let x v b) env =
+--   let v' = eval v env in
+--   let env' = M.insert x v' env in
+--   eval b env
 
--- -- Explicit construction of MyReaders 
+-- -- Explicit construction of MyReaders
 -- eval :: Ord a => Expr a -> MyReader (VarMap a) Int
--- eval (Num x) = MyReader $ \_ -> x 
+-- eval (Num x) = MyReader $ \_ -> x
 -- eval (Plus x y) = MyReader $ \env ->
 --   let xV = runMyReader (eval x) env in
 --   let yV = runMyReader (eval y) env in
@@ -40,7 +40,7 @@ type VarMap a = M.Map a Int
 --   let env' = M.insert x vV env in
 --   runMyReader (eval b) env'
 
--- -- Explicit use of binds 
+-- -- Explicit use of binds
 -- eval :: Ord a => Expr a -> MyReader (VarMap a) Int
 -- eval (Num x) = pure x
 -- eval (Plus x y) =
@@ -48,7 +48,7 @@ type VarMap a = M.Map a Int
 --   eval y >>= \yV ->
 --   pure (xV + yV)
 -- eval (Var v) =
---   ask >>= \env -> 
+--   ask >>= \env ->
 --   case M.lookup v env of
 --     Just x -> pure x
 --     Nothing -> error "Oops"
@@ -56,7 +56,7 @@ type VarMap a = M.Map a Int
 --   eval v >>= \vV ->
 --   local (\env -> M.insert x vV env) (eval b)
 
--- -- Do-notation 
+-- -- Do-notation
 -- eval :: Ord a => Expr a -> MyReader (VarMap a) Int
 -- eval (Num x) = pure x
 -- eval (Plus x y) = do
@@ -72,7 +72,7 @@ type VarMap a = M.Map a Int
 --   vV <- eval v
 --   local (M.insert x vV) (eval b)
 
--- Do-notation, fmaps and app. 
+-- Do-notation, fmaps and app.
 eval :: (Ord a) => Expr a -> MyReader (VarMap a) Int
 eval (Num x) = pure x
 eval (Plus x y) =
@@ -86,7 +86,7 @@ eval (Let x v b) = do
   vV <- eval v
   local (M.insert x vV) (eval b)
 
--- Getting rid of the error 
+-- Getting rid of the error
 evalSafe :: (Ord a) => Expr a -> MyReader (VarMap a) (Maybe Int)
 evalSafe (Num x) = pure $ pure x
 evalSafe (Plus x y) =
@@ -102,5 +102,5 @@ evalSafe (Let x v b) = do
 runEvalSafe :: (Ord a) => Expr a -> Maybe Int
 runEvalSafe e = runMyReader (evalSafe e) M.empty
 
-runEval :: (Ord a) => Expr a -> Int 
-runEval e = runMyReader (eval e) M.empty 
+runEval :: (Ord a) => Expr a -> Int
+runEval e = runMyReader (eval e) M.empty
