@@ -1,7 +1,7 @@
 module HW.Compiler (compile) where
 
 import Expr 
-import HW.StackMachine as SM
+import HW.StackMachine
 
 -- let x = 13 in
 -- let y = 42 in
