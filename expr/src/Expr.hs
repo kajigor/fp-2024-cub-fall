@@ -9,7 +9,7 @@ data Expr =
   | Div Expr Expr
   | Pow Expr Expr
   | Var String
-  | Let Expr Expr Expr
+  | Let String Expr Expr
   deriving Eq
 
 instance Show Expr where
@@ -21,5 +21,4 @@ instance Show Expr where
   show (Div x y) = "(" ++ show x ++ " / " ++ show y ++ ")"
   show (Pow x y) = "(" ++ show x ++ " ^ " ++ show y ++ ")"
   show (Var name) = name
-  show (Let (Var name) value body) = "let " ++ name ++ "=" ++ show value ++ " in " ++ show body
-  show Let{} = undefined
+  show (Let name value body) = "let " ++ name ++ "=" ++ show value ++ " in " ++ show body

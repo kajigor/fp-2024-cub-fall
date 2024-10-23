@@ -74,13 +74,13 @@ testEval =
     testLet =
       testGroup
         "Let"
-        [ testEvalNoVarSuccess "let x = 4 in x == 4" (Let (Var "x") (Num 4) (Var "x")) 4,
-          testEvalNoVarSuccess "let x = 4 in x + 3 == 7" (Let (Var "x") (Num 4) (Add (Var "x") (Num 3))) 7,
-          testEvalNoVarSuccess "let x = 4, let y = 2 in x * y == 8" (Let (Var "x") (Num 4) (Let (Var "y") (Num 2) (Mul (Var "x") (Var "y")))) 8,
-          testEvalNoVarSuccess "let x = sqrt(16) in x == 4" (Let (Var "x") (Sqrt (Num 16)) (Var "x")) 4,
-          testFailure "let x = 4, let y = sqrt(-4) fails" M.empty (Let (Var "x") (Num 4) (Let (Var "y") (Sqrt (Num (-4))) (Add (Var "x") (Var "y")))),
-          testEvalNoVarSuccess "let x = 2 in x ^ 2 == 4" (Let (Var "x") (Num 2) (Pow (Var "x") (Num 2))) 4,
-          testEvalNoVarSuccess "let x = 5 in let x = 6 in x == 6 (shadowing)" (Let (Var "x") (Num 5) (Let (Var "x") (Num 6) (Var "x"))) 6
+        [ testEvalNoVarSuccess "let x = 4 in x == 4" (Let "x" (Num 4) (Var "x")) 4,
+          testEvalNoVarSuccess "let x = 4 in x + 3 == 7" (Let "x" (Num 4) (Add (Var "x") (Num 3))) 7,
+          testEvalNoVarSuccess "let x = 4, let y = 2 in x * y == 8" (Let "x" (Num 4) (Let "y" (Num 2) (Mul (Var "x") (Var "y")))) 8,
+          testEvalNoVarSuccess "let x = sqrt(16) in x == 4" (Let "x" (Sqrt (Num 16)) (Var "x")) 4,
+          testFailure "let x = 4, let y = sqrt(-4) fails" M.empty (Let "x" (Num 4) (Let "y" (Sqrt (Num (-4))) (Add (Var "x") (Var "y")))),
+          testEvalNoVarSuccess "let x = 2 in x ^ 2 == 4" (Let "x" (Num 2) (Pow (Var "x") (Num 2))) 4,
+          testEvalNoVarSuccess "let x = 5 in let x = 6 in x == 6 (shadowing)" (Let "x" (Num 5) (Let "x" (Num 6) (Var "x"))) 6
         ]
 
     testNestedExpr =
@@ -93,9 +93,17 @@ testEval =
     testComplexExpr =
       testGroup
         "Complex Expressions"
-        [ testEvalNoVarSuccess "let x = 3 in (x + 2) * (x - 1) == 10" (Let (Var "x") (Num 3) (Mul (Add (Var "x") (Num 2)) (Sub (Var "x") (Num 1)))) 10,
-          testEvalNoVarSuccess "let x = 2 in let y = x + 3 in x * y == 10" (Let (Var "x") (Num 2) (Let (Var "y") (Add (Var "x") (Num 3)) (Mul (Var "x") (Var "y")))) 10,
-          testEvalNoVarSuccess "let x = 2 in let y = x * 2 in let z = y + 3 in z ^ x == 25" (Let (Var "x") (Num 2) (Let (Var "y") (Mul (Var "x") (Num 2)) (Let (Var "z") (Add (Var "y") (Num 3)) (Pow (Var "z") (Var "x"))))) 49
+        [ testEvalNoVarSuccess "let x = 3 in (x + 2) * (x - 1) == 10" 
+            (Let "x" (Num 3) (Mul (Add (Var "x") (Num 2)) (Sub (Var "x") (Num 1)))) 10,
+          
+          testEvalNoVarSuccess "let x = 2 in let y = x + 3 in x * y == 10" 
+            (Let "x" (Num 2) (Let "y" (Add (Var "x") (Num 3)) (Mul (Var "x") (Var "y")))) 10,
+          
+          testEvalNoVarSuccess "let x = 2 in let y = x * 2 in let z = y + 3 in z ^ x == 49" 
+            (Let "x" (Num 2) 
+              (Let "y" (Mul (Var "x") (Num 2)) 
+                (Let "z" (Add (Var "y") (Num 3)) 
+                  (Pow (Var "z") (Var "x"))))) 49
         ]
 
     testEvalNoVarSuccess msg expr res =

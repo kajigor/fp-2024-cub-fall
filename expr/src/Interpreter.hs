@@ -16,8 +16,8 @@ eval :: Map.Map String Double -> Expr -> Either Error Double
 eval _ (Num a) = Right a
 
 eval state (Sqrt a) = case eval state a of
-  (Left x) -> Left x
-  (Right x) -> if x < 0 then Left (NegRoot (Sqrt a)) else Right (sqrt x) 
+  Left x -> Left x
+  Right x -> if x < 0 then Left (NegRoot (Sqrt a)) else Right (sqrt x) 
 
 eval state (Add a b) = performOperation state (+) a b
 
@@ -35,9 +35,8 @@ eval state (Var name) = case Map.lookup name state of
   Nothing -> Left (EmptyVariable name)
   Just value -> Right value
 
-eval state (Let (Var name) body expression) = case eval state body of
-  (Left e) -> Left e
-  (Right value) -> case eval (Map.insert name value state) expression of
-    (Left er) -> Left er
-    (Right valueLet) -> Right valueLet
-eval _ Let{} = undefined
+eval state (Let name body expression) = case eval state body of
+  Left e -> Left e
+  Right value -> case eval (Map.insert name value state) expression of
+    Left er -> Left er
+    Right valueLet -> Right valueLet
