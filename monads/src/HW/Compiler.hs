@@ -12,4 +12,7 @@ import HW.StackMachine
 
 -- Compiler of an expression into machine instructions
 compile :: Expr v -> StackProgram v
-compile = undefined 
+compile (Num value) = [PushNum value]
+compile (Var name) = [PushVar name]
+compile (Plus a b) = compile a ++ compile b ++ [Add]
+compile (Let variable expr body) = compile expr ++ [StoreVar variable] ++ compile body
