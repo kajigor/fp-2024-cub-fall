@@ -50,7 +50,7 @@ combinedTests = testGroup "Combined tests for eval and compiler"
       in result @?= expected
 
   , testCase "combined test for undefined variable" $
-      let expr = Let "x" (Num 10) (Var "undefined")
+      let expr = Let "x" (Num 10) (Var "y")
           compiled = compile expr
           result = execProgram compiled initialState
           expected = Left (VarUndefined "undefined")
