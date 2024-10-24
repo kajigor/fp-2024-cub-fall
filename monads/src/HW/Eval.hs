@@ -41,8 +41,7 @@ execInstr instr = case instr of
             Just value -> do
                 modify (\s -> s { getStack = value : getStack s })
                 return (Right ())
-            -- show var to convert the variable into a string
-            Nothing -> return $ Left $ VarUndefined (show var)
+            Nothing -> return $ Left $ VarUndefined var
 
     StoreVar var -> do
         stack <- gets getStack
