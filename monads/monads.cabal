@@ -25,6 +25,8 @@ source-repository head
 
 library
   exposed-modules:
+      Cont.Main
+      Cont.MyCont
       Expr
       HW.Compiler
       HW.Eval
@@ -82,4 +84,6 @@ test-suite monads-test
       base >=4.7 && <5
     , containers
     , monads
+    , tasty
+    , tasty-hunit
   default-language: Haskell2010
