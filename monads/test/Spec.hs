@@ -6,6 +6,8 @@ import Test.Tasty.HUnit
 import HW.Eval
 import HW.Compiler
 import HW.StackMachine
+import HW.Control.Monad
+import Expr
 
 main :: IO ()
 main = defaultMain tests
