@@ -9,6 +9,8 @@ import HW.StackMachine
 import Control.Monad
 import Expr
 
+import qualified Data.Map as M
+
 main :: IO ()
 main = defaultMain tests
 
@@ -26,7 +28,7 @@ combinedTests = testGroup "Combined Tests"
                  Plus (Var "x") (Var "y"))))
           compiled = compile expr
           result = execProgram compiled initialState
-          expected = Right $ MachineState [97] []
+          expected = Right $ MachineState [97] M.empty
       in result @?= expected
 
   , testCase "combined test for variable shadowing" $
@@ -35,21 +37,21 @@ combinedTests = testGroup "Combined Tests"
                  Plus (Var "x") (Num 20)))
           compiled = compile expr
           result = execProgram compiled initialState
-          expected = Right $ MachineState [30] []
+          expected = Right $ MachineState [30] M.empty
       in result @?= expected
 
   , testCase "combined test for basic addition" $
       let expr = Plus (Num 3) (Num 4)
           compiled = compile expr
           result = execProgram compiled initialState
-          expected = Right $ MachineState [7] []
+          expected = Right $ MachineState [7] M.empty
       in result @?= expected
 
   , testCase "combined test for storing and retrieving a variable" $
       let expr = Let "x" (Num 10) (Plus (Var "x") (Num 5))
           compiled = compile expr
           result = execProgram compiled initialState
-          expected = Right $ MachineState [15] []
+          expected = Right $ MachineState [15] M.empty
       in result @?= expected
 
   , testCase "combined test for undefined variable" $
