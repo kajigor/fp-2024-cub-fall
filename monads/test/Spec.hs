@@ -53,7 +53,7 @@ combinedTests = testGroup "Combined tests for eval and compiler"
       let expr = Let "x" (Num 10) (Var "y")
           compiled = compile expr
           result = execProgram compiled initialState
-          expected = Left (VarUndefined "undefined")
+          expected = Left (VarUndefined "y")
       in result @?= expected
 
   , testCase "combined test for stack underflow on Add" $
