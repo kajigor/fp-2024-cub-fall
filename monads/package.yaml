@@ -21,7 +21,11 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- HUnit >= 1.6
 - containers 
+- tasty
+- tasty-hunit
+- mtl
 
 ghc-options:
 - -Wall
