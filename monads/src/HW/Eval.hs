@@ -20,7 +20,8 @@ data MachineState v = MachineState
   { getStack :: Stack,
     getEnv :: Env v
   }
-  deriving (Show)
+  -- added Eq for testing
+  deriving (Show, Eq)
 
 -- Run the compiled program on an empty stack and environment
 initialState :: MachineState String
