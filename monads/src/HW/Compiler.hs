@@ -10,6 +10,10 @@ import HW.StackMachine
 -- should compile into 
 -- [PushNum 13,StoreVar "x",PushNum 42,StoreVar "y",PushVar "x",PushVar "y",Add,StoreVar "x",PushVar "x",PushVar "y",Add]
 
+
 -- Compiler of an expression into machine instructions
 compile :: Expr v -> StackProgram v
-compile = undefined 
+compile (Num n) = [PushNum n]
+compile (Var v) = [PushVar v]
+compile (Plus x y)  = compile x ++ compile y ++ [Add]
+compile (Let v e1 e2) = compile e1 ++ [StoreVar v] ++ compile e2
