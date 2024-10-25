@@ -8,44 +8,44 @@ import Interpreter (eval)
 
 testCases :: TestTree
 testCases = testGroup "Expression Evaluator Tests"
-  [ testCase "Num 5" $
-      eval (Num 5) @?= Right 5
+  [ testCase "Num 8" $
+      eval Map.empty (Num 8) @?= Right 8
 
-  , testCase "Add 2 + 3" $
-      eval (Add (Num 2) (Num 3)) @?= Right 5
+  , testCase "Add 4 + 5" $
+      eval Map.empty (Add (Num 4) (Num 5)) @?= Right 9
 
-  , testCase "Sub 10 - 4" $
-      eval (Sub (Num 10) (Num 4)) @?= Right 6
+  , testCase "Sub 20 - 6" $
+      eval Map.empty (Sub (Num 20) (Num 6)) @?= Right 14
 
-  , testCase "Mul 3 * 3" $
-      eval (Mul (Num 3) (Num 3)) @?= Right 9
+  , testCase "Mul 3 * 4" $
+      eval Map.empty (Mul (Num 3) (Num 4)) @?= Right 12
 
-  , testCase "Div 10 / 2" $
-      eval (Div (Num 10) (Num 2)) @?= Right 5
+  , testCase "Div 20 / 4" $
+      eval Map.empty (Div (Num 20) (Num 4)) @?= Right 5
 
   , testCase "Div by zero" $
-      eval (Div (Num 1) (Num 0)) @?= Left (DivByZero (Num 1) (Num 0))
+      eval Map.empty (Div (Num 1) (Num 0)) @?= Left (DivByZero (Num 1) (Num 0))
 
-  , testCase "Sqrt of 16" $
-      eval (Sqrt (Num 16)) @?= Right 4
+  , testCase "Sqrt of 36" $
+      eval Map.empty (Sqrt (Num 36)) @?= Right 6
 
   , testCase "Sqrt of negative number" $
-      eval (Sqrt (Num (-4))) @?= Left (NegativeSqrt (Num (-4)))
+      eval Map.empty (Sqrt (Num (-9))) @?= Left (NegativeSqrt (Num (-9)))
 
-  , testCase "Pow 2^3" $
-      eval (Pow (Num 2) (Num 3)) @?= Right 8
+  , testCase "Pow 4^2" $
+      eval Map.empty (Pow (Num 4) (Num 2)) @?= Right 16
 
   , testCase "Undefined variable" $
-      eval (Var "x") @?= Left (UndefinedVariable "x")
+      eval Map.empty (Var "y") @?= Left (UndefinedVar "y")
 
-  , testCase "Let x = 13 in x" $
-      eval (Let "x" (Num 13) (Var "x")) @?= Right 13
+  , testCase "Let x = 15 in x" $
+      eval (Map.fromList [("x", 15)]) (Let "x" (Num 15) (Var "x")) @?= Right 15
 
-  , testCase "Let x = 13 in let y = x + 1 in y ^ 2" $
-      eval (Let "x" (Num 13) (Let "y" (Add (Var "x") (Num 1)) (Pow (Var "y") (Num 2)))) @?= Right 196
+  , testCase "Let x = 15 in let y = x + 3 in y ^ 2" $
+      eval (Map.fromList [("x", 15)]) (Let "x" (Num 15) (Let "y" (Add (Var "x") (Num 3)) (Pow (Var "y") (Num 2)))) @?= Right 324
 
   , testCase "Shadowed variable" $
-      eval (Let "x" (Num 3) (Let "x" (Num 4) (Add (Var "x") (Num 2)))) @?= Right 6
+      eval (Map.fromList [("x", 3)]) (Let "x" (Num 3) (Let "x" (Num 4) (Add (Var "x") (Num 5)))) @?= Right 9
   ]
 
 main :: IO ()
