@@ -20,7 +20,7 @@ data MachineState v = MachineState
   { getStack :: Stack,
     getEnv :: Env v
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- Run the compiled program on an empty stack and environment
 initialState :: MachineState String
@@ -29,8 +29,45 @@ initialState = MachineState [] M.empty
 -- Execute a single instruction. 
 -- Successful evaluation does not produce any useful result: only the effect of modifying state matters. 
 execInstr :: (Ord v, Show v) => StackInstr v -> MyState (MachineState v) (Either (Error v) ())
-execInstr = undefined 
+execInstr (PushNum number) = do
+  state <- get
+  put state { getStack = number : getStack state }
+  return (Right ())
+
+execInstr (PushVar variable) = do
+  state <- get
+  case M.lookup variable (getEnv state) of
+    Just value -> do
+      put state { getStack = value : getStack state }
+      return (Right ())
+    Nothing -> return (Left (VarUndefined (show variable)))
+
+execInstr (StoreVar variable) = do
+  state <- get
+  case getStack state of
+    x:xs -> do
+      put state { getStack = xs, getEnv = M.insert variable x (getEnv state) }
+      return (Right ())
+    _ -> return (Left (StackUnderflow (StoreVar variable)))
+
+execInstr Add = do
+  state <- get
+  case getStack state of
+    x:y:xs -> do
+      put state { getStack = (x + y) : xs }
+      return (Right ())
+    _ -> return (Left (StackUnderflow Add))
 
 -- Execute a list of instructions starting from the given state. 
 execProgram :: (Ord v, Show v) => StackProgram v -> MachineState v -> Either (Error v) (MachineState v)
-execProgram = undefined 
+
+execProgram [] state =
+  case getStack state of
+    [_] -> Right state
+    _ -> Left (StackNotExhausted (getStack state))
+
+execProgram (instr:rest) state =
+  let (newState, result) = runMyState (execInstr instr) state
+  in case result of
+    Left err -> Left err
+    Right _  -> execProgram rest newState
