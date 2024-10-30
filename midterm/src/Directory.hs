@@ -21,25 +21,25 @@ buildTree path = do
 
 -- Implement a function that displays the subdirectories of the current directory before the files in it. 
 defaultDisplayTree :: DirectoryTree -> String
-defaultDisplayTree = displayTreeHelper 0
+defaultDisplayTree = helper 0
   where
-    displayTreeHelper :: Int -> DirectoryTree -> String
-    displayTreeHelper indent (Leaf path) =
+    helper :: Int -> DirectoryTree -> String
+    helper indent (Leaf path) =
         replicate (indent * 2) ' ' ++ path ++ "\n"
-    displayTreeHelper indent (Node path subTrees) =
+    helper indent (Node path subTrees) =
         replicate (indent * 2) ' ' ++ path ++ "/\n" ++
-        concatMap (displayTreeHelper (indent + 1)) (S.toList subTrees)
+        concatMap (helper (indent + 1)) (S.toList subTrees)
 
 -- Implement a function that displays the subdirectories and the files in it in the alphabet order. 
 alphabetisedDisplayTree :: DirectoryTree -> String
-alphabetisedDisplayTree = displayTreeHelper 0
+alphabetisedDisplayTree = sndHelper 0
   where
-    displayTreeHelper :: Int -> DirectoryTree -> String
-    displayTreeHelper indent (Leaf path) =
+    sndHelper :: Int -> DirectoryTree -> String
+    sndHelper indent (Leaf path) =
         replicate (indent * 2) ' ' ++ path ++ "\n"
-    displayTreeHelper indent (Node path subTrees) =
+    sndHelper indent (Node path subTrees) =
         replicate (indent * 2) ' ' ++ path ++ "/\n" ++
-        concatMap (displayTreeHelper (indent + 1)) (sortedSubTrees subTrees)
+        concatMap (sndHelper (indent + 1)) (sortedSubTrees subTrees)
 
     sortedSubTrees :: S.Set (SetTree FilePath) -> [DirectoryTree]
     sortedSubTrees = S.toList . S.fromList . S.toList
