@@ -1,11 +1,27 @@
 module Main (main) where
 
 import Directory
+import System.IO (hFlush, stdout)
+import Control.Monad (unless)
 
--- Implement a function that asks the user for the directory name and the sorting type, constructs the tree and then displays it accordingly.
 run :: IO () 
-run = undefined 
+run = do
+    putStr "Please enter the directory path (or leave it empty for current directory <3): "
+    hFlush stdout
+    dirPath <- getLine
+    let directory = if null dirPath then "." else dirPath
 
--- Use the main function to demostrate how run works. 
+    putStr "Please enter the sorting type: "
+    hFlush stdout
+    sortType <- getLine
+
+    tree <- buildTree directory
+
+    case sortType of
+        "default"      -> putStrLn (defaultDisplayTree tree)
+        "alphabetised" -> putStrLn (alphabetisedDisplayTree tree)
+        _              -> putStrLn "Invalid sorting type! Please enter 'default' or 'alphabetised'."
+
+
 main :: IO ()
-main = undefined 
+main = run 
