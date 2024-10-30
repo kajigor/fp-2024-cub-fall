@@ -43,6 +43,7 @@ executables:
   midterm-exe:
     main:                Main.hs
     source-dirs:         app
+    other-modules:       Directory, Tree
     ghc-options:
     - -threaded
     - -rtsopts
