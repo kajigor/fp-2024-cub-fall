@@ -41,9 +41,15 @@ buildTree path = do
     takeFileName :: FilePath -> String
     takeFileName = reverse . takeWhile (/= '/') . reverse
 
+
 -- Implement a function that displays the subdirectories of the current directory before the files in it. 
 defaultDisplayTree :: DirectoryTree -> String
-defaultDisplayTree = undefined 
+defaultDisplayTree (DirectoryTree tree) = displayTree tree ""
+  where
+    displayTree :: SetTree DirectoryEntry -> String -> String
+    displayTree (Leaf (File name)) indent = indent ++ name ++ "\n"
+    displayTree (Node (Directory name) children) indent =
+        indent ++ name ++ "\n" ++ concatMap (`displayTree` (indent ++ "  ")) (Set.toList children)
 
 -- Implement a function that displays the subdirectories and the files in it in the alphabet order. 
 alphabetisedDisplayTree :: DirectoryTree -> String
