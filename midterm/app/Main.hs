@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Directory
-import System.IO (hFlush, stdout)
+import System.IO (stdout)
 
 -- Implement a function that asks the user for the directory name and the sorting type, constructs the tree and then displays it accordingly.
 run :: IO () 
