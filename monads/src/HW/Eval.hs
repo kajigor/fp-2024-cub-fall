@@ -31,31 +31,24 @@ initialState = MachineState [] M.empty
 execInstr :: (Ord v, Show v) => StackInstr v -> MyState (MachineState v) (Either (Error v) ())
 execInstr (PushNum number) = do
   state <- get
-  put state { getStack = number : getStack state }
-  return (Right ())
+  fmap Right (put state { getStack = number : getStack state })
 
 execInstr (PushVar variable) = do
   state <- get
   case M.lookup variable (getEnv state) of
-    Just value -> do
-      put state { getStack = value : getStack state }
-      return (Right ())
+    Just value -> fmap Right (put state { getStack = value : getStack state })
     Nothing -> return (Left (VarUndefined (show variable)))
 
 execInstr (StoreVar variable) = do
   state <- get
   case getStack state of
-    x:xs -> do
-      put state { getStack = xs, getEnv = M.insert variable x (getEnv state) }
-      return (Right ())
+    x:xs -> fmap Right (put state { getStack = xs, getEnv = M.insert variable x (getEnv state) })
     _ -> return (Left (StackUnderflow (StoreVar variable)))
 
 execInstr Add = do
   state <- get
   case getStack state of
-    x:y:xs -> do
-      put state { getStack = (x + y) : xs }
-      return (Right ())
+    x:y:xs -> fmap Right (put state { getStack = (x + y) : xs })
     _ -> return (Left (StackUnderflow Add))
 
 -- Execute a list of instructions starting from the given state. 
