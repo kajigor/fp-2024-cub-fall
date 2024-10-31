@@ -37,9 +37,15 @@ execInstr (PushNum value) = do
 execInstr (PushVar name) = do
   map <- gets getEnv
   case M.lookup name map of
-    Just x -> do
-      modify (\s -> s {getStack = x : getStack s})
-      return $ Right ()
+    Just x -> -- do
+      -- modify (\s -> s {getStack = x : getStack s})
+      -- return $ Right ()
+      -- First way
+      -- get >>= put . (\s -> s {getStack = x : getStack s}) >> pure (Right ())  -- I changed this but for me is more readable to just use return.
+      -- Another way?
+      MyState $ \s ->
+        let newState = s {getStack = x : getStack s} in  
+        (newState, Right ())  
     Nothing ->   
       return $ Left $ VarUndefined name
 
