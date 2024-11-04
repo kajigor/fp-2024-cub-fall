@@ -47,10 +47,12 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - monads
+    - hspec
+    - base
 
 tests:
   monads-test:
-    main:                Spec.hs
+    main:                Main.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -58,3 +60,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - monads
+    - hspec
+    - base
