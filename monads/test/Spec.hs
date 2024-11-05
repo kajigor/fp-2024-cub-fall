@@ -86,3 +86,4 @@ evalProgramTests = testGroup "execProgram Tests"
       in finalState @?= Left (VarUndefined "y")
   ]
 
+main = putStrLn "Test suite not yet implemented"
