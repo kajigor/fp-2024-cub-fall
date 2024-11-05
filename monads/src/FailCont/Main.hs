@@ -9,11 +9,33 @@ data Error
   | DivisionByZero
   deriving (Show, Eq)
 
+parseInt :: String -> FailCont r Error Int
+parseInt str =
+    case str of
+        "" -> toFailCont (Left EmptyInput)
+        _  -> case readMaybe str of
+                 Nothing -> toFailCont (Left (ParseFailed str))
+                 Just n  -> toFailCont (Right n)
+
 addInts :: String -> String -> FailCont r Error Int
-addInts = undefined 
+addInts a b = do
+    x <- parseInt a
+    y <- parseInt b
+    toFailCont (Right (x + y))
 
 divInts :: String -> String -> FailCont r Error Int 
-divInts = undefined 
+divInts a b = do
+    x <- parseInt a
+    y <- parseInt b
+    if y == 0
+        then toFailCont (Left DivisionByZero)
+        else toFailCont (Right (x `div` y))
+
+powInts :: String -> String -> FailCont r Error Int 
+powInts a b = do
+    x <- parseInt a
+    y <- parseInt b
+    toFailCont (Right (x ^ y))
 
 main = do 
   print $ evalFailCont $ addInts "13" "42"         -- Right 55
@@ -24,3 +46,6 @@ main = do
   print $ evalFailCont $ divInts "13" "0"          -- Left DivisionByZero
   print $ evalFailCont $ divInts "13" "000"        -- Left DivisionByZero
   print $ evalFailCont $ divInts "" "42"           -- Left EmptyInput
+  print $ evalFailCont $ powInts "2" "3"           -- Right 8
+  print $ evalFailCont $ powInts "" "3"            -- Left EmptyInput
+
