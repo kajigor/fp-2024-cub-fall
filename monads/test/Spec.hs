@@ -107,6 +107,7 @@ testExecProgram = testGroup "execProgram tests"
   ]
 
 main :: IO ()
+
 main = defaultMain $ testGroup "Stack Machine Tests"
   [ testCompile
   , testExecInstr
