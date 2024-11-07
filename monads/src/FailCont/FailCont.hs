@@ -12,14 +12,14 @@ evalFailCont :: FailCont (Either e a) e a -> Either e a
 evalFailCont fc = runFailCont fc id 
 
 instance Functor (FailCont r e) where
-    fmap :: (a -> b) -> FailCont r e a -> FailCont r e b
+    -- fmap :: (a -> b) -> FailCont r e a -> FailCont r e b
     fmap f (FailCont fc) = FailCont $ \u -> fc (\v -> u (fmap f v))
 
 instance Applicative (FailCont r e) where
-    pure :: a -> FailCont r e a
+    -- pure :: a -> FailCont r e a
     pure x = FailCont $ \f -> f (Right x)
     
-    (<*>) :: FailCont r e (a -> b) -> FailCont r e a -> FailCont r e b
+    -- (<*>) :: FailCont r e (a -> b) -> FailCont r e a -> FailCont r e b
     FailCont ff <*> FailCont fu = FailCont $ \v ->
         ff $ \f -> 
         fu $ \u -> 
@@ -29,10 +29,10 @@ instance Applicative (FailCont r e) where
 
 
 instance Monad (FailCont r e) where
-    return :: a -> FailCont r e a
+    -- return :: a -> FailCont r e a
     return = pure
 
-    (>>=) :: FailCont r e a -> (a -> FailCont r e b) -> FailCont r e b
+    -- (>>=) :: FailCont r e a -> (a -> FailCont r e b) -> FailCont r e b
     FailCont fu >>= g = FailCont $ \v ->
         fu $ \u ->
             case u of 
