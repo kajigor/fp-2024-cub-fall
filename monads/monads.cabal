@@ -28,6 +28,7 @@ library
       Cont.Main
       Cont.MyCont
       Expr
+      FailCont.EmailValidator
       FailCont.FailCont
       FailCont.Main
       HW.Compiler
