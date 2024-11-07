@@ -1,8 +1,7 @@
-module FailCont.FailCont where 
+module FailCont.FailCont where
 
--- r is the result 
--- e is the type of a failure
--- a is the type of a success
+import Text.Read (readMaybe)
+
 newtype FailCont r e a = FailCont { runFailCont :: (e -> r) -> (a -> r) -> r }
 
 toFailCont :: Either e a -> FailCont r e a
@@ -10,7 +9,7 @@ toFailCont (Left e)  = FailCont $ \failure _ -> failure e
 toFailCont (Right a) = FailCont $ \_ success -> success a
 
 evalFailCont :: FailCont (Either e a) e a -> Either e a
-evalFailCont fc = runFailCont fc Left Right 
+evalFailCont fc = runFailCont fc Left Right
 
 instance Functor (FailCont r e) where
     fmap f (FailCont cont) = FailCont $ \failure success -> cont failure (success . f)
@@ -23,7 +22,7 @@ instance Applicative (FailCont r e) where
 instance Monad (FailCont r e) where
     FailCont fa >>= f = FailCont $ \failure success ->
         fa failure (\a -> runFailCont (f a) failure success)
-        
+
 data Error
   = EmptyInput
   | ParseFailed String
@@ -60,8 +59,8 @@ safeSubtract x y
   where
     result = x - y
 
-calculation :: Int -> Int -> Int -> FailCont r String Int
+calculation :: Int -> Int -> Int -> FailCont r Error Int
 calculation a b c = do
-    sumAB <- addInts a b
-    divResult <- divInts sumAB c
+    sumAB <- addInts (show a) (show b)
+    divResult <- divInts (show sumAB) (show c)
     safeSubtract divResult 10
