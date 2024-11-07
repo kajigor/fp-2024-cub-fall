@@ -1,6 +1,6 @@
 module FailCont.Main where
 
-import FailCont.FailCont 
+import FailCont.FailCont
 import Text.Read (readMaybe)
 
 data Error 
@@ -9,49 +9,26 @@ data Error
   | DivisionByZero
   deriving (Show, Eq)
 
-parseInt "" = Left EmptyInput
-parseInt str = case readMaybe str of
-    Nothing -> Left (ParseFailed str)
-    Just n  -> Right n
-
 addInts :: String -> String -> FailCont r Error Int
-addInts xStr yStr = toFailCont $ do
-    x <- parseInt xStr
-    y <- parseInt yStr
-    Right (x + y)
+addInts x y = case (readMaybe x, readMaybe y) of
+  (Nothing, _)       -> FailCont $ \_ fail -> fail EmptyInput
+  (_, Nothing)       -> FailCont $ \_ fail -> fail (ParseFailed y)
+  (Just a, Just b)   -> FailCont $ \success _ -> success (a + b)
 
-divInts :: String -> String -> FailCont r Error Int 
-divInts xStr yStr = toFailCont $ do
-    x <- parseInt xStr
-    y <- parseInt yStr
-    if y == 0
-        then Left DivisionByZero
-        else Right (x `div` y)
+divInts :: String -> String -> FailCont r Error Int
+divInts x y = case (readMaybe x, readMaybe y) of
+  (Nothing, _)       -> FailCont $ \_ fail -> fail EmptyInput
+  (_, Nothing)       -> FailCont $ \_ fail -> fail (ParseFailed y)
+  (Just _, Just 0)   -> FailCont $ \_ fail -> fail DivisionByZero
+  (Just a, Just b)   -> FailCont $ \success _ -> success (a `div` b)
 
-calculateExpression :: String -> FailCont r Error Int
-calculateExpression expr = toFailCont $ do
-    let tokens = words expr
-    case tokens of
-        [xStr, "+", yStr] -> Right <$> evalOp addInts xStr yStr
-        [xStr, "-", yStr] -> Right <$> evalOp subtractInts xStr yStr
-        [xStr, "/", yStr] -> Right <$> evalOp divInts xStr yStr
-        [xStr, "*", yStr] -> Right <$> evalOp multiplyInts xStr yStr
-        _                 -> Left (ParseFailed "Invalid expression")
-
-subtractInts :: String -> String -> FailCont r Error Int
-subtractInts xStr yStr = toFailCont $ do
-    x <- parseInt xStr
-    y <- parseInt yStr
-    Right (x - y)
-
-multiplyInts :: String -> String -> FailCont r Error Int
-multiplyInts xStr yStr = toFailCont $ do
-    x <- parseInt xStr
-    y <- parseInt yStr
-    Right (x * y)
-
-evalOp :: (String -> String -> FailCont r Error Int) -> String -> String -> FailCont r Error Int
-evalOp operation xStr yStr = operation xStr yStr
+multiplyIfPositive :: String -> String -> FailCont r Error Int
+multiplyIfPositive x y = case (readMaybe x, readMaybe y) of
+  (Nothing, _)       -> FailCont $ \_ fail -> fail EmptyInput
+  (_, Nothing)       -> FailCont $ \_ fail -> fail (ParseFailed y)
+  (Just a, Just b) 
+    | a > 0 && b > 0 -> FailCont $ \success _ -> success (a * b)
+    | otherwise      -> FailCont $ \_ fail -> fail (ParseFailed "Both numbers must be positive")
 
 main = do 
   print $ evalFailCont $ addInts "13" "42"         -- Right 55
@@ -62,3 +39,5 @@ main = do
   print $ evalFailCont $ divInts "13" "0"          -- Left DivisionByZero
   print $ evalFailCont $ divInts "13" "000"        -- Left DivisionByZero
   print $ evalFailCont $ divInts "" "42"           -- Left EmptyInput
+  print $ evalFailCont $ multiplyIfPositive "3" "4"  -- Right 12
+  print $ evalFailCont $ multiplyIfPositive "3" "-4" -- Left (ParseFailed "Both numbers must be positive")
