@@ -14,8 +14,8 @@ liftMaybe :: Error -> Maybe a -> FailCont r Error a
 liftMaybe err Nothing  = FailCont $ \c -> c (Left err)
 liftMaybe _ (Just x) = pure x
 
-calculateSurface :: String -> FailCont r Error Double
-calculateSurface s = do
+calculateCircleArea :: String -> FailCont r Error Double
+calculateCircleArea s = do
   rd <- liftMaybe (ParseFailed s) (readMaybe s)
   if rd < 0 
     then FailCont $ \f -> f $ Left NegativeRadius
@@ -48,5 +48,5 @@ main = do
   print $ evalFailCont $ divInts "13" "0"          -- Left DivisionByZero
   print $ evalFailCont $ divInts "13" "000"        -- Left DivisionByZero
   print $ evalFailCont $ divInts "" "42"           -- Left EmptyInput
-  print $ evalFailCont $ calculateSurface "-1"     -- Left NegativeRadius
-  print $ evalFailCont $ calculateSurface "1"      -- Right 3.141592653589793
+  print $ evalFailCont $ calculateCircleArea "-1"     -- Left NegativeRadius
+  print $ evalFailCont $ calculateCircleArea "1"      -- Right 3.141592653589793
