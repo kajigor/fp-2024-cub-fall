@@ -10,10 +10,21 @@ data Error
   deriving (Show, Eq)
 
 addInts :: String -> String -> FailCont r Error Int
-addInts = undefined 
+addInts x y = case (readMaybe x, readMaybe y) of
+  (Nothing, _) -> toFailCont (Left EmptyInput)
+  (_, Nothing) -> toFailCont (Left EmptyInput)
+  (Just a, Just b) -> toFailCont (Right (a +b))
+  (Nothing, Just b) -> toFailCont (Left (ParseFailed x))
+  (Just a, Nothing) -> toFailCont (Left (ParseFailed y))
+
 
 divInts :: String -> String -> FailCont r Error Int 
-divInts = undefined 
+divInts x y = case (readMaybe x, readMaybe y) of
+    (Nothing, _)           -> toFailCont (Left EmptyInput)
+    (_, Nothing)           -> toFailCont (Left EmptyInput)
+    (Just a, Just b)
+      | b == 0             -> toFailCont (Left DivisionByZero)
+      | otherwise          -> toFailCont (Right (a `div` b))
 
 main = do 
   print $ evalFailCont $ addInts "13" "42"         -- Right 55
