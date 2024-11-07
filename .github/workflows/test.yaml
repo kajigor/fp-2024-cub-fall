@@ -30,15 +30,28 @@ jobs:
 
     - name: Install dependencies
       run: |
+<<<<<<< HEAD
         cd midterm
+=======
+        cd monads
+>>>>>>> 62b6c4f46a8195af603fa69f46dc6711af08f34d
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
 
     - name: Build
       run: |
+<<<<<<< HEAD
         cd midterm 
+=======
+        cd monads 
+>>>>>>> 62b6c4f46a8195af603fa69f46dc6711af08f34d
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
 
     - name: Test
       run: |
+<<<<<<< HEAD
         cd midterm
         stack test --system-ghc
+=======
+        cd monads
+        stack test --system-ghc
+>>>>>>> 62b6c4f46a8195af603fa69f46dc6711af08f34d
