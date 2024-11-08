@@ -7,6 +7,7 @@ data Error
   = EmptyInput
   | ParseFailed String
   | DivisionByZero
+  | NegSqrt
   deriving (Show, Eq)
 
 parser :: String -> Either Error Int
@@ -37,7 +38,7 @@ sqrtInts s =
   toFailCont
     ( do
         n <- parser s
-        if n < 0 then Left (ParseFailed s) else Right (sqrt (fromIntegral n))
+        if n < 0 then Left NegSqrt else Right (sqrt (fromIntegral n))
     )
 
 modInts :: String -> String -> FailCont r Error Int
@@ -59,7 +60,7 @@ main = do
   print $ evalFailCont $ divInts "13" "000" -- Left DivisionByZero
   print $ evalFailCont $ divInts "" "42" -- Left EmptyInput
   print $ evalFailCont $ sqrtInts "25" -- Right 5.0
-  print $ evalFailCont $ sqrtInts "-10" -- Left (ParseFailed "-10")
+  print $ evalFailCont $ sqrtInts "-10" -- Left NegSqrt
   print $ evalFailCont $ sqrtInts "ten" -- Left (ParseFailed "ten")
   print $ evalFailCont $ sqrtInts "" -- Left EmptyInput
   print $ evalFailCont $ modInts "13" "3" -- Right 1
