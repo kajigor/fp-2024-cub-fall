@@ -14,10 +14,11 @@ gets f = fmap f get -- get >>= \s -> return (f s) == fmap f get
 put :: s -> MyState s ()
 put s = MyState $ const (s, ())
 
-modify :: (s -> s) -> MyState s ()
+modify :: (s -> s) -> MyState s (Either e ())
 modify f = do -- MyState $ \s -> (f s, ())
   s <- get
   put (f s) -- get >>= \s -> put (f s)
+  return (Right())
 
 instance Functor (MyState s) where
   fmap :: (a -> b) -> MyState s a -> MyState s b
