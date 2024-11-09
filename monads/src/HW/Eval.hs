@@ -20,10 +20,7 @@ data MachineState v = MachineState
   { getStack :: Stack,
     getEnv :: Env v
   }
-  deriving (Show)
-
-instance (Eq v) => Eq (MachineState v) where
-   (MachineState s1 e1) == (MachineState s2 e2) = s1 == s2 && e1 == e2
+  deriving (Show, Eq)
 
 -- Run the compiled program on an empty stack and environment
 initialState :: MachineState String
@@ -34,27 +31,24 @@ initialState = MachineState [] M.empty
 execInstr :: (Ord v, Show v) => StackInstr v -> MyState (MachineState v) (Either (Error v) ())
 execInstr (PushNum n) = do
    modify $ \state -> state {getStack = n : getStack state}
-   return (Right ())
 execInstr (PushVar v) = do
-   state <- get
-   case M.lookup v (getEnv state) of
+   env <- gets getEnv
+   case M.lookup v env of
      Just value -> do
-        modify $ \state' -> state' {getStack = value : getStack state'}
-        return (Right ())
+        modify $ \state -> state {getStack = value : getStack state}
      Nothing -> return (Left (VarUndefined (show v))) 
 execInstr Add = do
-   state <- get
-   case getStack state of
+   state <- gets getStack
+   case state of
      (x:y:more) -> do
         modify $ \state' -> state' {getStack = (x + y) : more}
-        return (Right ())
      _ -> return (Left (StackUnderflow Add))
 execInstr (StoreVar v) = do
-    state <- get
-    case getStack state of
+    state <- gets getStack
+    env <- gets getEnv
+    case state of
       (x:more) -> do
-         modify $ \state' -> state' {getStack = more, getEnv = M.insert v x (getEnv state')}
-         return (Right())
+         modify $ \state' -> state' {getStack = more, getEnv = M.insert v x env}
       _ -> return (Left(StackUnderflow (StoreVar v)))
  
 
