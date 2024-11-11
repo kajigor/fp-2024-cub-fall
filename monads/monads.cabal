@@ -25,6 +25,8 @@ source-repository head
 
 library
   exposed-modules:
+      Cont.Main
+      Cont.MyCont
       Expr
       HW.Compiler
       HW.Eval
