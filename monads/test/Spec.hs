@@ -85,3 +85,4 @@ main = defaultMain $ testGroup "Stack Machine Tests"
   , testExecInstr
   , testExecProgram
   ]
+
