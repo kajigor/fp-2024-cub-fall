@@ -1,0 +1,26 @@
+1. SKK =b I
+SKK =  (λfgx.fx(gx))(λxy.x)(λxy.x)
+    =b (λgx.(λxy.x)x(gx))(λxy.x)
+    =a (λgx.(λx'y.x')x(gx))(λxy.x)
+    =b (λx.(λx'y.x')x((λxy.x)x))
+    =a (λx.(λx'y.x')x((λx''y.x'')x))
+    =b λx.(λy.x)(λy.x)
+    =b λx.x = I
+
+=> SKK = I
+
+2. B =b S(KS)S
+S(KS)S =  (λfgx.fx(gx))((λxy.x)(λfgx.fx(gx)))(λxy.x)
+       =b (λfgx.fx(gx))(λy.(λfgx.fx(gx)))(λxy.x)
+       =b λx.(λy.(λfgx.fx(gx)))x((λxy.x)x)
+       =a λx.(λy.(λfgx'.fx'(gx')))x((λx''y.x'')x)
+       =b λx.(λfgx'.fx'(gx'))(λy.x)
+       =b λx.(λgx'.(λy.x)x'(gx'))
+       =b λx.(λgx'.x(gx'))
+       =b λxgx'.x(gx')
+       =a λfgx'.f(gx') = B
+
+=> S(KS)S =b B => B =b S(KS)S
+
+
+
