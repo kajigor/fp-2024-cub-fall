@@ -6,6 +6,7 @@ import Text.Read (readMaybe)
 data Error 
   = EmptyInput 
   | ParseFailed String 
+  | PreRequisiteFailed String
   | DivisionByZero
   deriving (Show, Eq)
 
@@ -32,7 +33,7 @@ sumRange x y = do
   a <- parseInput x
   b <- parseInput y
   toFailCont $ if a > b
-               then Left (ParseFailed "a must be less than or equal to b")
+               then Left (PreRequisiteFailed "a must be less than or equal to b")
                else Right (sum [a..b])
 
 main = do 
@@ -45,7 +46,7 @@ main = do
   print $ evalFailCont $ divInts "13" "000"        -- Left DivisionByZero
   print $ evalFailCont $ divInts "" "42"           -- Left EmptyInput
   print $ evalFailCont $ sumRange "1" "5"          -- Right 15 {1 + 2 + 3 + 4 + 5}
-  print $ evalFailCont $ sumRange "5" "1"          -- Left (ParseFailed "a must be less than or equal to b")
+  print $ evalFailCont $ sumRange "5" "1"          -- Left (PreRequisiteFailed "a must be less than or equal to b")
   print $ evalFailCont $ sumRange "10" "10"        -- Right 10
   print $ evalFailCont $ sumRange "" "5"           -- Left EmptyInput
   print $ evalFailCont $ sumRange "a" "5"          -- Left (ParseFailed "a")
