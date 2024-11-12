@@ -1,0 +1,26 @@
+1) S K K == I
+I = λx. x
+S = λfgx. f x (g x)
+K = λxy. x
+K = λxy. x
+
+- S K K = (λfgx. f x (g x)) K K 
+        = (λx.Kx(Kx))           -- K x = (λxy. x)x = λy.x
+        = (λx. (λy.x (K x))     -- (λy.x) (K x) = x
+        = (λx. x)                   
+        = I 
+
+2) B == S (K S) K
+B= λfgx.f(g x)
+S= λfgx. f x (g x)
+K = λxy.x
+
+S(KS)K  = (λfgx.f x(g x))(K S)K
+        = λx.(K S)x(K x)              -- K S = (λxy.x) S = (λy.S)
+        = λx.(λy.S)x(K x)             -- (λy.S) x = S
+        = λx.S(K x)
+        = λx.(λfgy.f y (g y))(K x)    -- K x = λy.x / (K x) y = (λy.x) y = x
+        = λx.(λgy.(K x)y(g y))
+        = λx.(λgy.x(g y))
+        = λxgy.x(g y)
+        = λfgx.f(g x)
