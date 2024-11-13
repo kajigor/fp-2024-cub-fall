@@ -1,0 +1,31 @@
+S K K =
+(λfgx.fx(gx))(λxy.x)(λxy.x) = (β)
+(λgx.(λxy.x)(x)(gx))(λxy.x) = (β)
+λx.(λxy.x)(x)((λxy.x)x) = (α)
+λx.(λxy.x)(x)((λx'y.x')x) = (β)
+λx.(λxy.x)(x)(λy.x) = (α)
+λx.(λx'y.x')(x)(λy.x) = (β)
+λx.(λy.x)(λy.x) = (β)
+λx.x =
+I
+=> S K K = I
+
+S (K S) K =
+S ((λxy.x) S) K = (b)
+S (λy.S) K =
+(λfgx.fx(gx)) (λy.S) K = (b)
+(λgx.(λy.S)x(gx)) K = (b)
+λx.(λy.S)x(K x) =
+λx.(λy.S)x((λxy.x)x) = (a)
+λx.(λy.S)x((λx'y.x')x) = (b)
+λx.(λy.S)x(λy.x) = (b)
+λx.S(λy.x) =
+λx.(λfgx.fx(gx))(λy.x) = (a)
+λx.(λfgz.fz(gz))(λy.x) = (b)
+λx.(λgz.(λy.x)z(gz)) = (b)
+λx.(λgz.x(gz)) =
+λxgz.x(gz) = (a)
+λfgz.f(gz) = (a)
+λfgx.f(gx) =
+B
+=> S (K S) K = B
