@@ -1,3 +1,5 @@
+module Test.Unit (unitTests) where
+
 import qualified Data.Map         as M
 import           Test.Tasty       (TestTree, defaultMain, testGroup)
 import           Test.Tasty.HUnit (assertBool, assertFailure, testCase)
@@ -98,6 +100,5 @@ testRun = testGroup "Run" [testSimple, testError, testMisc]
             Right finishState -> assertFailure ("Test case should've resulted in an error, but got " ++ show finishState)
 
 
-main :: IO ()
-main =
-  defaultMain $ testGroup "Tests" [testCompile, testRun]
+unitTests :: [TestTree]
+unitTests = [testCompile, testRun]

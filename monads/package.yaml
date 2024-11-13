@@ -50,7 +50,7 @@ executables:
 
 tests:
   monads-test:
-    main:                Spec.hs
+    main:                Test.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -60,3 +60,5 @@ tests:
     - monads
     - tasty 
     - tasty-hunit
+    - tasty-hedgehog
+    - hedgehog
