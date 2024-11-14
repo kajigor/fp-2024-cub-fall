@@ -30,15 +30,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-        cd PBT
+        cd monads
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
 
     - name: Build
       run: |
-        cd PBT 
+        cd monads 
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
 
     - name: Test
       run: |
-        cd PBT
+        cd monads
         stack test --system-ghc
