@@ -1,0 +1,19 @@
+1.    S K K
+   = (λx.λy.λz. x z (y z)) K K
+   = λz. K z (K z)
+   = λz. z
+   = I
+
+   So, S K K = I.
+
+
+
+
+2.    B = λx.λy.λz. x (y z)
+
+   S (K S) K
+   = (λx.λy.λz. x z (y z)) (K S) K
+   = λz. (K S) z (K z)
+   = λx.λy.λz. x (y z)
+
+   So, B = S (K S) K.
