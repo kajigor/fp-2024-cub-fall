@@ -83,7 +83,9 @@ test-suite monads-test
   build-depends:
       base >=4.7 && <5
     , containers
+    , hedgehog
     , monads
     , tasty
+    , tasty-hedgehog
     , tasty-hunit
   default-language: Haskell2010
