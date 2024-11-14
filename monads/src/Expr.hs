@@ -8,6 +8,7 @@ data Expr v
   | Var v 
   | Plus (Expr v) (Expr v)
   | Let v (Expr v) (Expr v)
+  deriving (Eq)
 -- let x = 13 in 
 -- let y = 42 in 
 -- x + y + 1

@@ -1,0 +1,32 @@
+[2 points] Show that the following lambda-terms are equivalent:
+- S K K == I
+- B == S (K S) K
+
+[1] S K K == I
+
+I = λx.x
+S=λfgx.fx(gx)
+K=λxy.x
+
+S K K = (λfgx.fx(gx))(λxy.x)(λxy.x)
+S K K = λx.Kx(Kx) -- f=K and g=K
+S K K = λx.(λy.x)(Kx) -- apply K=Kx with K=λy.x
+S K K = λx.x -- as (λy.x) takes any arg and returns x
+S K K = I
+
+
+[2] B == S (K S) K
+
+B = λfgx.f(gx)
+S = λfgx.fx(gx)
+K = λxy.x
+
+S (K S) K = (λfgx.fx(gx))(KS)K
+S (K S) K = λx.(KS)x(Kx) -- f=KS and g=K
+S (K S) K = λx.(λy.S)x(Kx) -- expand KS with K=λy.S
+S (K S) K = λx.S(Kx)
+S (K S) K = λx.(λfgz.fz(gz))Kx
+S (K S) K = λfgx.f(gx)
+S (K S) K = B
+
+

@@ -26,6 +26,8 @@ dependencies:
 - tasty
 - tasty-hunit
 - mtl
+- hedgehog
+- tasty-hedgehog
 
 ghc-options:
 - -Wall

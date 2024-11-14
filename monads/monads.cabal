@@ -52,8 +52,10 @@ library
       HUnit >=1.6
     , base >=4.7 && <5
     , containers
+    , hedgehog
     , mtl
     , tasty
+    , tasty-hedgehog
     , tasty-hunit
   default-language: Haskell2010
 
@@ -70,9 +72,11 @@ executable monads-exe
       HUnit >=1.6
     , base >=4.7 && <5
     , containers
+    , hedgehog
     , monads
     , mtl
     , tasty
+    , tasty-hedgehog
     , tasty-hunit
   default-language: Haskell2010
 
@@ -90,8 +94,10 @@ test-suite monads-test
       HUnit >=1.6
     , base >=4.7 && <5
     , containers
+    , hedgehog
     , monads
     , mtl
     , tasty
+    , tasty-hedgehog
     , tasty-hunit
   default-language: Haskell2010
