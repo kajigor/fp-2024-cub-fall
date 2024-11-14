@@ -1,0 +1,37 @@
+I = λx.x
+K = λxy.x
+B = λfgx.f(gx)
+S = λfgx.fx(gx)
+
+S K K == I
+
+K x = (λxy.x) x = λy.x
+λy.x(λy.x) = x
+
+S K K = λfgx.fx(gx) K K
+      = λx.Kx(Kx)
+      = λx.(λy.x(λy.x))
+      = λx.x
+      = I
+S K K = I
+
+
+B == S (K S) K
+
+(K S) x = (λxy.S) x = (λy.S) x = S
+
+(Kx) y = (λxy.x) y = λy.x y = x
+
+S (K S) K = λfgx.fx(gx) (K S) K
+          = λx.(KS)x(Kx)
+          = λx.S(Kx)
+          = λx.(λfgy.fy(gy))(Kx)
+          = λx.(λgy.(Kx)y(gy))
+          = λx.(λgy.x(gy))
+          = λxgy.x(gy)
+          = λfgx.f(gx)
+          = B
+S (K S) K = B
+
+
+
