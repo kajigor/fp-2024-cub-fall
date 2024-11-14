@@ -1,0 +1,28 @@
+* S K K == I
+
+S = λfgx. fx (gx)
+K = λxy.x
+I = λx.x
+
+SK = (λfgx. fx (gx)) K = 
+   = λgx . K x (g x) = 
+   = λgx . (λxy.x) x (g x) =
+   = λgx . x
+
+SKK = (λgx . x) λxy.x =
+    = λx.x
+
+* B == S (K S) K
+
+B = λfgx.f(g x)
+
+S(KS) = (λfgx. fx (gx)) (KS) =
+      = λgx. (KS)x (gx) =
+      = λgx. (λy.S)x (gx) =
+      = λgx. S (gx)
+
+S (KS) K =  (λgx. S (gx)) K = 
+         = λx. S (K x) =
+         = λx. λgz. (K x)z (gz) =
+         =  λx. λgz x(gz) =
+         = λfgx f(g x)
