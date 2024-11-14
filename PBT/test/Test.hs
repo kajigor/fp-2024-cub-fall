@@ -1,11 +1,11 @@
-import Test.Tasty
+module Test (main) where
 
-import qualified Test.Sort
-import qualified Test.Unit
+import Test.Tasty
+import qualified Test.Compiler
+import qualified Test.Interpreter
 
 main :: IO ()
-main = do
-  defaultMain (testGroup "All Tests"
-                [ testGroup "Sort" Test.Sort.props
-                , testGroup "Unit" Test.Unit.unitTests
-                ])
+main = defaultMain $ testGroup "Property-based Tests"
+  [ testGroup "Compiler Tests" Test.Compiler.props
+  , testGroup "Interpreter Tests" Test.Interpreter.props
+  ]
