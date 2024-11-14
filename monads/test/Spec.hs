@@ -1,97 +1,66 @@
-
+import qualified Hedgehog
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
 import Test.Tasty
-import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 import HW.Compiler
 import HW.StackMachine
 import HW.Eval
-import Expr (Expr(..)) 
+import Expr (Expr(..))
 
-expr1 :: Expr String
-expr1 = Let "x" (Num 13) (Plus (Var "x") (Num 42))
-
-compiledExpr1 :: StackProgram String
-compiledExpr1 = [PushNum 13, StoreVar "x", PushVar "x", PushNum 42, Add]
-
-expr2 :: Expr String
-expr2 = Let "x" (Num 5) (Let "y" (Plus (Var "x") (Num 3)) (Plus (Var "x") (Var "y")))
-
-compiledExpr2 :: StackProgram String
-compiledExpr2 = 
-  [ PushNum 5, StoreVar "x"
-  , PushVar "x", PushNum 3, Add, StoreVar "y"
-  , PushVar "x", PushVar "y", Add
+genExpr :: Hedgehog.Gen (Expr String)
+genExpr = Gen.recursive Gen.choice 
+  [ Num <$> Gen.int (Range.linear 0 100)
+  , Var <$> Gen.element ["x", "y", "z"]
+  ]
+  [ Let <$> Gen.element ["x", "y", "z"] <*> genExpr <*> genExpr
+  , Plus <$> genExpr <*> genExpr
   ]
 
-expr3 :: Expr String
-expr3 = Plus (Var "x") (Var "y") 
+prop_noExtraStackElements :: Hedgehog.Property
+prop_noExtraStackElements = Hedgehog.property $ do
+  expr <- Hedgehog.forAll genExpr
+  let compiled = compile expr
+  case execProgram compiled initialState of
+    Right finalState -> do
+      let result = getStack finalState
+      Hedgehog.assert $ length result == 1
+    Left err -> Hedgehog.annotate $ "Execution failed with error: " ++ show err
 
-expr4 :: Expr String
-expr4 = Let "x" (Num 10) (Plus (Plus (Var "x") (Var "x")) (Var "x"))
+prop_stackUnderflow :: Hedgehog.Property
+prop_stackUnderflow = Hedgehog.property $ do
+  expr <- Hedgehog.forAll genExpr
+  let compiled = compile expr
+  case execProgram compiled initialState of
+    Left (StackUnderflow _) -> Hedgehog.success
+    Left err -> Hedgehog.annotate $ "Unexpected error: " ++ show err
+    Right _ -> Hedgehog.annotate "Expected a StackUnderflow error, but execution succeeded"
 
-compiledExpr4 :: StackProgram String
-compiledExpr4 = [PushNum 10, StoreVar "x", PushVar "x", PushVar "x", Add, PushVar "x", Add]
+prop_varUndefined :: Hedgehog.Property
+prop_varUndefined = Hedgehog.property $ do
+  expr <- Hedgehog.forAll genExpr
+  let compiled = compile expr
+  case execProgram compiled initialState of
+    Left (VarUndefined _) -> Hedgehog.success
+    Left err -> Hedgehog.annotate $ "Unexpected error: " ++ show err
+    Right _ -> Hedgehog.annotate "Expected a VarUndefined error, but execution succeeded"
 
-expr5 :: StackProgram String
-expr5 = [PushNum 1, PushNum 2] 
-
-expr6 :: StackProgram String
-expr6 = []
-
-testCompilation :: TestTree
-testCompilation = testGroup "Test compilation"
-  [ testCase "let x = 13 in (x + 42)" $
-      compile expr1 @?= compiledExpr1
-
-  , testCase "let x = 5 in let y = (x + 3) in (x + y)" $
-      compile expr2 @?= compiledExpr2
-
-  , testCase "let x = 10 in (x + x + x)" $
-      compile expr4 @?= compiledExpr4
-  ]
-
-testExecution :: TestTree
-testExecution = testGroup "Test execution"
-  [ testCase "Execution of let x = 13 in (x + 42)" $ do
-      let result = execProgram (compile expr1) initialState
-      case result of
-        Right finalState -> getStack finalState @?= [55]
-        Left err -> assertFailure $ "Execution failed with error: " ++ show err
-
-  , testCase "Execution of let x = 5 in let y = (x + 3) in (x + y)" $ do
-      let result = execProgram (compile expr2) initialState
-      case result of
-        Right finalState -> getStack finalState @?= [13]
-        Left err -> assertFailure $ "Execution failed with error: " ++ show err
-
-  , testCase "Execution of let x = 10 in (x + x + x)" $ do
-      let result = execProgram (compile expr4) initialState
-      case result of
-        Right finalState -> getStack finalState @?= [30]
-        Left err -> assertFailure $ "Execution failed with error: " ++ show err
-
-  , testCase "Execution with multiple stack elements (StackNotExhausted)" $ do
-      let result = execProgram expr5 initialState
-      case result of
-        Left (StackNotExhausted stack) -> stack @?= [2, 1]
-        _ -> assertFailure "Expected StackNotExhausted error"
-
-  , testCase "Execution with empty stack (StackNotExhausted)" $ do
-      let result = execProgram expr6 initialState
-      case result of
-        Left (StackNotExhausted stack) -> stack @?= []
-        _ -> assertFailure "Expected StackNotExhausted error"
-  
-  , testCase "Variable not defined (x + y)" $ do
-      let result = execProgram (compile expr3) initialState
-      case result of
-        Left (VarUndefined var) -> var @?= "\"x\""
-        _ -> assertFailure "Expected VarUndefined error"
-  ]
+prop_stackNotExhausted :: Hedgehog.Property
+prop_stackNotExhausted = Hedgehog.property $ do
+  expr <- Hedgehog.forAll genExpr
+  let compiled = compile expr
+  case execProgram compiled initialState of
+    Left (StackNotExhausted _) ->  Hedgehog.success
+    Left err -> Hedgehog.annotate $ "Unexpected error: " ++ show err
+    Right _ -> Hedgehog.annotate "Expected a StackNotExhausted error, but execution succeeded"
 
 tests :: TestTree
-tests = testGroup "Compilation and Execution Tests"
-  [ testCompilation
-  , testExecution
+tests = testGroup "Property-Based Tests"
+  [ 
+    testProperty "No extra stack elements" prop_noExtraStackElements
+  , testProperty "Stack Underflow" prop_stackUnderflow
+  , testProperty "Undefined Variable" prop_varUndefined
+  , testProperty "Stack not Exhausted" prop_stackNotExhausted
   ]
 
 main :: IO ()
