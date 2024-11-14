@@ -30,15 +30,28 @@ jobs:
 
     - name: Install dependencies
       run: |
+<<<<<<< HEAD
         cd PBT
+=======
+        cd monads
+>>>>>>> HW05
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
 
     - name: Build
       run: |
+<<<<<<< HEAD
         cd PBT 
+=======
+        cd monads 
+>>>>>>> HW05
         stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
 
     - name: Test
       run: |
+<<<<<<< HEAD
         cd PBT
         stack test --system-ghc
+=======
+        cd monads
+        stack test --system-ghc
+>>>>>>> HW05
