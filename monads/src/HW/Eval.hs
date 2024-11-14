@@ -31,29 +31,13 @@ initialState = MachineState [] M.empty
 
 execInstr :: (Ord v, Show v) => StackInstr v -> MyState (MachineState v) (Either (Error v) ())
 execInstr (PushNum value) = do 
-  modify (\s -> s {getStack = value : getStack s})
-  return $ Right ()
+  Right <$> modify (\s -> s {getStack = value : getStack s})
 
 execInstr (PushVar name) = do
   map <- gets getEnv
   case M.lookup name map of
     Just x -> 
       Right <$> modify (\ s -> s {getStack = x : getStack s})
-      -- Now should be ok
-
-    --Just x -> do
-      -- modify (\s -> s {getStack = x : getStack s})
-      -- return $ Right ()
-      -- First way
-    
-    --Just x -> 
-      -- get >>= put . (\s -> s {getStack = x : getStack s}) >> pure (Right ())
-    
-    --Just x ->   
-      -- MyState $ \s ->
-      --  let newState = s {getStack = x : getStack s} in  
-      --  (newState, Right ())  
-    
     Nothing ->   
       return $ Left $ VarUndefined name
 
@@ -61,16 +45,14 @@ execInstr Add = do
   stack <- gets getStack
   case stack of
     (x: y : xs) -> do
-      modify (\s -> s {getStack = (x + y):xs})
-      return $ Right ()
+      Right <$> modify (\s -> s {getStack = (x + y):xs})
     _ -> return $ Left $ StackUnderflow Add
 
 execInstr (StoreVar v) = do
   MachineState stack env <- get
   case stack of
     (x : xs) -> do
-      modify (\s -> s {getStack = xs, getEnv = M.insert v x env})
-      return $ Right ()
+      Right <$> modify (\s -> s {getStack = xs, getEnv = M.insert v x env})
     _ -> return $ Left (StackUnderflow (StoreVar v))
 
 

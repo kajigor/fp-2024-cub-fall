@@ -1,115 +1,90 @@
 import Test.Tasty
 import Test.Tasty.HUnit
+import UnitTest
+import Hedgehog
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+import qualified Expr 
+import HW.Compiler
+import HW.StackMachine
+import HW.Eval (execProgram, initialState, Error (VarUndefined), MachineState(..), getStack)
+import Test.Tasty (TestTree)
+import Test.Tasty.Hedgehog (testProperty)
+import Data.Either (isLeft)
+import Reader.Eval (runEvalSafe)
+import State.Renamer (runRename)
 import qualified Data.Map.Strict as M
-import qualified HW.Eval
-import qualified Expr
-import qualified HW.Compiler
-import qualified HW.StackMachine
-import State.MyState (runMyState)
+import qualified Data.Set as Set
 
-type Stack = HW.Eval.Stack
+genInt :: Gen Int
+genInt = Gen.int (Range.constant (-100) 100)
 
--- Test Intruction
-testInstr :: (Ord v, Show v) 
-          => String -- Name of the Test Case
-          -> HW.StackMachine.StackInstr v -- Instruction
-          -> HW.Eval.MachineState v -- Initial State
-          -> Either (HW.Eval.Error v) () -- Expected result
-          -> Stack -- Expected Stack
-          -> TestTree
-testInstr name instr initialState expectedResult expectedStack = testCase name $ do
-  let (finalState, result) = runMyState (HW.Eval.execInstr instr) initialState
-  assertEqual "Unexpected result" expectedResult result
-  assertEqual "Unexpected final stack" expectedStack (HW.Eval.getStack finalState)
 
--- Test program
-testProgram :: (Ord v, Show v) 
-            => String -- Name of the test Case
-            -> HW.StackMachine.StackProgram v -- Program
-            -> HW.Eval.MachineState v -- Initial State
-            -> Either (HW.Eval.Error v) (HW.Eval.MachineState v) -- Final State
-            -> TestTree
-testProgram name program initialState expected = testCase name $
-  HW.Eval.execProgram program initialState @?= expected
+genString :: Int -> Int -> Gen String
+genString minLength maxLength = Gen.list (Range.constant minLength maxLength) Gen.alphaNum
 
-testComp :: (Ord v, Show v) => String -> Expr.Expr v -> HW.StackMachine.StackProgram v -> TestTree
-testComp name expr expected = testCase name $ HW.Compiler.compile expr @?= expected
+genVar :: Gen [String]
+genVar = Gen.list (Range.constant 1 10) $ genString 1 10
 
-testCompile :: TestTree
-testCompile = testGroup "compile tests"
-  [ testComp "compile simple let expression" 
-        (Expr.Let "x" (Expr.Num 5) (Expr.Plus (Expr.Var "x") (Expr.Num 10)))
-        [ HW.StackMachine.PushNum 5, HW.StackMachine.StoreVar "x", HW.StackMachine.PushVar "x", HW.StackMachine.PushNum 10, HW.StackMachine.Add]
-  , testComp "compile nested let expression"
-        (Expr.Let "x" (Expr.Num 13)
-            (Expr.Let "y" (Expr.Num 42)
-                (Expr.Let "x" (Expr.Plus (Expr.Var "x") (Expr.Var "y"))
-                    (Expr.Plus (Expr.Var "x") (Expr.Var "y")))))
-        [HW.StackMachine.PushNum 13, HW.StackMachine.StoreVar "x", 
-        HW.StackMachine.PushNum 42, HW.StackMachine.StoreVar "y", 
-        HW.StackMachine.PushVar "x", HW.StackMachine.PushVar "y", HW.StackMachine.Add, HW.StackMachine.StoreVar "x", 
-        HW.StackMachine.PushVar "x", HW.StackMachine.PushVar "y", HW.StackMachine.Add]
+{-
+genExpr :: [String] -> Gen (Expr.Expr String)
+genExpr variableNames = Gen.recursive Gen.choice [
+      Expr.Num <$> genInt,
+      Expr.Var <$> Gen.element variableNames
+  ] [
+    Expr.Plus <$> genExpr variableNames <*> genExpr variableNames,
+    Expr.Let <$> Gen.element variableNames <*> genExpr variableNames <*> genExpr variableNames
+  ]
+-}
+
+genExpr :: [String] -> Gen (Expr.Expr String)
+genExpr variableNames = genExprWithScope (Set.fromList variableNames)
+
+genExprWithScope :: Set.Set String -> Gen (Expr.Expr String)
+genExprWithScope allowedVars = Gen.recursive Gen.choice [
+      Expr.Num <$> genInt,
+      Expr.Var <$> Gen.element (Set.toList allowedVars)
+  ] [
+    Expr.Plus <$> genExprWithScope allowedVars <*> genExprWithScope allowedVars,
+    genLetExpr allowedVars
   ]
 
-testExecInstr :: TestTree
-testExecInstr = testGroup "execInstr tests"
-  [ testInstr "PushNum 5" (HW.StackMachine.PushNum 5) (HW.Eval.initialState :: HW.Eval.MachineState String) (Right ()) [5]
-  , testInstr "Add should fail due to stack underflow" HW.StackMachine.Add (HW.Eval.initialState :: HW.Eval.MachineState String) (Left (HW.Eval.StackUnderflow HW.StackMachine.Add)) []
-  , testInstr "PushVar undefined" (HW.StackMachine.PushVar "x") (HW.Eval.initialState :: HW.Eval.MachineState String) (Left (HW.Eval.VarUndefined "x")) []
-  , testInstr "StoreVar with empty stack" (HW.StackMachine.StoreVar "x") (HW.Eval.initialState :: HW.Eval.MachineState String) (Left (HW.Eval.StackUnderflow (HW.StackMachine.StoreVar "x"))) []
-  , testInstr "PushNum -5" (HW.StackMachine.PushNum (-5)) (HW.Eval.initialState :: HW.Eval.MachineState String) (Right ()) [-5]
-  , testInstr "Add large numbers" HW.StackMachine.Add (HW.Eval.MachineState [1000000, 999999] (M.empty :: M.Map String Int)) (Right ()) [1999999]
-  , testInstr "StoreVar after multiple operations" (HW.StackMachine.StoreVar "y") (HW.Eval.MachineState [5, 10] (M.empty :: M.Map String Int)) (Right ()) [10]
-  , testInstr "PushVar with a defined variable" (HW.StackMachine.PushVar "x") (HW.Eval.MachineState [] (M.fromList [("x", 20)] :: M.Map String Int)) (Right ()) [20]
-  ]
+genLetExpr :: Set.Set String -> Gen (Expr.Expr String)
+genLetExpr allowedVars = do
+  newVar <- genString 1 10 
+  expr <- genExprWithScope allowedVars  
+  
+  let updatedScope = Set.delete newVar allowedVars
+  body <- genExprWithScope updatedScope
+  return $ Expr.Let newVar expr body
 
-testExecProgram :: TestTree
-testExecProgram = testGroup "execProgram tests"
-  [ testProgram "run exampleProgram"
-      [HW.StackMachine.PushNum 5, HW.StackMachine.PushNum 10, HW.StackMachine.Add, HW.StackMachine.StoreVar "x", HW.StackMachine.PushVar "x", HW.StackMachine.PushNum 2, HW.StackMachine.Add]
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Right (HW.Eval.MachineState [17] (M.fromList [("x", 15)])))
 
-  , testProgram "run underflowExpr"
-      [HW.StackMachine.PushNum 13, HW.StackMachine.Add]
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Left (HW.Eval.StackUnderflow HW.StackMachine.Add))
+propConsistentEvaluation :: Property
+propConsistentEvaluation = property $ do
+  variableNames <- forAll genVar        
+  expr <- forAll (genExpr variableNames)
+  let evalResult = runEvalSafe expr
 
-  , testProgram "run undefVar program"
-      [HW.StackMachine.PushVar "x"]
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Left (HW.Eval.VarUndefined "x"))
+  let program = compile expr
+  let programResult = case execProgram program initialState of
+        Left _ -> Nothing 
+        Right finalState -> case getStack finalState of
+          [result] -> Just result 
+          _        -> Nothing
+  evalResult === programResult
 
-  , testProgram "complex nested Expr.let program"
-      (HW.Compiler.compile (Expr.Let "x" (Expr.Num 13) (Expr.Let "y" (Expr.Num 42) (Expr.Let "x" (Expr.Plus (Expr.Var "x") (Expr.Var "y")) (Expr.Plus (Expr.Var "x") (Expr.Var "y"))))))
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Right (HW.Eval.MachineState [97] (M.fromList [("x", 55), ("y", 42)])))
-
-  , testProgram "Program mixing PushNum, Add, StoreVar"
-      [HW.StackMachine.PushNum 3, HW.StackMachine.PushNum 4, HW.StackMachine.Add, HW.StackMachine.StoreVar "z", HW.StackMachine.PushVar "z"]
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Right (HW.Eval.MachineState [7] (M.fromList [("z", 7)])))
-
-  , testProgram "Program causing StackUnderflow with Add"
-      [HW.StackMachine.Add]
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Left (HW.Eval.StackUnderflow HW.StackMachine.Add))
-
-  , testProgram "Program with nested let expressions"
-      (HW.Compiler.compile (Expr.Let "a" (Expr.Num 5) (Expr.Let "b" (Expr.Num 10) (Expr.Plus (Expr.Var "a") (Expr.Var "b")))))
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Right (HW.Eval.MachineState [15] (M.fromList [("a", 5), ("b", 10)])))
-
-  , testProgram "Program storing and using multiple variables"
-      (HW.Compiler.compile (Expr.Let "x" (Expr.Num 7) (Expr.Let "y" (Expr.Plus (Expr.Var "x") (Expr.Num 3)) (Expr.Plus (Expr.Var "x") (Expr.Var "y")))))
-      (HW.Eval.initialState :: HW.Eval.MachineState String)
-      (Right (HW.Eval.MachineState [17] (M.fromList [("x", 7), ("y", 10)])))
-  ]
+prop_undefinedVariableError :: Property
+prop_undefinedVariableError = property $ do
+    variableNames <- forAll genVar
+    expr <- forAll $ genExpr variableNames
+    let stackProgram = compile $ Expr.Let "candela" expr (Expr.Var "candelo")
+    Hedgehog.assert (isLeft $ execProgram stackProgram initialState)  
 
 main :: IO ()
-
 main = defaultMain $ testGroup "Stack Machine Tests"
   [ testCompile
   , testExecInstr
   , testExecProgram
+  , testProperty "Hedgehog: Consistent evaluation" propConsistentEvaluation
+  , testProperty "Error is raised if an undefined variable is used" prop_undefinedVariableError
   ]
