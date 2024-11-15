@@ -1,0 +1,40 @@
+SKK == I
+
+S = λfgx.fx(g x)
+K = λxy.x
+I = λx.x
+
+(λfgx.fx(g x)) (λxy.x) (λxy.x) = a
+(λfgx'.fx'(g x')) (λxy.x) (λxy.x) = b
+(λgx'.(λxy.x)x'(g x')) (λxy.x) = b
+(λx'.(λxy.x)x'((λxy.x) x')) = b
+(λx'.(λxy.x)x'((λx''y.x'') x')) = b
+(λx'.(λxy.x)x' ((λy.x'))) = b
+(λx'.(λy.x') (λy.x')) = b 
+(λx'.x') = a
+(λx.x) = b
+I
+
+B = λfgx.f(g x)
+
+
+B == S (K S) K
+
+S (K S) K = b
+S (λxy.x S) K = b 
+S (λy.S) K = b
+λfgx.fx(g x) (λy.S) K = b  
+λgx.(λy.S)x(g x) K = b
+λx.(λy.S)x(K x) = b
+λx.(λy.S)x(λxy.x x) = b
+λx.(λy.S) x (λy.x) = b
+λx.S (λy.x) = b
+
+λx.(λfgx.fx(g x)) (λy.x) = a
+λx.(λfgx'.fx'(g x')) (λy.x) = b 
+λx.(λgx'.(λy.x)x'(g x')) = b 
+λx.(λgx'.x(g x')) = b 
+λxgx'.x(g x') = a
+λfgx'.f(g x') = a
+λfgx.f(g x) = 
+B
