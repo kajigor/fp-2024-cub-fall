@@ -72,6 +72,8 @@ evalTests = testGroup "Evaluation Tests"
           initialState)
   ]
 
+--------------------------------------------------------- HW07 ---------------------------------------------------------
+
 genNum :: Gen Int
 genNum = Gen.int (Range.constant (-1000) 1000)
 
@@ -91,8 +93,6 @@ genExpr :: Gen (Expr String)
 genExpr = Gen.recursive Gen.choice [genNumExpr, genVarExpr] [genAdd]
 
 
---------------------------------------------------------- HW07 ---------------------------------------------------------
-
 -- Define evalDirect to evaluate expressions given an environment
 evalDirect :: Expr String -> M.Map String Int -> Either (Error String) Int
 evalDirect (Expr.Num n) _ = Right n
@@ -107,15 +107,15 @@ evalDirect (Expr.Plus e1 e2) env = do
 
 propTests :: TestTree
 propTests = testGroup "Property Tests"
-  [ testProperty "Evaluated program matches direct evaluation"              prop_directEvaluationConsistency
-  , testProperty "StoreVar properly saves and retrieves variable"           prop_storeVarConsistency
-  , testProperty "Multiple Let bindings respect scoping rules"              prop_letScopeNesting
-  , testProperty "Expression with only numbers compiles without variables"  prop_compileNoVariables
-  , testProperty "Compilation preserves number of constants"                prop_preserveNumConstants
-  , testProperty "Addition with zero leaves the value unchanged"            prop_addZero
-  , testProperty "Compilation of nested Plus expressions is associative"    prop_plusAssociativity
-  , testProperty "Running empty program leaves stack unchanged"             prop_emptyProgramNoChange
-  , testProperty "Shadowing with Let bindings keeps inner value"            prop_shadowingConsistency
+  [ testProperty "Evaluated program matches direct evaluation"             prop_directEvaluationConsistency
+  , testProperty "StoreVar properly saves and retrieves variable"          prop_storeVarConsistency
+  , testProperty "Multiple Let bindings respect scoping rules"             prop_letScopeNesting
+  , testProperty "Expression with only numbers compiles without variables" prop_compileNoVariables
+  , testProperty "Compilation preserves number of constants"               prop_preserveNumConstants
+  , testProperty "Addition with zero leaves the value unchanged"           prop_addZero
+  , testProperty "Compilation of nested Plus expressions is associative"   prop_plusAssociativity
+  , testProperty "Running empty program leaves stack unchanged"            prop_emptyProgramNoChange
+  , testProperty "Shadowing with Let bindings keeps inner value"           prop_shadowingConsistency
   ]
 
 -- Check that the result of executing a program matches the direct evaluation of the expression
