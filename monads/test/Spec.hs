@@ -35,7 +35,13 @@ prop_compilerConsistency = property $ do
 -- Property: Undefined variable error
 prop_undefinedVariableError :: Property
 prop_undefinedVariableError = property $ do
-    let program = [HW.StackMachine.PushVar "undefinedVar"]
+    expr <- forAll genExpr
+
+    -- Undefined variable added into an expression
+    let undefinedVar = "undefinedVar"
+    let exprWithUndefinedVar = Plus (Expr.Var undefinedVar) expr
+    
+    let program = compile exprWithUndefinedVar
     let result = execProgram program initialState
     result === Left (VarUndefined "undefinedVar")
 
