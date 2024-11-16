@@ -80,6 +80,9 @@ genNum = Gen.int (Range.constant (-1000) 1000)
 genVar :: Gen String
 genVar = Gen.element ["x", "y", "z"]
 
+genLet :: Gen (Expr String)
+genLet = Expr.Let <$> genVar <*> genExpr <*> genExpr
+
 genNumExpr :: Gen (Expr String)
 genNumExpr = Expr.Num <$> genNum
 
@@ -90,20 +93,22 @@ genAdd :: Gen (Expr String)
 genAdd = Expr.Plus <$> genExpr <*> genExpr
 
 genExpr :: Gen (Expr String)
-genExpr = Gen.recursive Gen.choice [genNumExpr, genVarExpr] [genAdd]
+genExpr = Gen.recursive Gen.choice [genNumExpr, genVarExpr] [genAdd, genLet]
 
-
--- Define evalDirect to evaluate expressions given an environment
-evalDirect :: Expr String -> M.Map String Int -> Either (Error String) Int
-evalDirect (Expr.Num n) _ = Right n
+-- Define evalDirect to evaluate expressions and return a new environment
+evalDirect :: Expr String -> M.Map String Int -> Either (Error String) (Int, M.Map String Int)
+evalDirect (Expr.Num n) env = Right (n, env)
 evalDirect (Expr.Var v) env =
   case M.lookup v env of
-    Just val -> Right val
+    Just val -> Right (val, env)
     Nothing  -> Left (VarUndefined v)
 evalDirect (Expr.Plus e1 e2) env = do
-  val1 <- evalDirect e1 env
-  val2 <- evalDirect e2 env
-  return (val1 + val2)
+  (val1, env1) <- evalDirect e1 env
+  (val2, env2) <- evalDirect e2 env1
+  return (val1 + val2, env2)
+evalDirect (Expr.Let v e b) env = do
+  (val, env1) <- evalDirect e env
+  evalDirect b (M.insert v val env1)
 
 propTests :: TestTree
 propTests = testGroup "Property Tests"
@@ -124,7 +129,7 @@ prop_directEvaluationConsistency = property $ do
     expr <- forAll genExpr
     let result = execProgram (compile expr) (MachineState [] M.empty)
     case (result, evalDirect expr M.empty) of
-        (Right (MachineState [val] _), Right expected) -> val === expected
+        (Right (MachineState [val] _), Right (expected, _)) -> val === expected
         (Left _, Left _) -> success
         _ -> fail "Direct evaluation and compiled execution mismatch"
 
