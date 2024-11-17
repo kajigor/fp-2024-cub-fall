@@ -24,39 +24,32 @@ genInt :: Gen Int
 genInt = Gen.int (Range.constant 0 100)
 
 -- Generate expressions using only predefined variables from the initial context
-genExpr :: Int -> [String] -> Gen (Expr String)
-genExpr 0 boundVars =
-  if null boundVars
-    then Num <$> genInt
-    else Gen.choice [Num <$> genInt, Expr.Var <$> Gen.element boundVars]
+genExpr :: [String] -> Gen (Expr String)
+genExpr boundVars = Gen.recursive Gen.choice baseGens recursiveGens
+  where
+    baseGens :: [Gen (Expr String)]
+    baseGens =
+      [ Num <$> genInt ] ++
+      [ Expr.Var <$> Gen.element boundVars | not (null boundVars) ]
 
-genExpr n boundVars = do
-  let varNames = map (:[]) ['a'..'z']
-  let availableVars = filter (`notElem` boundVars) varNames
-  let varGen =
-        if null boundVars
-          then []
-          else [Expr.Var <$> Gen.element boundVars]
-  let letGen =
-        if null availableVars
-          then []
-          else [do
-                  var <- Gen.element availableVars
-                  e1 <- genExpr (n - 1) boundVars
-                  e2 <- genExpr (n - 1) (var : boundVars)
-                  return (Let var e1 e2)
-               ]
-  Gen.choice $
-    [Num <$> genInt]
-    ++ varGen
-    ++ [Plus <$> genExpr (n - 1) boundVars <*> genExpr (n - 1) boundVars]
-    ++ letGen
+    recursiveGens :: [Gen (Expr String)]
+    recursiveGens =
+      [ Plus <$> genExpr boundVars <*> genExpr boundVars ] ++
+      [ genLetExpr | not (null availableVars) ]
+      where
+        varNames = map (:[]) ['a'..'z']
+        availableVars = filter (`notElem` boundVars) varNames
+        genLetExpr = do
+          var <- Gen.element availableVars
+          e1 <- genExpr boundVars
+          e2 <- genExpr (var : boundVars)
+          return (Let var e1 e2)
 
 
 -- Property to test that compiled expressions evaluate correctly with a fixed context
 prop_compile_correct :: Property
 prop_compile_correct = property $ do
-  expr <- forAll $ genExpr 5 []
+  expr <- forAll $ genExpr []
   let expected = evalWithContext expr M.empty
   let compiled = compile expr
   case execProgram compiled initialState of
@@ -68,18 +61,18 @@ prop_compile_correct = property $ do
 
 prop_compile_varUndefined :: Property
 prop_compile_varUndefined = property $ do
-  var_name <- forAll $ Gen.string (Range.singleton 1) Gen.lower
-  let expr :: Expr String
-      expr = Expr.Var var_name
-  let compiled = compile expr
+  expr <- forAll $ genExpr []
+  let var_str = "ç"
+  let compiled = compile expr ++ [PushVar var_str]
   case execProgram compiled initialState of
-    Left (VarUndefined variable) -> assert (variable == var_name)
+    Left (VarUndefined variable) -> assert (variable == var_str)
     _ -> fail "Expected VarUndefined error"
 
 prop_compile_stackUnderflow :: Property
 prop_compile_stackUnderflow = property $ do
-  let prog = [Add]
-  case execProgram prog initialState of
+  expr <- forAll $ genExpr []
+  let compiled = compile expr ++ [Add]
+  case execProgram compiled initialState of
     Left (StackUnderflow _) -> success
     _ -> fail "Expected StackUnderflow error"
 
@@ -87,8 +80,9 @@ prop_compile_stackNotExhausted :: Property
 prop_compile_stackNotExhausted = property $ do
   int1 <- forAll genInt
   int2 <- forAll genInt
-  let prog = [PushNum int1, PushNum int2]
-  case execProgram prog initialState of
+  expr <- forAll $ genExpr []
+  let compiled = compile expr ++ [PushNum int1, PushNum int2]
+  case execProgram compiled initialState of
     Left (StackNotExhausted _) -> success
     Right _ -> fail "Expected StackNotExhausted error due to extra items on the stack"
     Left err -> fail $ "Unexpected error: " ++ show err
