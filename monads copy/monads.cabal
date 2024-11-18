@@ -25,9 +25,24 @@ source-repository head
 
 library
   exposed-modules:
+      Cont.Main
+      Cont.MyCont
       Expr
       HW.Compiler
       HW.Eval
+      HW.Main
+      HW.StackMachine
+      Reader.Eval
+      Reader.Main
+      Reader.MyReader
+      State.ConservativeRenamer
+      State.Main
+      State.MyState
+      State.Renamer
+      Util
+      Writer.Main
+      Writer.MyWriter
+      Writer.Transaction
   other-modules:
       Paths_monads
   autogen-modules:
