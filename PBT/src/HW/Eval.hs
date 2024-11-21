@@ -61,7 +61,6 @@ execInstr instr = case instr of
 
 -- Execute a list of instructions starting from the given state. 
 execProgram :: (Ord v, Show v) => StackProgram v -> MachineState v -> Either (Error v) (MachineState v)
--- eta reduced it
 execProgram = execLoop
   where
     -- A function for executing the program instructions iteratively
@@ -75,5 +74,6 @@ execProgram = execLoop
     -- Check if the stack has a single element at the end
     checkFinalState finalState =
         case getStack finalState of
-            [oneElement] -> Right finalState
+            [_] -> Right finalState
+            [x, _] -> Right (finalState { getStack = [x] })
             _ -> Left (StackNotExhausted (getStack finalState))
