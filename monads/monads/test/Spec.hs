@@ -4,6 +4,8 @@ import qualified Hedgehog.Range as Range
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import qualified Data.Map as M
+import Debug.Trace
+import Data.List (isPrefixOf)
 
 import HW.Compiler
 import HW.StackMachine
@@ -34,20 +36,44 @@ genExpr = Gen.recursive Gen.choice
     [genNumExpr, genVarExpr]
     [genAddExpr, genLetExpr]
 
--- Checks for the proper execution of a stack program
+type VarMap = M.Map String Int
+
+evall :: VarMap -> Expr String -> Either (String) (Int, VarMap)
+evall env (Expr.Num n) = Right (n, env)
+evall env (Expr.Var v) =
+  case M.lookup v env of
+    Just a -> Right (a, env)
+    Nothing  -> Left $ "VarUndefined " ++ show v
+evall env (Expr.Plus num1 num2) = do
+  (num1, env1) <- evall env num1
+  (num2, env2) <- evall env1 num2
+  let num = num1 + num2
+  return (num, env2)
+evall env (Expr.Let var expr body) =
+    case evall env expr of
+        Right(num, env1) -> evall (M.insert var num env1) body
+        Left _ -> Left "Error"
+
+--Checks for the proper execution of a stack program
 properExecution :: Property
 properExecution = property $ do
-    expr <- forAll (genExpr)
-    let program = compile expr
-    let initial = MachineState [] (M.fromList [("x", 10), ("y", 20), ("z", 30), ("a", 8), ("b", 33)]) 
-    let result = execProgram program initial
-    case result of
-        Right executed -> do
-            let stack = getStack executed
-            case stack of
-                [one] -> success
-                _ -> fail "Expected one result on the stack"
-        Left err -> fail $ "Program execution unsuccessful: " ++ show err
+    expr <- forAll genExpr
+    let env = (M.fromList [("x", 10), ("y", 20), ("z", 30), ("a", 8), ("b", 33)])
+    let expected = evall env expr
+    case expected of
+        Left err -> fail $ "Evaluation failed: " ++ show err
+        Right (expected, _) -> do
+            let program = compile expr
+            let initial = MachineState [] (M.fromList [("x", 10), ("y", 20), ("z", 30), ("a", 8), ("b", 33)]) 
+            let result = execProgram program initial
+            case result of
+                Right executed -> do
+                    let stack = getStack executed
+                    case stack of
+                        [one] -> do
+                            assert (one == expected)
+                        _ -> fail "Expected exactly one result on the stack"
+                Left err -> fail $ "Program execution unsuccessful: " ++ show err
 
 -- Detection of StackNotExhausted Error
 stackExhaustionError :: Property
@@ -74,13 +100,19 @@ stackUnderflowError = property $ do
 -- Undefined var error
 undefinedVarError :: Property
 undefinedVarError = property $ do
-    x <- forAll (genVarExpr)
+    x <- forAll genExpr
     let program = compile x
     let initial = MachineState [] M.empty
     let result = execProgram program initial
     case result of
         Left (VarUndefined _) -> success
-        _ -> fail "Undefined Var Error Undetected"
+        Right executed -> do
+            let stack = getStack executed
+            case stack of
+                [result] -> success
+                _ -> fail "Stack does not contain exactly one result"
+        Left err ->
+            fail $ "Unexpected execution error: " ++ show err
 
 -- Checking for var shadowing
 letShadowing :: Property
