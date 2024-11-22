@@ -1,6 +1,7 @@
 ------------------------------------------------------------------------------------------
 My project is a Minesweeper game. First, to properly remind myself of the gameplay of Minesweeper
-and to understand what the key elements of the game are. In my opinion the key elements of a Minesweeper are:
+and to understand what the key elements of the game are I played a couple of versions of the game on my phone. 
+In my opinion the key elements of a Minesweeper are:
 1. A Game Grid - grid with cells that either contain a mine, empty, or adjacent to mines
 2. Mine placement - random distribution of mines across the grid
 3. Revealing Cells - a number, a mine, or recursively reveal surrounding cells
@@ -26,6 +27,9 @@ for cells. It has only one constructor with multiple fields. Each field correspo
 possible contents of the cell. A cell can either have a revealed mine, a revealed cell
 with a number of adjacent mines, a flagged cell, or an unrevealed cell.
 
+----------------------------------------------------------------------
+Next worked on random generation of grids. Explanations behind certain choices made are in the comments
+
 randomUniqueIndices :: Int -> Int -> IO [Int]
 randomUniqueIndices n maxIndex = do
   -- replicateM to repeat a monadic action multiple times and collect results in a list
@@ -46,15 +50,18 @@ When designing the revealCell function, I focused on implementing the cascading 
  behavior of revealing cells in Minesweeper. Using foldl, I applied the revealCell function to all valid neighbors, 
  progressively updating the grid without mutating state, making the cascading process both intuitive and efficient.
 
- Ran into a couple of issues of course.
-I forgot to take into account that the first move that the player makes should never turn out to be a mine.
+----------------------------------------------------------------------------------------------------
+First playable version ready. 
+
+After playing for a bit found a lot of issues.
+One of them was that I forgot to take into account that the first move that the player makes should never turn out to be a mine.
 What i did instead is have player input the grid data, but then at first he is given an empty grid but it is not visible.
 After he chooses the first field the random grid is generated and replaces the previous empty one.
 
 I also then added flagging. Modified the game logic quite a bit a couple of times. At first I asked for a row and column
 in seperate inputs, but I think it is less convenient than doing it in a single line.
 
-Also to improve modularity I moved the game lofic from main into a new Game module.
+Also to improve modularity I moved the game logic from main into a new Game module.
 
 Asking for the first move is more unique to the rest of the inputs that will take place because you don't need to flag.
 
@@ -62,10 +69,13 @@ Grid.hs file became too packed. It contained the Grid type, functions for Grid r
 Created a Grid folder and seperated Grid.hs into 3 modules.
 
 Another thing that I started to consider was that choosing the cell to reveal by looking at the grid in the terminal
-is pretty inconvenient the way it is right now. In the usual version you tap on the cell you want to reveal, while here
-you enter the row and the column. I have decided to try and box the entire grid and then add indexing around that box.
-After that I modified my function for rendering grids to make it look like a grid / matrix with indeces on top and the left.
-Previously it look like this:
+is pretty inconvenient the way it is right now. In the phone version you tap on the cell you want to reveal, while here
+you enter the row and the column. So having to count which row and column the cell is in everytime is annoying. Also
+the fact that indexing starts from 0.
+I have decided to try and box the entire grid and then add indexing around that box.
+
+I modified my function for rendering grids to make it look like a grid / matrix with indeces on top and the left.
+Previously render function looked as follows:
 
 -- Render the grid as a string for display in the console
 renderGrid :: Grid -> IO ()
@@ -79,4 +89,4 @@ renderGrid = mapM_ (putStrLn . renderRow)
         | otherwise                       = ". "  -- Unrevealed cell
 
 Tried to move as much game code from Main into Game.hs. Also created a lot of additional helper functions because there
-was repetitive code.
+was repetitive code in the Game logic.
