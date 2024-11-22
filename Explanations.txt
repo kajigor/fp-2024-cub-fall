@@ -1,0 +1,82 @@
+------------------------------------------------------------------------------------------
+My project is a Minesweeper game. First, to properly remind myself of the gameplay of Minesweeper
+and to understand what the key elements of the game are. In my opinion the key elements of a Minesweeper are:
+1. A Game Grid - grid with cells that either contain a mine, empty, or adjacent to mines
+2. Mine placement - random distribution of mines across the grid
+3. Revealing Cells - a number, a mine, or recursively reveal surrounding cells
+4. Win/Loss conditions - all non-mines revealed/a mine revealed
+6. Input Handling - player input for the cell to be revealed. Allow flagging
+7. Timer - is present in most of the versions of the game i have tried.
+
+Also need to add Unit and Property-based tests unique to the Haskell implementaton of the game.
+
+------------------------------------------------------------------------------------------
+
+First, I setup a project. I decided to use stack, as we have been primarily using it for Homework Assignments.
+Named the project Minesweeper. From the beginning, to follow modular programming and seperation of concerns 
+principles I have decided to Each module is designed to handle a specific part of the game’s functionality, 
+ensuring high cohesion and low coupling. This approach makes the code easier to understand, test, and maintain.
+For example, the Grid module focuses solely on grid-related operations. Moved Main.hs into app folder to seperate
+the entry point of the program from the library code (src/...)
+
+------------------------------------------------------------------------------------------
+
+Second, I started working on the Game Grid. First I made a new Algebraic Data Type (ADT) 
+for cells. It has only one constructor with multiple fields. Each field corresponds to
+possible contents of the cell. A cell can either have a revealed mine, a revealed cell
+with a number of adjacent mines, a flagged cell, or an unrevealed cell.
+
+randomUniqueIndices :: Int -> Int -> IO [Int]
+randomUniqueIndices n maxIndex = do
+  -- replicateM to repeat a monadic action multiple times and collect results in a list
+  indices <- replicateM n (randomRIO (0, maxIndex - 1))
+  -- nub to remove duplicating indices
+  return $ take n (nub indices)
+
+wanted to do this, but then if indices are duplicated and removed due to nub there would be less than n mines
+Instead used Sets since they already handle the duplicates.
+
+-------------------------------------------------------------------------------------------------
+
+Third, Revealing cells.
+
+When designing the revealCell function, I focused on implementing the cascading reveal,
+ where empty cells with no adjacent mines recursively reveal their neighbors until all connected 
+ empty regions are uncovered. I chose recursion for this because it naturally reflects the depth-first 
+ behavior of revealing cells in Minesweeper. Using foldl, I applied the revealCell function to all valid neighbors, 
+ progressively updating the grid without mutating state, making the cascading process both intuitive and efficient.
+
+ Ran into a couple of issues of course.
+I forgot to take into account that the first move that the player makes should never turn out to be a mine.
+What i did instead is have player input the grid data, but then at first he is given an empty grid but it is not visible.
+After he chooses the first field the random grid is generated and replaces the previous empty one.
+
+I also then added flagging. Modified the game logic quite a bit a couple of times. At first I asked for a row and column
+in seperate inputs, but I think it is less convenient than doing it in a single line.
+
+Also to improve modularity I moved the game lofic from main into a new Game module.
+
+Asking for the first move is more unique to the rest of the inputs that will take place because you don't need to flag.
+
+Grid.hs file became too packed. It contained the Grid type, functions for Grid rendering, generation, flagging, revealing cells, etc.
+Created a Grid folder and seperated Grid.hs into 3 modules.
+
+Another thing that I started to consider was that choosing the cell to reveal by looking at the grid in the terminal
+is pretty inconvenient the way it is right now. In the usual version you tap on the cell you want to reveal, while here
+you enter the row and the column. I have decided to try and box the entire grid and then add indexing around that box.
+After that I modified my function for rendering grids to make it look like a grid / matrix with indeces on top and the left.
+Previously it look like this:
+
+-- Render the grid as a string for display in the console
+renderGrid :: Grid -> IO ()
+renderGrid = mapM_ (putStrLn . renderRow)
+  where
+    renderRow = concatMap renderCell
+    renderCell cell
+        | isRevealed cell && isMine cell  = "* "  -- Revealed mine
+        | isRevealed cell                 = show (adjacentMines cell) ++ " "
+        | isFlagged cell                  = "F "  -- Flagged cell
+        | otherwise                       = ". "  -- Unrevealed cell
+
+Tried to move as much game code from Main into Game.hs. Also created a lot of additional helper functions because there
+was repetitive code.
