@@ -6,17 +6,27 @@ import GameLogic
 import Grid
 
 testRevealCell :: TestTree
-testRevealCell = testCase "Reveal cell" $ do
-    let rows = 3
-        cols = 3
+testRevealCell = testCase "Reveal cell on 5x5 grid" $ do
+    let rows = 5
+        cols = 5
         mines = 1
-        minePositions = [(1, 1)]
+        minePositions = [(2, 2)] -- Place a mine at the center of the grid
     grid <- initializeGrid rows cols mines (Just minePositions)
+
+    -- Reveal a corner cell (0, 0) and verify propagation
     let revealedGrid = revealCell grid (0, 0)
-    let expectedGrid = [[Empty 1, Empty 1, Empty 1],
-                        [Empty 1, Mine,    Empty 1],
-                        [Empty 1, Empty 1, Empty 1]]
-    assertEqual "Revealing a cell should reveal adjacent cells if no adjacent mines" expectedGrid revealedGrid
+
+    -- Expected grid after revealing (0, 0):
+    -- Adjacent cells with no mines should propagate, stopping at cells with numbers
+    let expectedRevealed = 
+            [ [Empty 0, Empty 0, Empty 0, Empty 0, Empty 0],
+              [Empty 0, Empty 1, Empty 1, Empty 1, Empty 0],
+              [Empty 0, Empty 1, Mine,    Empty 1, Empty 0],
+              [Empty 0, Empty 1, Empty 1, Empty 1, Empty 0],
+              [Empty 0, Empty 0, Empty 0, Empty 0, Empty 0] ]
+
+    -- Compare expected and actual revealed grids
+    assertEqual "Revealing cell (0,0) should reveal the appropriate adjacent cells" expectedRevealed revealedGrid
 
 testIsWin :: TestTree
 testIsWin = testCase "Check win condition" $ do
