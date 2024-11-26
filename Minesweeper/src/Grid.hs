@@ -74,3 +74,33 @@ randomPosition rows cols = do
     r <- randomRIO (0, rows - 1)
     c <- randomRIO (0, cols - 1)
     return (r, c)
+
+-- Flags or unflags a cell
+flagCell :: Grid -> (Int, Int) -> Grid
+flagCell grid pos =
+    case getCell grid pos of
+        Just Hidden -> setCell grid pos Flagged
+        Just Flagged -> setCell grid pos Hidden
+        _ -> grid
+
+-- Retrieves the cell at the given position
+getCell :: Grid -> (Int, Int) -> Maybe Cell
+getCell grid (r, c)
+    | r >= 0 && r < length grid && c >= 0 && c < length (head grid) = Just (grid !! r !! c)
+    | otherwise = Nothing
+
+-- Sets the cell at the given position
+setCell :: Grid -> (Int, Int) -> Cell -> Grid
+setCell grid (r, c) cell =
+    take r grid ++
+    [take c (grid !! r) ++ [cell] ++ drop (c + 1) (grid !! r)] ++
+    drop (r + 1) grid
+
+-- Retrieves the list of adjacent cell positions
+neighbors :: Grid -> (Int, Int) -> [(Int, Int)]
+neighbors grid (row, col) =
+    [(row + dr, col + dc) | dr <- [-1..1], dc <- [-1..1], (dr, dc) /= (0, 0), isValid (row + dr, col + dc)]
+    where
+        rows = length grid
+        cols = length (head grid)
+        isValid (r, c) = r >= 0 && r < rows && c >= 0 && c < cols
