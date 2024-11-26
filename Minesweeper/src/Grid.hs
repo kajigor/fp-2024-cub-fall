@@ -3,6 +3,7 @@ module Grid where
 import System.Random (randomRIO)
 import Data.List (nub)
 import Control.Monad (replicateM)
+import Debug.Trace (trace)
 
 -- Data type for each cell in the grid
 data Cell = Mine
@@ -20,9 +21,16 @@ initializeGrid rows cols mineCount minePositions = do
     minePositions' <- case minePositions of
         Just positions -> return positions
         Nothing -> placeMines rows cols mineCount
+
     let emptyGrid = replicate rows (replicate cols Hidden)
+    trace ("Empty grid initialized: " ++ show emptyGrid) (return ())
+
     let gridWithMines = addMines emptyGrid minePositions'
+    trace ("Grid after placing mines: " ++ show gridWithMines) (return ())
+
     let finalGrid = calculateNumbers gridWithMines
+    trace ("Grid after calculating numbers: " ++ show finalGrid) (return ())
+
     return finalGrid
 
 
@@ -36,16 +44,20 @@ addMines :: Grid -> [(Int, Int)] -> Grid
 addMines = foldl placeMine
     where
         placeMine g (r, c) =
-            take r g ++
-            [take c (g !! r) ++ [Mine] ++ drop (c + 1) (g !! r)] ++
-            drop (r + 1) g
+            let newGrid = take r g ++
+                          [take c (g !! r) ++ [Mine] ++ drop (c + 1) (g !! r)] ++
+                          drop (r + 1) g
+            in trace ("Placing mine at " ++ show (r, c) ++
+                      "\nGrid state: " ++ show newGrid) newGrid
+
 
 -- Calculate numbers for all cells based on adjacent mines
 calculateNumbers :: Grid -> Grid
 calculateNumbers grid =
     [ [ if grid !! r !! c == Mine
-            then Mine
-            else Empty $ countAdjacentMines grid r c
+            then trace ("Mine at " ++ show (r, c)) Mine
+            else trace ("Calculating number for cell " ++ show (r, c)) 
+                 (Empty $ countAdjacentMines grid r c)
         | c <- [0..cols-1]
         ]
     | r <- [0..rows-1]
@@ -53,6 +65,7 @@ calculateNumbers grid =
     where
         rows = length grid
         cols = length (head grid)
+
 
 -- Count the number of mines adjacent to a cell
 countAdjacentMines :: Grid -> Int -> Int -> Int

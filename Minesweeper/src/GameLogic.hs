@@ -4,6 +4,7 @@ module GameLogic where
 
 import Grid
 import Data.Maybe (fromMaybe)
+import Debug.Trace (trace)
 
 -- Reveals a cell on the grid
 revealCell :: Grid -> (Int, Int) -> Grid
@@ -46,25 +47,36 @@ isLoss = any
                 Flagged -> False))
 
 -- Flags or unflags a cell
-flagCell :: Grid -> (Int, Int) -> Grid
 flagCell grid pos =
     case getCell grid pos of
-        Just Hidden -> setCell grid pos Flagged
-        Just Flagged -> setCell grid pos Hidden
-        _ -> grid
+        Just Hidden -> 
+            trace ("Flagging cell at position: " ++ show pos ++ " with current state: Hidden") 
+                (setCell grid pos Flagged)
+        Just Flagged -> 
+            trace ("Unflagging cell at position: " ++ show pos ++ " with current state: Flagged") 
+                (setCell grid pos Hidden)
+        _ -> 
+            trace ("Invalid cell or already revealed at position: " ++ show pos) grid
+
 
 -- Retrieves the cell at the given position
 getCell :: Grid -> (Int, Int) -> Maybe Cell
 getCell grid (r, c)
-    | r >= 0 && r < length grid && c >= 0 && c < length (head grid) = Just (grid !! r !! c)
+    | r >= 0 && r < length grid && c >= 0 && c < length (head grid) = 
+        trace ("Getting cell at position: " ++ show (r, c) ++ " with value: " ++ show (grid !! r !! c))
+            (Just (grid !! r !! c))
     | otherwise = Nothing
+
 
 -- Sets the cell at the given position
 setCell :: Grid -> (Int, Int) -> Cell -> Grid
 setCell grid (r, c) cell =
-    take r grid ++
-    [take c (grid !! r) ++ [cell] ++ drop (c + 1) (grid !! r)] ++
-    drop (r + 1) grid
+    let newGrid = take r grid ++
+                  [take c (grid !! r) ++ [cell] ++ drop (c + 1) (grid !! r)] ++
+                  drop (r + 1) grid
+    in trace ("setCell called: Setting cell at " ++ show (r, c) ++ " to " ++ show cell ++
+              "\nNew grid: " ++ show newGrid) newGrid
+
 
 -- Retrieves the list of adjacent cell positions
 neighbors :: Grid -> (Int, Int) -> [(Int, Int)]
