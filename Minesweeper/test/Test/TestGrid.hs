@@ -2,16 +2,16 @@ module Test.TestGrid where
 
 import Test.Tasty
 import Test.Tasty.HUnit
-import Grid (initializeGrid, Cell(..))
+import Grid
 import Data.List (concat)
 
--- (Your tests, as written previously, remain unchanged)
 testMinePlacement :: TestTree
 testMinePlacement = testCase "Correct mine placement" $ do
     let rows = 5
         cols = 5
         mines = 5
-    grid <- initializeGrid rows cols mines
+        minePositions = [(0,0), (1,1), (2,2), (3,3), (4,4)]
+    grid <- initializeGrid rows cols mines (Just minePositions)
     let mineCount = length $ concatMap (filter (== Mine)) grid
     assertEqual "Number of mines should match" mines mineCount
 
@@ -20,7 +20,8 @@ testNumberCalculation = testCase "Accurate calculation of numbers" $ do
     let rows = 3
         cols = 3
         mines = 1
-    grid <- initializeGrid rows cols mines
+        minePositions = [(1,1)]
+    grid <- initializeGrid rows cols mines (Just minePositions)
     let isMine (r, c) = case safeAccess grid r c of
                           Just Mine -> True
                           _         -> False

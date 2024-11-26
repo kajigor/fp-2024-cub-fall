@@ -8,24 +8,28 @@ import Control.Monad (replicateM)
 data Cell = Mine
           | Empty Int
           | Hidden
+          | Flagged
           deriving (Show, Eq)
 
 -- Type alias for the game grid
 type Grid = [[Cell]]
 
 -- Initialize a grid with mines and calculate adjacent numbers
-initializeGrid :: Int -> Int -> Int -> IO Grid
-initializeGrid rows cols mineCount = do
-    minePositions <- placeMines rows cols mineCount
+initializeGrid :: Int -> Int -> Int -> Maybe [(Int, Int)] -> IO Grid
+initializeGrid rows cols mineCount minePositions = do
+    minePositions' <- case minePositions of
+        Just positions -> return positions
+        Nothing -> placeMines rows cols mineCount
     let emptyGrid = replicate rows (replicate cols Hidden)
-    let gridWithMines = addMines emptyGrid minePositions
-    return $ calculateNumbers gridWithMines
+    let gridWithMines = addMines emptyGrid minePositions'
+    let finalGrid = calculateNumbers gridWithMines
+    return finalGrid
+
+
 
 -- Place mines randomly on the grid
 placeMines :: Int -> Int -> Int -> IO [(Int, Int)]
-placeMines rows cols mineCount = do
-    generateUniquePositions rows cols mineCount
-
+placeMines = generateUniquePositions
 
 -- Add mines to the grid at the specified positions
 addMines :: Grid -> [(Int, Int)] -> Grid

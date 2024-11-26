@@ -20,7 +20,6 @@ library
       ErrorHandling
       GameLogic
       Grid
-      Utils
   other-modules:
       Paths_Minesweeper
   hs-source-dirs:
