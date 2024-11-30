@@ -65,8 +65,17 @@ countAdjacentMines grid row col =
 -- Generate a list of unique random positions
 generateUniquePositions :: Int -> Int -> Int -> IO [(Int, Int)]
 generateUniquePositions rows cols count = do
-    positions <- Control.Monad.replicateM count (randomPosition rows cols)
-    return $ take count (nub positions)
+    positions <- go []
+    return $ take count positions
+  where
+    go acc
+        | length acc >= count = return acc
+        | otherwise = do
+            pos <- randomPosition rows cols
+            if pos `elem` acc
+                then go acc
+                else go (pos : acc)
+
 
 -- Generate a Single random position
 randomPosition :: Int -> Int -> IO (Int, Int)
