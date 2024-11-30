@@ -2,12 +2,12 @@ import Test.Tasty
 
 import qualified Test.TestGrid as TestGrid
 import qualified Test.TestGameLogic as TestGameLogic
-import qualified Test.TestProperty as TestProperty
+import qualified Test.TestConsole as TestConsole
 
 main :: IO ()
 main = do
     defaultMain (testGroup "All Tests"
                     [ testGroup "Grid" [TestGrid.tests]
                     , testGroup "GameLogic" [TestGameLogic.tests]
-                    , testGroup "Property" [TestProperty.tests]
+                    , testGroup "Console" [TestConsole.tests]
                     ])

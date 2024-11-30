@@ -53,9 +53,9 @@ test-suite Minesweeper-test
   type: exitcode-stdio-1.0
   main-is: Test.hs
   other-modules:
+      Test.TestConsole
       Test.TestGameLogic
       Test.TestGrid
-      Test.TestProperty
       Paths_Minesweeper
   hs-source-dirs:
       test
@@ -66,6 +66,7 @@ test-suite Minesweeper-test
     , containers
     , hedgehog
     , random
+    , silently
     , tasty
     , tasty-hedgehog
     , tasty-hspec
