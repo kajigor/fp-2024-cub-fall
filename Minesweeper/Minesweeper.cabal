@@ -17,6 +17,7 @@ build-type:     Simple
 
 library
   exposed-modules:
+      ConsoleUI
       ErrorHandling
       GameLogic
       Grid
