@@ -17,19 +17,6 @@ revealCell grid pos =
                else newGrid
         _ -> grid
 
-
--- Reveals all adjacent cells if there are no mines adjacent to the cell
-revealAdjacent :: Grid -> (Int, Int) -> Grid
-revealAdjacent grid pos =
-    let grid' = setCell grid pos (fromMaybe Hidden (getCell grid pos))
-        adjacentCells = neighbors grid pos
-    in if any (\p -> case getCell grid p of
-                       Just Mine -> True
-                       _ -> False) adjacentCells
-       then grid'
-       else foldl revealCell grid' adjacentCells
-
-
 -- Checks if all non-mine cells are revealed
 isWin :: Grid -> Bool
 isWin = all
@@ -48,3 +35,12 @@ isLoss = any
                 Empty _ -> False
                 Hidden -> False
                 Flagged -> False))
+
+-- Retrieves the list of adjacent cell positions
+neighbors :: Grid -> (Int, Int) -> [(Int, Int)]
+neighbors grid (row, col) =
+    [(row + dr, col + dc) | dr <- [-1..1], dc <- [-1..1], (dr, dc) /= (0, 0), isValid (row + dr, col + dc)]
+    where
+        rows = length grid
+        cols = length (head grid)
+        isValid (r, c) = r >= 0 && r < rows && c >= 0 && c < cols

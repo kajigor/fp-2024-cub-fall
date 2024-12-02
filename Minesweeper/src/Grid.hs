@@ -41,16 +41,9 @@ addMines = foldl placeMine
 -- Calculate numbers for all cells based on adjacent mines
 calculateNumbers :: Grid -> Grid
 calculateNumbers grid =
-    [ [ if grid !! r !! c == Mine
-            then Mine
-            else Hidden
-        | c <- [0..cols-1]
-        ]
-    | r <- [0..rows-1]
-    ]
-    where
-        rows = length grid
-        cols = length (head grid)
+    [ [ if cell == Mine then Mine else Empty (countAdjacentMines grid r c)
+        | (c, cell) <- zip [0..] row ]
+      | (r, row) <- zip [0..] grid ]
 
 -- Count the number of mines adjacent to a cell
 countAdjacentMines :: Grid -> Int -> Int -> Int
@@ -104,12 +97,3 @@ setCell grid (r, c) cell =
     take r grid ++
     [take c (grid !! r) ++ [cell] ++ drop (c + 1) (grid !! r)] ++
     drop (r + 1) grid
-
--- Retrieves the list of adjacent cell positions
-neighbors :: Grid -> (Int, Int) -> [(Int, Int)]
-neighbors grid (row, col) =
-    [(row + dr, col + dc) | dr <- [-1..1], dc <- [-1..1], (dr, dc) /= (0, 0), isValid (row + dr, col + dc)]
-    where
-        rows = length grid
-        cols = length (head grid)
-        isValid (r, c) = r >= 0 && r < rows && c >= 0 && c < cols
