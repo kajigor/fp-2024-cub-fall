@@ -3,6 +3,7 @@
 module GameLogic where
 
 import Grid
+import ErrorHandling
 import Data.Maybe (fromMaybe)
 
 -- Reveals a cell on the grid
@@ -44,3 +45,9 @@ neighbors grid (row, col) =
         rows = length grid
         cols = length (head grid)
         isValid (r, c) = r >= 0 && r < rows && c >= 0 && c < cols
+
+playMove :: Grid -> (Int, Int) -> Either GameError Grid
+playMove grid (row, col) =
+  case validateMove grid (row, col) of
+    Left err -> Left err  -- Return the error
+    Right () -> Right (revealCell grid (row, col))  -- Proceed if valid

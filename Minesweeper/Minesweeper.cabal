@@ -54,6 +54,7 @@ test-suite Minesweeper-test
   main-is: Test.hs
   other-modules:
       Test.TestConsole
+      Test.TestErrorHandling
       Test.TestGameLogic
       Test.TestGrid
       Paths_Minesweeper

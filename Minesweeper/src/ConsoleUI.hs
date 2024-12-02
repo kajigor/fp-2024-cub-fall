@@ -2,8 +2,10 @@ module ConsoleUI where
 
 import Grid
 import GameLogic
+import ErrorHandling
 import Control.Monad (forever)
 import System.IO (hFlush, stdout)
+
 
 -- Main function to start the game
 startGame :: IO ()
@@ -80,3 +82,12 @@ cellToChar Flagged   = "F"  -- Flagged cells
 cellToChar (Empty 0) = " "  -- Empty cells with no adjacent mines
 cellToChar (Empty n) = show n  -- Revealed cells with adjacent mines
 cellToChar Mine      = "*"  -- Mine (shown when game is over)
+
+initializeGame :: Int -> Int -> Int -> Maybe [(Int, Int)] -> IO (Either GameError Grid)
+initializeGame rows cols mineCount minePositions = 
+    case (validateGridDimensions rows cols, validateMineCount rows cols mineCount) of
+        (Left err, _) -> return (Left err)
+        (_, Left err) -> return (Left err)
+        (Right (), Right ()) -> do
+            grid <- initializeGrid rows cols mineCount minePositions
+            return (Right grid)
