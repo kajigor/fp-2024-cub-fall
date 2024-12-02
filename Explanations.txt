@@ -90,3 +90,53 @@ renderGrid = mapM_ (putStrLn . renderRow)
 
 Tried to move as much game code from Main into Game.hs. Also created a lot of additional helper functions because there
 was repetitive code in the Game logic.
+
+----------------------------------------------------------------------------------------------------
+
+Changes after feedback. Indeed as one of the examples that Professor ran, the game hangs on certain inputs.
+
+I fixed this by ensuring that each recursive call receives the most up-to-date version of the grid. 
+Instead of using foldl, I wrote a helper function that explicitly passes the updated grid to each recursive call.
+
+Nvm that didn't solve it.
+
+It looks like the issue is that the getNeighborCoords function includes the current cell itself as one of its neighbors.
+By updating the getNeighborCoords function to exclude the current cell from its neighbors, 
+I prevent infinite recursion caused by the cell repeatedly processing itself. 
+
+Didn't resolve it.
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+Moved my attention to other fixes 
+Resolved the minor mistakes indicated by professor.
+
+Using lists for the grid representation is causing a performance lag, especially with larger dimensions. 
+The time complexity for many operations on lists (like accessing an element, appending, or updating) is higher compared 
+to other data structures like Array or Vector, so I decided to switch to array.
+
+I have decided to switch to Vector. Had to change functions in every file in some places, but the overall logic for each
+is mostly the same.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Went back to solving the previous issue with a grid with 1,3,1 parameters and 0,1 as input.
+Finally understood the issue.
+
+When running the Minesweeper game with the input dimensions 1x3 and 1 mine, the game appeared to hang after the first move (0,1). 
+Debugging revealed that the function responsible for generating the random grid (generateRandomGrid) 
+entered an infinite loop while trying to place mines.
+
+In a Minesweeper game, the first move guarantees that the cell selected and its immediate neighbors will not contain mines. 
+For a 1x3 grid, selecting the middle cell (0,1) excludes all cells ([1,0,2]) from mine placement. 
+However, the game was still attempting to place 1 mine in a grid where no valid cells remained, 
+leading to an infinite loop as the program kept retrying to find valid positions for mines.
+
+Solved the issue.  Before attempting to generate a grid, we calculate the number of valid cells (i.e., total cells minus excluded cells). 
+If the number of requested mines exceeds the number of valid cells, an error is raised, preventing the game from proceeding.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Two additional comments from Professor:
+There's nothing wrong with placing a mine in every cell 🥲
+Well... The version of a minesweeper game I had in my childhood allowed the user to blow up at the first move.
+
+My version of the game is based on the modern version and I wouldn't want my users to quit after the first turn haha.
