@@ -159,28 +159,38 @@ propertyTests = testGroup "Property Tests"
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
         let frequencies = commonWordsHelper content
         let inputWords = map (filter isValidChar . map toLower) (words content)
-        all (\(word, freq) -> freq == length (filter (== word) inputWords)) frequencies === True
+        if null inputWords
+            then frequencies === []
+            else all (\(word, freq) -> freq == length (filter (== word) inputWords)) frequencies === True
 
-  , testProperty "Frequency matches word occurrences N-Gram" $
-      property $ do
+  , testProperty "Frequency matches n-gram occurrences nGrams" $
+     property $ do
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
         n <- forAll $ Gen.int (Range.linear 1 10)
-        let frequencies = nGramHelper content n
         let inputWords = map (filter isValidChar . map toLower) (words content)
-        if length inputWords > 0
-            then all (\(word, freq) -> freq == length (filter (== word) inputWords)) frequencies === True
-            else success
+        let nGrams = generateNGrams n inputWords
+        let frequencies = nGramHelper content n
+        if null nGrams
+            then frequencies === []
+            else do
+                annotateShow (content, n, nGrams, frequencies)
+                Hedgehog.assert $
+                    all (\(ngram, freq) -> freq == length (filter (== ngram) nGrams)) frequencies
 
   , testProperty "Generate proper n-grams" $
      property $ do
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
         let wordsList = map (filter isValidChar) (words (map toLower content))
-        if length wordsList > 0
-            then do
+        annotateShow content
+        annotateShow wordsList
+        if null wordsList
+            then wordsList === []
+            else do
                 let n = 2
                 let nGrams = generateNGrams n wordsList
+                annotateShow nGrams
                 Hedgehog.assert $ all (\ngram -> length (words ngram) == n) nGrams
-            else success
+
 
   , testProperty "styleCloud preserves word length" $
      property $ do
