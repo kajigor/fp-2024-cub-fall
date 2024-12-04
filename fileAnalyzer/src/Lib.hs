@@ -89,7 +89,7 @@ generateNGrams n wordsList
     | n <= 0 = []
     | otherwise = [unwords (take n (drop i wordsList)) | i <- [0..length wordsList - n]]
 
---helper function which generates a list of n-gram-frequency tuples - used for testing
+--Helper function which generates a list of n-gram-frequency tuples - used for testing
 nGramHelper :: String -> Int -> [(String, Int)]
 nGramHelper content n = 
     let wordsList = map (filter isValidChar) (words (map toLower content))
@@ -148,7 +148,7 @@ transform content =
             else
                 introduceLevel 3 sortedFreq
 
---Helper to adjust lists by moving matching frequencies
+--Helper to adjust lists by moving words with matching frequencies
 adjustLists :: [(String, Int)] -> [(String, Int)] -> ([(String, Int)], [(String, Int)])
 adjustLists upper lower =
     let upperFreqLimit = if null upper then maxBound else snd (last upper)
@@ -198,10 +198,10 @@ insertSpacing wordChunk = do
 
 --Creates a textual word cloud based on the frequencies of the words.
 --There are three importance levels such that the most repeating words appear UPERACASE, the average
---appearing words appear with the first letter Capitalized and the rest appear with all lowercase
---the cloud groups the words into random groups of shuffled words and adds random spacing between
---them in an effort to produce a word cloud
---a nice representation can be seen when ran with the file "text.txt"
+--appearing words appear with the first letter Capitalized and the rest appear with all lowercase.
+--The cloud groups the words into random groups of shuffled words and adds random spacing between
+--them in an effort to produce a word cloud.
+--A good representation can be seen when ran with the file "text.txt".
 createCloud :: String -> IO ()
 createCloud content = do
     let wordsList = transform content
