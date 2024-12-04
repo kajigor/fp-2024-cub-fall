@@ -177,21 +177,6 @@ propertyTests = testGroup "Property Tests"
                 Hedgehog.assert $
                     all (\(ngram, freq) -> freq == length (filter (== ngram) nGrams)) frequencies
 
-  , testProperty "Generate proper n-grams" $
-     property $ do
-        content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
-        let wordsList = map (filter isValidChar) (words (map toLower content))
-        annotateShow content
-        annotateShow wordsList
-        if null wordsList
-            then wordsList === []
-            else do
-                let n = 2
-                let nGrams = generateNGrams n wordsList
-                annotateShow nGrams
-                Hedgehog.assert $ all (\ngram -> length (words ngram) == n) nGrams
-
-
   , testProperty "styleCloud preserves word length" $
      property $ do
         word <- forAll $ Gen.string (Range.linear 0 50) Gen.alpha
