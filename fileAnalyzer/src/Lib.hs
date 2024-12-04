@@ -216,18 +216,22 @@ createCloud content = do
 
 --Error Handling--
 
-checkFileExistence :: String -> IO()
+checkFileExistence :: String -> IO ()
 checkFileExistence filePath = do
     fileExists <- doesFileExist filePath
     if fileExists
         then do
             content <- readFile filePath `catch` handleReadError
             putStrLn "File Loaded Successfully!"
-            if length content == 0 
-                then do 
-                    putStrLn "Error: Your file is empty" 
-                    return () 
-                else menu content   
+            if null content
+                then do
+                    putStrLn "Error: Your file is empty"
+                    return ()
+                else if not (isFileContentValid content)
+                    then do
+                        putStrLn "Error: File contains invalid characters!"
+                        return ()
+                    else menu content
         else do
             putStrLn "Error: The file does not exist!"
             return ()
@@ -238,7 +242,13 @@ handleReadError _ = do
     return ""
 
 isValidChar :: Char -> Bool
-isValidChar c = isAlpha c || c == '-' || c == '\''
+isValidChar c = isAlpha c || isDigit c || c `elem` "- '"
+
+isValidFileChar :: Char -> Bool
+isValidFileChar c = isAlpha c || isSpace c || c `elem` "-',.?!" || isDigit c
+
+isFileContentValid :: String -> Bool
+isFileContentValid content = all isValidFileChar content
 
 getValidInt :: String -> IO Int
 getValidInt prompt = do
