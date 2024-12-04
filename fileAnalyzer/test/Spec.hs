@@ -40,6 +40,22 @@ unitTests = testGroup "Unit Tests"
       content <- readFile "test_empty.txt"
       charCount content @?= 0
 
+  , testCase "Invalid file content" $ do
+      content <- readFile "test_invalid.txt"
+      isFileContentValid content @?= False
+    
+  , testCase "Valid file content 1" $ do
+      content <- readFile "test2.txt"
+      isFileContentValid content @?= True
+
+  , testCase "Invalid content 2" $ do
+      content <- readFile "test_invalid2.txt"
+      isFileContentValid content @?= False
+
+  , testCase "Valid file content 2" $ do
+      content <- readFile "test_common_words.txt"
+      isFileContentValid content @?= True
+
   , testCase "Most Frequent Word Test" $ do
       content <- readFile "test_common_words.txt"
       let expected = [("apple", 4), ("banana", 2), ("carrot", 1), ("grape", 1), ("orange", 1)]
@@ -226,6 +242,8 @@ prepareTestFiles = do
                     , ("test_empty.txt", "")
                     , ("test_common_words.txt", "apple banana banana orange apple apple grape carrot apple")
                     , ("test_ngram.txt", "the quick brown fox")
+                    , ("test_invalid.txt", "/ / /")
+                    , ("test_invalid2.txt", "    / \ \n")
                     ]
     mapM_ createFileIfNotExists testFiles
 
