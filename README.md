@@ -41,7 +41,9 @@ I played more than 20 games with the bot (I never won the game 😢). Basically,
 
 ## Libraries
 
-I have 2 libraries: Array and Gloss. Array is used to represent the board of the game. For Gloss, I was searching the internet for some references on how people create games in Haskell, and for me, Gloss was really helpful. It has helpful data types (`Picture`, `Color`, `Display`) and interfaces (I used `play` and `display` for finding bugs). 
+I have 2 libraries: Array and Gloss. Array is used to represent the board of the game. For Gloss, I was searching the internet for some references on how people create games in Haskell, and for me, Gloss was really helpful. It has helpful data types (`Picture`, `Color`, `Display`) and interfaces (I used `play` and `display` for finding bugs). Overall Gloss made the process much easier and understandable.
+
+Also I used tasty for the tests.
 
 ## Architecture 
 
@@ -68,6 +70,8 @@ This module is responsible for translating the picture to the program. The most 
 This module is responsible for all the logic of the game. It checks whether the move is valid, whether there are any moves available, determines who won the game, and deals with the consequences of moves (e.g., flipping the opposing player's pieces). The important function is `transformGame`, which is used in the `play` function. It listens to the mouse left button and changes the state of the game accordingly.
 
 ## Investigation
+
+I did not find any bugs in game process, everything runs smoothly and according to the game rules. In terms of efficiency there is definetely room for improvement in terms of cleaning the look of the code and performance of it, one of the example would be the logic module, where I could have get rid of repeticience in the code, but it was too early for me to notice it. Also I am not very fond of the Game Data, as previously I didn't have screenWidth, screenHeight and n variables in it, but I couldn't come up with better solution for the one of the subtasks(allow different board sizes for varied gameplay).
 
 ### (20 points) Console (or other user) interface.
 
