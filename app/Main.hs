@@ -17,8 +17,7 @@ import qualified Data.ByteString.Lazy.Char8 as B
 import MyRegex (eval)
 import Parser (parse)
 import MainPage (mainPage)
-import MyDebugger (debugEval, DebugStep(..))
-import Data.List (intercalate)
+import MyDebugger (debugEval)
 
 data ClientMessage = ClientMessage
     { regex :: Text
@@ -41,16 +40,16 @@ wsApp pending = do
         msg <- WS.receiveData conn :: IO B.ByteString
         case eitherDecode msg of
             Left _ -> WS.sendTextData conn ("<div style=\"color:red;\">Invalid JSON format</div>" :: Text)
-            Right (ClientMessage regex inputText) ->
-                if T.null regex
+            Right (ClientMessage rgx inputText) ->
+                if T.null rgx
                 then WS.sendTextData conn ("<div style=\"color:red;\">Empty regex provided</div>" :: Text)
-                else case parse (T.unpack regex) of
+                else case parse (T.unpack rgx) of
                     Left parseError ->
                         WS.sendTextData conn ("<div style=\"color:red;\">Invalid regex: " <> T.pack (show parseError) <> "</div>")
                     Right compiledRegex -> do
                         let matched = eval compiledRegex (T.unpack inputText)
-                        let debugSteps = map show $ debugEval compiledRegex (T.unpack inputText)
-                        let response = DebugResponse matched debugSteps
+                        let dSteps = map show $ debugEval compiledRegex (T.unpack inputText)
+                        let response = DebugResponse matched dSteps
                         WS.sendTextData conn (encode response)
 
 httpApp :: Application

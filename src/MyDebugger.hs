@@ -1,15 +1,17 @@
+{-# LANGUAGE InstanceSigs #-}
 module MyDebugger (
     debugEval,
     DebugStep(..),
 ) where
 
-import MyRegex
+import MyRegex ( MyRegex(..), eval, splits, matchCharClass )
 import Text.Printf (printf)
 
 data MatchState = Matched | NotMatched | Calculating
     deriving (Eq)
 
 instance Show MatchState where
+    show :: MatchState -> String
     show Matched = "✓"
     show NotMatched = "✗"
     show Calculating = "..."

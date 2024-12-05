@@ -98,6 +98,8 @@ test-suite static-server-test
     , http-types
     , regex-tdfa
     , static-server
+    , tasty
+    , tasty-hunit
     , text
     , wai
     , wai-extra

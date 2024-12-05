@@ -14,3 +14,5 @@ Running the server:
     stack run
 ```
 After that, go to `http://localhost:8080`
+The idea was to create a debugger for regex. This required my own Regex engine implementation, so it was simplified. \
+
