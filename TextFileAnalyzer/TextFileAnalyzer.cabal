@@ -1,0 +1,91 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           TextFileAnalyzer
+version:        0.0.0
+build-type:     Simple
+extra-source-files:
+    README.md
+
+library
+  exposed-modules:
+      FileReader
+      Statistics
+      FrequentWords
+      NGramAnalysis
+      WordCloud
+      TextUtils
+      ErrorHandling
+      Interface
+  other-modules:
+      Paths_TextFileAnalyzer
+  hs-source-dirs:
+      src
+  ghc-options: -Wall
+  build-depends:
+      base >=4.7 && <5
+    , containers >=0.5
+    , directory >=1.2
+    , temporary
+    , text >=1.2
+  default-language: Haskell2010
+
+executable text-file-analyzer
+  main-is: Main.hs
+  other-modules:
+      Paths_TextFileAnalyzer
+  hs-source-dirs:
+      app
+  ghc-options: -Wall
+  build-depends:
+      TextFileAnalyzer
+    , base >=4.7 && <5
+    , containers
+    , text
+  default-language: Haskell2010
+
+test-suite text-file-analyzer-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      ErrorHandlingSpec
+      FileReaderSpec
+      FrequentWordsSpec
+      NGramAnalysisSpec
+      StatisticsSpec
+      WordCloudSpec
+      Paths_TextFileAnalyzer
+  hs-source-dirs:
+      test
+  ghc-options: -Wall
+  build-depends:
+      HUnit >=1.6
+    , QuickCheck >=2.14
+    , TextFileAnalyzer
+    , base >=4.7 && <5
+    , containers >=0.5
+    , directory >=1.2
+    , silently
+    , text >=1.2
+  default-language: Haskell2010
+
+benchmark text-file-analyzer-bench
+  type: exitcode-stdio-1.0
+  main-is: Benchmark.hs
+  other-modules:
+      Paths_TextFileAnalyzer
+  hs-source-dirs:
+      bench
+  ghc-options: -Wall
+  build-depends:
+      TextFileAnalyzer
+    , base >=4.7 && <5
+    , containers
+    , criterion
+    , directory
+    , temporary
+    , text
+  default-language: Haskell2010
