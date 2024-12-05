@@ -35,55 +35,62 @@ $ cabal run
 
 ## What the task was
 
-My project was Reversi Game, all of the criterias are written above. For me first task was to understand what is this game about, what are the rules and who wins. Most of the knowledge I got from the first website that pops up searching Reversi game https://cardgames.io/reversi/
+My project was the Reversi Game. All of the criteria are written above. For me, the first task was to understand what this game is about, what the rules are, and who wins. Most of the knowledge I got was from the first website that pops up when searching for the Reversi game: [https://cardgames.io/reversi/](https://cardgames.io/reversi/).
 
-I played more than 20 games with the bot(I never won the game 😢). Basically you are starting in n x n(n is even) board with 4 pieces at the center, 2 yours and 2 enemy pieces. You must try to capture opponent pieces and flip them over so they turn into your color. You do this by making a horizontal, vertical or diagonal line of pieces, where your pieces surround the other player's pieces. The surrounded opponent pieces are then captured and will be flipped over to your color, increasing the number of your pieces on the board. All same aplies to your enemy. The goal is to get as much pieces as possible, the one with the most wins.
+I played more than 20 games with the bot (I never won the game 😢). Basically, you start on an `n x n` (where `n` is even) board with 4 pieces at the center: 2 of yours and 2 enemy pieces. You must try to capture opponent pieces and flip them over so they turn into your color. You do this by making a horizontal, vertical, or diagonal line of pieces where your pieces surround the other player's pieces. The surrounded opponent pieces are then captured and will be flipped over to your color, increasing the number of your pieces on the board. The same applies to your enemy. The goal is to get as many pieces as possible; the one with the most wins.
 
 ## Libraries
 
-I have 2 Libaries- Array and Gloss. Array is used to represent board of the game. For the Gloss, I was searching the internet for some reference on how people create games via Haskell and for me Gloss was really helpful. It has helpful Datas(Picture, Color, Display), Interfaces(I used play and display for finding bugs). 
+I have 2 libraries: Array and Gloss. Array is used to represent the board of the game. For Gloss, I was searching the internet for some references on how people create games in Haskell, and for me, Gloss was really helpful. It has helpful data types (`Picture`, `Color`, `Display`) and interfaces (I used `play` and `display` for finding bugs). 
 
 ## Architecture 
 
-I splitted my project into 4 files
+I split my project into 4 files:
 
 ### Main
 
-It waits for the 3 Integers: size of the board, screen width and screen height. It checks whether all entered correctly and runs the play function.
+It waits for 3 integers: the size of the board, screen width, and screen height. It checks whether all inputs are correct and then runs the `play` function.
+
 ### Game
 
-Here I defined all essential datas for the Game. The most essential one is Data Game, which consists of the gameBoard(the state of the board), player(who's turn is it), state(the state of the game, Running or Finished), size of the board and screen size(width and height). Also it has other supportive datas. 
+Here I defined all essential data for the game. The most essential one is the `Game` data, which consists of the `gameBoard` (the state of the board), `player` (whose turn it is), `state` (the state of the game: Running or Finished), the size of the board, and screen dimensions (width and height). It also has other supportive data types. 
 
 ### Rendering
 
-This module is repsonsible for translating the picture to the program. The most important function is gameAsPicture that is used in play function. For translation of the game I separated it into 3 layers: 
+This module is responsible for translating the picture to the program. The most important function is `gameAsPicture`, which is used in the `play` function. For translating the game, I separated it into 3 layers:
 
-BoardGrid - shows the grid of a Reversi game.
-
-PlayerOneBoard - shows all of the pieces of first player.
-
-PlayerTwoBoard - shows all of the pieces of second player.
+- **BoardGrid**: Displays the grid of a Reversi game.
+- **PlayerOneBoard**: Shows all the pieces of the first player.
+- **PlayerTwoBoard**: Shows all the pieces of the second player.
 
 ### Logic
 
-This module is responsible for all logic of the game, it checks whether the move is right, is there any move at all, who won the game, deals with consequences of the move(changing the opposing player's pieces) and etc. The important function is transformGame which is used in play function. It listens to the mouse Left Button and changes state of the game according to it.
+This module is responsible for all the logic of the game. It checks whether the move is valid, whether there are any moves available, determines who won the game, and deals with the consequences of moves (e.g., flipping the opposing player's pieces). The important function is `transformGame`, which is used in the `play` function. It listens to the mouse left button and changes the state of the game accordingly.
 
 ## Investigation
 
 ### (20 points) Console (or other user) interface.
 
-I use Gloss play function that initializes a windows with the game interface. It supports interaction with this window via mouse left button.
+I use the Gloss `play` function, which initializes a window with the game interface. It supports interaction with this window via the mouse left button.
 
 ### (20 points) Implement game rules, including valid moves and flipping discs.
-All of the valid moves are implemented in the game and its consequences such as flipping enemy discs, rules are followed. 
+
+All of the valid moves are implemented in the game along with their consequences, such as flipping enemy discs. The rules are followed. 
 
 ### (10 points) Support for two human players.
-The games allows two human interaction.
+
+The game allows interaction between two human players.
 
 ### (10 points) Allow different board sizes for varied gameplay.
-The game required to be configured at the beginning of it with 3 parameters: size of the board, screen width and screen height.
+
+The game is configured at the beginning with 3 parameters: the size of the board, screen width, and screen height.
+
 ### (10 points) Add undo and redo functionality.
 
+Not implemented, but I have in mind how I would have done it. I would just add another listener on u and r buttons. Also I would have added 2 instances past and future, that would have been a cell. It would have remembered the previous move and future(If we did undo).
 ### (15 points) Error reporting for invalid moves.
-All of the invalid moves are not interactable.
+
+All invalid moves are non-interactable, there is no need for it. There is need for reporting on invalid inputs of the board size, screen width and height, which I implemented.
+
 ### (15 points) Unit and property-based tests.
+Created basic tests.

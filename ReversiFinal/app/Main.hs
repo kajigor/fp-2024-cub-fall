@@ -26,7 +26,7 @@ main = do
   case (validateInput input1, validateInput input2, validateInput input3) of
     (Just n1, Just n2, Just n3)-> do
       if n1 `mod` 2 /= 0 then do
-        putStrLn "Error: The size of the board must be an even number. Program will terminate."
+        putStrLn "Error: The size of the board must be an even number."
         return ()
       else do
         putStrLn $ "You entered valid integers: " ++ show n1 ++ ", " ++ show n2 ++ ", " ++ show n3
@@ -47,4 +47,4 @@ main = do
             window = InWindow "Reversi" (n2, n3) (10, 10)
         play window backgroundColor 30 initialGame gameAsPicture transformGame (\_ -> id)
     _ -> do
-      putStrLn "Error: Invalid input detected. Program will terminate."
+      putStrLn "Error: Invalid input detected."
