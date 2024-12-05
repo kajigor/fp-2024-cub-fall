@@ -9,14 +9,14 @@ import Control.Monad.Identity
 
 import Expr
 
--- Parser for tokens
+
 lexer = Token.makeTokenParser emptyDef
 parens = Token.parens lexer
 integer = Token.integer lexer
 float = Token.float lexer
 reservedOp = Token.reservedOp lexer
 
--- Parser for numbers
+
 parseNumber :: Parser Expr
 parseNumber = do
   sign <- optionMaybe (char '-')
@@ -24,7 +24,7 @@ parseNumber = do
   let value = maybe n (const (-n)) sign
   return (Num value)
 
--- Parser for parentesis
+
 parseParens :: Parser Expr
 parseParens = parens parseExpr
 
@@ -36,7 +36,7 @@ parseConst =
   <|> (reservedOp "e" >> return E)
 
 
--- Precedence and associativity table
+
 operatorTable :: [[Operator String () Identity Expr]]
 operatorTable =
   [ [ Postfix (reservedOp "!" >> return Factorial) ]
@@ -75,7 +75,7 @@ operatorTable =
     ]
   ]
 
--- This fixes the issue with the constants, they were not recognized in the parser
+
 processString :: String -> String
 processString [] = []
 processString ('d':'e':'g':t) = "deg" ++ processString t
@@ -85,11 +85,11 @@ processString ('π':t) = "π " ++ processString t
 processString ('p':'i':t) =  "pi " ++ processString t
 processString (x:t) = x : processString t
 
--- Parser Expr
+
 parseExpr :: Parser Expr
 parseExpr = buildExpressionParser operatorTable parseTerm <?> "Invalid expression"
 
--- Parser of a term
+
 parseTerm :: Parser Expr
 parseTerm = parseNumber 
         <|> parseParens 
@@ -97,14 +97,14 @@ parseTerm = parseNumber
         <?> "Expected a valid term (number, constant, or parentheses)"
 
 
--- Parse normal input, for evaluation
+
 parseInput :: String -> Either ParseError Expr
 parseInput input = do
   let exprInput = processString input
   parse (parseExpr <* eof) "" exprInput 
 
 
--- Allows continuation
+
 unaryOperator :: Parser (Expr -> Expr)
 unaryOperator =
       (reservedOp "rad" >> return Rad)

@@ -12,7 +12,7 @@ data Expr
   | Reciprocal Expr     -- 1/x
   | Square Expr         -- x^2
   | Cube Expr           -- x^3
-  | Ln Expr            -- Natural logarithm
+  | Ln Expr             -- Natural logarithm
   | Log10 Expr          -- Base 10 logarithm
   | LogBase Expr Expr   -- Logarithm with base y (logy)
   | Exp Expr            -- Exponential (e^x)

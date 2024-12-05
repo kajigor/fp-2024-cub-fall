@@ -1,6 +1,6 @@
 module Util (helpString) where
 
--- String content for the "help" command
+
 helpString :: [String]
 helpString =
   [ "Scientific Calculator Help"

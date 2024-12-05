@@ -10,44 +10,44 @@ import Eval
 import Memory
 import Control.Monad.State
 
--- Helper function to test the parser for valid expressions
+
 testValidParser :: String -> String -> Expr -> TestTree
 testValidParser name expr expectedResult =
   testCase name $ do
     let parsedExpr = parseInput expr
     assertEqual "Unexpected parsing result for valid input" (Right expectedResult) parsedExpr
 
--- Helper function to test the parser for invalid expressions
+
 testInvalidParser :: String -> String -> TestTree
 testInvalidParser name expr =
   testCase name $ do
     let parsedExpr = parseInput expr
     assertBool "Expected a parsing error but got a valid result" (isLeft parsedExpr)
 
--- Parser tests
+
 testExprParser :: TestTree
 testExprParser = testGroup "Parser Tests"
   [ 
-    -- Basic arithmetic tests
+
     testValidParser "Addition" "4 + 5" (Add (Num 4) (Num 5)),
     testValidParser "Subtraction" "7 - 3" (Diff (Num 7) (Num 3)),
     testValidParser "Multiplication" "6 * 3" (Mul (Num 6) (Num 3)),
     testValidParser "Division" "8 / 4" (Div (Num 8) (Num 4)),
     testValidParser "Power" "2 ^ 3" (Pow (Num 2) (Num 3)),
 
-    -- Constant and unary operator tests
+
     testValidParser "Pi constant" "π" Pi,
     testValidParser "E constant" "e" E,
     testValidParser "Square root" "sqrt(4)" (Sqrt (Num 4)),
     testValidParser "Factorial" "5!" (Factorial (Num 5)),
 
-    -- Parentheses and nested expressions
+
     testValidParser "Nested addition" "2 + (3 + 4)" 
       (Add (Num 2) (Add (Num 3) (Num 4))),
     testValidParser "Nested multiplication" "2 * (3 + 4)" 
       (Mul (Num 2) (Add (Num 3) (Num 4))),
 
-    -- Trigonometric functions
+
     testValidParser "Sine" "sin(π / 2)" 
       (Sin (Div Pi (Num 2))),
     testValidParser "Cosine" "cos(0)" 
@@ -55,20 +55,19 @@ testExprParser = testGroup "Parser Tests"
     testValidParser "Tangent" "tan(π / 4)" 
       (Tan (Div Pi (Num 4))),
 
-    -- Invalid cases
+
     testInvalidParser "Invalid expression" "4 +",
     testInvalidParser "Unexpected input" "4 4",
     testInvalidParser "Just text" "This is an invalid expression"
   ]
 
--- Test for valid expressions that should evaluate correctly
--- Helper function to compare floating-point numbers with a tolerance
+
 assertAlmostEqual :: String -> Double -> Double -> Double -> Assertion
 assertAlmostEqual message expected actual epsilon =
   assertBool (message ++ ": expected " ++ show expected ++ ", but got " ++ show actual) 
     (abs (expected - actual) < epsilon)
 
--- Test for valid expressions that should evaluate correctly
+
 testEvalExpression :: String -> Expr -> Double -> TestTree
 testEvalExpression name expr expectedResult = 
     testCase name $ do
@@ -78,7 +77,7 @@ testEvalExpression name expr expectedResult =
           Left err    -> assertFailure ("Expected success but got error: " ++ show err)
     
 
--- Test for invalid expressions that should return specific errors
+
 testEvalInvalidExpression :: String -> Expr -> CalcError -> TestTree
 testEvalInvalidExpression name expr expectedError = 
     testCase name $ do
@@ -86,30 +85,30 @@ testEvalInvalidExpression name expr expectedError =
         assertEqual ("Unexpected error result for: " ++ show expr) (Left expectedError) actualResult
 
 
--- Evaluation tests
+
 testEval :: TestTree
 testEval = testGroup "Eval Tests"
   [
-    -- Basic arithmetic tests
+
     testEvalExpression "Addition" (Add (Num 4) (Num 5)) 9,
     testEvalExpression "Subtraction" (Diff (Num 7) (Num 3)) 4,
     testEvalExpression "Multiplication" (Mul (Num 6) (Num 3)) 18,
     testEvalExpression "Division" (Div (Num 8) (Num 4)) 2,
     testEvalExpression "Power" (Pow (Num 2) (Num 3)) 8,
 
-    -- Constants
+
     testEvalExpression "Pi constant" Pi pi,
     testEvalExpression "E constant" E (exp 1),
 
-    -- Unary operations
+
     testEvalExpression "Square root" (Sqrt (Num 9)) 3,
     testEvalExpression "Factorial" (Factorial (Num 5)) 120,
 
-    -- Nested expressions
+
     testEvalExpression "Nested addition and multiplication" 
       (Add (Num 2) (Mul (Num 3) (Num 4))) 14,
 
-    -- Trigonometric functions
+
     testEvalExpression "Sine of π/2" (Sin (Div Pi (Num 2))) 1,
     testEvalExpression "Cosine of 0" (Cos (Num 0)) 1,
     testEvalExpression "Tangent of π/4" (Tan (Div Pi (Num 4))) 1,
@@ -121,7 +120,7 @@ testEval = testGroup "Eval Tests"
       (Add Pi (Sin (Div Pi (Num 2))))
       (pi + 1),
 
-    -- Invalid cases
+
     testEvalInvalidExpression "Division by zero" (Div (Num 4) (Num 0)) 
       (CalcError DivisionByZero (Div (Num 4) (Num 0))),
     testEvalInvalidExpression "Negative square root" (Sqrt (Num (-1))) 
@@ -162,21 +161,21 @@ testEval = testGroup "Eval Tests"
       (CalcError LogNonPositive (LogBase (Num 10) (Num (-5))))
   ]
 
--- Helper function for testing memory operations
+
 testMemory :: String -> Expr -> MemoryState IO () -> Expr -> TestTree
 testMemory name initialState operation expectedState =
   testCase name $ do
     (_, finalState) <- runStateT operation initialState
     assertEqual ("Unexpected memory state for: " ++ name) expectedState finalState
 
--- Helper function for testing memory results
+
 testMemoryResult :: String -> Expr -> TestTree
 testMemoryResult name initialState =
   testCase name $ do
     finalState <- evalStateT memoryResult initialState
     assertEqual ("Unexpected memory result for: " ++ name) initialState finalState
 
--- Memory Tests
+
 testMemoryOperations :: TestTree
 testMemoryOperations = testGroup "Memory Operations"
   [
@@ -206,7 +205,7 @@ testProcessedString = testGroup "Processing String"
     ]
 
 
--- Main function to run all tests
+
 main :: IO ()
 main = defaultMain $ testGroup "Calculator Tests"
   [ 
