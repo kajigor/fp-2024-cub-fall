@@ -59,8 +59,7 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib,
-                      Game,
+    exposed-modules:  Game,
                       Logic,
                       Rendering
 
@@ -130,4 +129,5 @@ test-suite ReversiFinal-test
     build-depends:
         base ^>=4.20.0.0,
         ReversiFinal,
-        array
+        array, 
+        gloss

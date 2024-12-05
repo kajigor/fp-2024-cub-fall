@@ -15,32 +15,7 @@ Each project should be followed by a written report in which the following topic
 
 Choose your project [here](https://docs.google.com/spreadsheets/d/138z6qgMBtROwDxh4niDajSIGZNb4r-ucpLowJDk7qjM/edit?usp=sharing). Max 3 students can take the same project, but they should work on it independently. 
 
-## 1. Scientific Calculator
-
-* (10 points) Console (or other user) interface in a REPL style.
-* (20 points) Parser for algebraic expressions (you are encouraged to use a library).
-* (40 points) Evaluation engine supporting arithmetic operations typical in a scientific calculator. Notice that there are memory buttons. 
-* (15 points) Error reporting for invalid inputs or calculations.
-* (15 points) Unit and property-based tests.
-
-## 2. Minesweeper Game 
-
-* (20 points) Console (or other user) user interface for gameplay.
-* (10 points) Representation and initialization of the game grid with mines.
-* (40 points) Game logic implementation (revealing cells, handling win/loss conditions).
-* (15 points) Error reporting for invalid moves or inputs.
-* (15 points) Unit and property-based tests.
-
-## 3. Sudoku Puzzle Generator and Solver
-
-* (10 points) Console (or other user) interface.
-* (20 points) Implement a solver capable of solving any valid Sudoku puzzle.
-* (20 points) Implement a puzzle generator that creates solvable puzzles of varying difficulty.
-* (20 points) Performance analysis: try to make your solution as performant as possible. 
-* (15 points) Error reporting for invalid puzzles or inputs.
-* (15 points) Unit and property-based tests.
-
-## 4. Reversi Game
+## Reversi Game
 
 * (20 points) Console (or other user) interface.
 * (20 points) Implement game rules, including valid moves and flipping discs.
@@ -50,30 +25,39 @@ Choose your project [here](https://docs.google.com/spreadsheets/d/138z6qgMBtROwD
 * (15 points) Error reporting for invalid moves.
 * (15 points) Unit and property-based tests.
 
-## 5. Text File Analyzer 
+## What the task was
 
-* (10 points) Console (or other user) interface.
-* (20 points) Read text files and compute statistics (word count, line count, character count).
-* (10 points) Identify and display the most frequent words.
-* (20 points) Implement n-gram analysis for sequences of words.
-* (10 points) Generate a textual word cloud representation.
-* (15 points) Error reporting for file access issues or invalid data or commands.
-* (15 points) Unit and property-based tests.
+My project was Reversi Game, all of the criterias are written above. For me first task was to understand what is this game about, what are the rules and who wins. Most of the knowledge I got from the first website that pops up searching Reversi game https://cardgames.io/reversi/
 
-## 6. Spell Checker
+I spent more than 2 hours playing with the bot(I never won the game 😢). Basically you are starting in n x n(n is even) board with 4 pieces at the center, 2 yours and 2 enemy pieces. You must try to capture opponent pieces and flip them over so they turn into your color. You do this by making a horizontal, vertical or diagonal line of pieces, where your pieces surround the other player's pieces. The surrounded opponent pieces are then captured and will be flipped over to your color, increasing the number of your pieces on the board. All same aplies to your enemy. The goal is to get as much pieces as possible, the one with the most wins.
 
-* (10 points) Console (or other user) interface.
-* (20 points) Read text and check each word against a dictionary.
-* (10 points) Allow users to add custom words to the dictionary.
-* (10 points) Suggest corrections for misspelled words.
-* (20 points) Performance analysis: try to make your solution as performant as possible. 
-* (15 points) Error reporting for file issues or invalid inputs.
-* (15 points) Unit and property-based tests.
+## Libraries
 
-## 7. (Project for Stanislav Sandler) Regex Parser With Web Interface
+I have 2 Libaries- Array and Gloss. Array is used to represent board of the game. For the Gloss, I was searching the internet for some reference on how people create games via Haskell and for me Gloss was really helpful. It has helpful Datas(Picture, Color, Display), Interfaces(I used play and display for finding bugs). 
 
-* (20 points) Web interface.
-* (30 points) Provide real-time feedback as users type their regex patterns and test strings.
-* (20 points) Debuggins session: display regex matching step-by-step
-* (15 points) Error reporting for invalid inputs.
-* (15 points) Unit and property-based tests. 
+## Architecture 
+
+I splitted my project into 4 files
+
+* Main
+
+Runs play function.
+
+* Game
+
+Here I defined all essential datas for the Game. The most essential one is Data Game, which consists of the gameBoard(the state of the board), player(who's turn is it), state(the state of the game, Running or Finished). Also it has other supportive datas. 
+
+* Rendering
+
+This module is repsonsible for translating the picture to the program. The most important function is gameAsPicture that is used in play function. For translation of the game I separated it into 3 layers: 
+
+BoardGrid - shows the grid of a Reversi game.
+
+PlayerOneBoard - shows all of the pieces of first player.
+
+PlayerTwoBoard - shows all of the pieces of second player.
+
+* Logic
+
+This module is responsible for all logic of the game, it checks whether the move is right, is there any move at all, who won the game, deals with consequences of the move(changing the opposing player's pieces) and etc. The important function is transformGame which is used in play function. It listens to the mouse Left Button and changes state of the game according to it.
+
