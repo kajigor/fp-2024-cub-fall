@@ -35,7 +35,7 @@ stack bench
 - Currently, only the internal variables `ans` and `mem` are supported:
     - `ans` stores the result of the last successful computation; defaults to 0.
     - `mem` is the value currently stored in memory; defaults to 0.
-- Variables can be accessed in expressions, with their names in quotes (e. g. `("mem" + 2) * "ans"`)
+- Variables can be accessed in expressions, with their names in quotes (e.g. `("mem" + 2) * "ans"`)
 
 #### Commands
 - If input begins with ':', it's treated as a command.
@@ -51,7 +51,7 @@ stack bench
 ## Architecture
 
 The application consists of an interpreter, a parser, and an evaluator.
-- Since the task requires both IO and a memory state (variables), the interpreter operates on a `REPL = StateT (Map String Double) IO` monad transformer. The interpreter isolates effects from both monads, so the parser and the evaluator don't have to deal with them. It also collects errors from the parser and interpreter.
+- Since the task requires both IO and a memory state (variables), the interpreter operates on a `REPL = StateT (Map String Double) IO` monad transformer. The interpreter isolates effects from both monads, so the parser and the evaluator don't have to deal with them. It also collects errors from the parser and interpreter. IO was encapsulated into myRead and myPrint functions to allow customization (e.g. pretty printing, IO devices other than stdin/stdout, etc.)
 - The parser produces an AST from text input. It uses `buildExpressionParser` from Parsec, so the implementation is quite simple. Therefore, I didn't feel the need to separate it from the lexer.
 - The evaluator takes an AST and produces the arithmetic result. The regular nature of binary operations allowed me to reuse much of the code for generic arithmetic operations. Most of the code was taken from my solution of HW04.
 
