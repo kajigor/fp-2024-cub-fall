@@ -1,0 +1,67 @@
+name: TextFileAnalyzer
+extra-source-files:
+  - README.md
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - FileReader
+    - Statistics
+    - FrequentWords
+    - NGramAnalysis
+    - WordCloud
+    - TextUtils
+    - ErrorHandling
+    - Interface
+  dependencies:
+    - base >=4.7 && <5
+    - text >= 1.2
+    - containers >= 0.5
+    - directory >= 1.2
+    - temporary
+  language: Haskell2010
+  ghc-options: -Wall
+
+executables:
+  text-file-analyzer:
+    main: Main.hs
+    source-dirs: app
+    ghc-options: -Wall
+    language: Haskell2010
+    dependencies:
+      - base >=4.7 && <5
+      - TextFileAnalyzer
+      - text
+      - containers
+
+
+benchmarks:
+  text-file-analyzer-bench:
+    main: Benchmark.hs
+    source-dirs: bench
+    ghc-options: -Wall
+    language: Haskell2010
+    dependencies:
+      - base >=4.7 && <5
+      - criterion
+      - TextFileAnalyzer
+      - text
+      - containers
+      - directory
+      - temporary
+
+tests:
+  text-file-analyzer-test:
+    main: Spec.hs
+    source-dirs: test
+    ghc-options: -Wall
+    language: Haskell2010
+    dependencies:
+      - base >= 4.7 && < 5
+      - QuickCheck >= 2.14
+      - HUnit >= 1.6
+      - text >= 1.2
+      - containers >= 0.5
+      - silently
+      - directory >= 1.2
+      - TextFileAnalyzer
