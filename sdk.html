@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            grid-gap: 5px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+        .sudoku-cell {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            text-align: center;
+            line-height: 40px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #333;
+        }
+        .sudoku-cell:focus {
+            outline: 2px solid #007bff;
+        }
+        .actions {
+            margin-top: 20px;
+        }
+        .actions button, .actions select {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .actions button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sudoku Solver</h1>
+    <form id="sudoku-form">
+        <div class="sudoku-grid">
+            <script>
+                for (let row = 1; row <= 9; row++) {
+                    for (let col = 1; col <= 9; col++) {
+                        document.write(`
+                            <input type="text" 
+                                   class="sudoku-cell" 
+                                   name="cell-${row}-${col}" 
+                                   maxlength="1" 
+                                   pattern="[1-9]" 
+                                   title="Enter a number between 1 and 9 or leave it empty">
+                        `);
+                    }
+                }
+            </script>
+        </div>
+
+        <div class="actions">
+            <select id="difficulty" name="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="expert">Expert</option>
+            </select>
+            <button type="button" id="generate-btn">Generate Sudoku</button>
+
+            <button type="button" id="check-btn">Check Validity</button>
+            <button type="button" id="solve-btn">Solve Sudoku</button>
+            <button type="button" id="clear-btn">Clear Sudoku</button>
+        </div>
+        <div class="message" id="message"></div>
+    </form>
+
+    <script>
+        const backendUrl = "http://localhost:3000";
+
+        function collectGrid() {
+            const inputs = document.querySelectorAll('.sudoku-cell');
+            const formData = new URLSearchParams();
+            inputs.forEach(input => {
+                const value = input.value.trim();
+                formData.append(input.name, value || '');
+            });
+            return formData.toString();
+        }
+
+        function populateGrid(data) {
+            const cells = data.split('&');
+            cells.forEach(cell => {
+                const [key, value] = cell.split('=');
+                const input = document.querySelector(`input[name="${key}"]`);
+                if (input) input.value = value === '' ? '' : decodeURIComponent(value);
+            });
+        }
+
+        function showMessage(msg, error = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.style.color = error ? 'red' : '#007bff';
+        }
+
+        document.getElementById('generate-btn').addEventListener('click', async () => {
+            const difficulty = document.getElementById('difficulty').value;
+            try {
+                const response = await fetch(`${backendUrl}/generate?difficulty=${difficulty}`);
+                if (!response.ok) throw new Error('Failed to fetch Sudoku');
+                const sudokuData = await response.text();
+                populateGrid(sudokuData);
+                showMessage(`Generated Sudoku (Difficulty: ${difficulty})`);
+            } catch (error) {
+                showMessage(error.message, true);
+            }
+        });
+
+        document.getElementById('check-btn').addEventListener('click', async () => {
+            const gridData = collectGrid();
+            try {
+                const response = await fetch(`${backendUrl}/check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: gridData
+                });
+                if (!response.ok) throw new Error('Failed to check Sudoku');
+                const result = await response.text();
+                showMessage(`Validity Check: ${result}`);
+            } catch (error) {
+                showMessage(error.message, true);
+            }
+        });
+
+        document.getElementById('solve-btn').addEventListener('click', async () => {
+            const gridData = collectGrid();
+            try {
+                const response = await fetch(`${backendUrl}/solve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: gridData
+                });
+                const solvedData = await response.text();
+                if (!response.ok) throw new Error('Failed to solve Sudoku ' + solvedData);
+                populateGrid(solvedData);
+                showMessage('Sudoku Solved!');
+            } catch (error) {
+                showMessage(error.message, true);
+            }
+        });
+        
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            const inputs = document.querySelectorAll('.sudoku-cell');
+            inputs.forEach(input => input.value = '');
+            showMessage('Sudoku Cleared!');
+        });
+    </script>
+</body>
+</html>
