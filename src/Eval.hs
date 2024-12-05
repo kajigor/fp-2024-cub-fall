@@ -1,4 +1,4 @@
-module Eval where
+module Eval (evalExpr) where
 
 import Expr
 import qualified Data.Map.Strict as M

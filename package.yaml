@@ -26,6 +26,8 @@ dependencies:
   - parsec
   - transformers
   - criterion
+  - hedgehog
+  - random
 
 ghc-options:
   - -Wall
@@ -54,7 +56,9 @@ executables:
 tests:
   scientific-calculator-test:
     main:                Spec.hs
-    source-dirs:         test
+    source-dirs:
+      - test
+      - common
     ghc-options:
       - -threaded
       - -rtsopts
@@ -70,7 +74,9 @@ benchmarks:
     main:
       Main.hs
     source-dirs:
-      benchmark/
+      - benchmark
+      - common
     dependencies:
       - scientific-calculator
       - criterion
+      - random
