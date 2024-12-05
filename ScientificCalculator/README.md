@@ -29,8 +29,6 @@ stack build
 stack exec ScientificCalculator-exe
 ```
 
-Replace `ScientificCalculator-exe` with the name of the executable specified in your `package.yaml` file in the `executables` section.
-
 ---
 
 ## Supported Functionalities
