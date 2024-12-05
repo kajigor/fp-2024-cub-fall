@@ -27,7 +27,6 @@ library
   exposed-modules:
       Sudoku
   other-modules:
-      Lib
       Paths_haskudoku_solver
   autogen-modules:
       Paths_haskudoku_solver
