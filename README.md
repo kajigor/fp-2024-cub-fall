@@ -67,7 +67,7 @@ This module is responsible for translating the picture to the program. The most 
 
 ### Logic
 
-This module is responsible for all the logic of the game. It checks whether the move is valid, whether there are any moves available, determines who won the game, and deals with the consequences of moves (e.g., flipping the opposing player's pieces). The important function is `transformGame`, which is used in the `play` function. It listens to the mouse left button and changes the state of the game accordingly.
+This module is responsible for all the logic of the game. It checks whether the move is valid, whether there are any moves available, determines who won the game, and deals with the consequences of moves (e.g., flipping the opposing player's pieces). The important function is `transformGame`, which is used in the `play` function. It listens to the mouse left button and changes the state of the game accordingly. Also it has functions which checks whether the Player, who's turn is now, is allowed to make the specific move.
 
 ## Investigation
 
