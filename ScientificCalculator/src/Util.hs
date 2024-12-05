@@ -1,5 +1,6 @@
-module Util (helpString) where
+module Util where
 
+import System.Console.Haskeline
 
 helpString :: [String]
 helpString =
@@ -39,3 +40,16 @@ helpString =
   , "  > + 9"
   , "  Result: 10.0"
   ]
+
+
+getUserInput :: IO String
+getUserInput = runInputT defaultSettings { historyFile = Just ".calculator_history" } $ do
+    line <- getInputLine ""
+    case line of
+      Nothing -> return ""
+      Just value -> return value
+
+
+removeTrailingSpaces :: String -> String
+removeTrailingSpaces (' ':tail) = removeTrailingSpaces tail
+removeTrailingSpaces str = str

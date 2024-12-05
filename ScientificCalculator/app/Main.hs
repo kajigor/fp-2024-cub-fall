@@ -8,10 +8,8 @@ import Eval (eval)
 import Expr (Expr(..))
 import ParserExpr (parseInput, parseContinuation)
 import Memory
-import CalcError
 import System.IO
 import Data.Either
-import Text.Parsec (ParseError, parse)
 import Util
 
 newtype CalculatorState = CalculatorState { lastResult :: Expr } -- Last successful evaluation
@@ -39,9 +37,11 @@ handleCommand input = case input of
     liftIO $ putStrLn $ "Memory: " ++ show (fromRight  0 (eval mem))
   "=" -> do
     liftIO $ putStrLn "Enter an expression to evaluate:"
-    exprInput <- liftIO getLine
+    exprInput <- liftIO getUserInput
     case parseInput exprInput of
-      Left parseErr -> liftIO $ print parseErr
+      Left parseErr -> do 
+        liftIO $ print parseErr
+        liftIO $ print "Unknown command. Type 'help' for a list of commands."
       Right expr -> do
         case eval expr of
           Left calcErr -> liftIO $ putStrLn $ "Error: " ++ show calcErr
@@ -61,22 +61,16 @@ handleCommand input = case input of
         case eval expr of
           Left calcErr -> do 
             liftIO $ putStrLn $ "Error: " ++ show calcErr
-            liftIO $ print "Unknown command. Type 'help' for a list of commands."
           Right result -> do
             liftIO $ putStrLn $ "Result: " ++ show result
             when (not (isNaN result) && not (isInfinite result)) $ do
               modify (\s -> s { lastResult = Num result })
 
-removeTrailingSpaces :: String -> String
-removeTrailingSpaces (' ':tail) = removeTrailingSpaces tail
-removeTrailingSpaces str = str
-
-
 calculatorCLI :: StateT CalculatorState (MemoryState IO) ()
 calculatorCLI = do
   liftIO $ putStr "> "
   liftIO $ hFlush stdout
-  input <- liftIO getLine
+  input <- liftIO getUserInput
   unless (input == "quit" || input == "q") $ do
     handleCommand $ removeTrailingSpaces input
     calculatorCLI
