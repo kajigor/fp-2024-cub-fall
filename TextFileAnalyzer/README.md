@@ -46,7 +46,7 @@ Libraries were selected for efficiency and suitability:
 
 **Performance Investigation**  
 
- Benchmark: `text-file-analyzer-bench`
+ Benchmark: `text-file-analyzer-bench` for 40000 words (benchmark code available in the project)
 
  FileReader: `readTextFile`
 - **Time**: 9.296 μs (9.184 μs .. 9.397 μs)
