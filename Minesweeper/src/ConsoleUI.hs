@@ -53,7 +53,7 @@ printGrid = mapM_ (putStrLn . unwords . map cellToChar)
 
 -- Convert a cell to displayable text
 cellToChar :: (VisibleState, Cell) -> String
-cellToChar (Hidden, _) = "■"
+cellToChar (Hidden, _) = "#"
 cellToChar (Flagged, _) = "F"
 cellToChar (Revealed, Mine) = "*"
 cellToChar (Revealed, Empty 0) = " "
