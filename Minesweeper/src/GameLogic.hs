@@ -4,40 +4,27 @@ module GameLogic where
 
 import Grid
 import ErrorHandling
-import Data.Maybe (fromMaybe)
 
--- Reveals a cell on the grid
+-- Reveal a cell on the grid
 revealCell :: Grid -> (Int, Int) -> Grid
-revealCell grid pos = 
+revealCell grid pos =
     case getCell grid pos of
-        Just Hidden ->
-            let adjacentMines = uncurry (countAdjacentMines grid) pos
-                newGrid = setCell grid pos (Empty adjacentMines)
-            in if adjacentMines == 0
+        Just (Hidden, truthCell) ->
+            let newGrid = setCell grid pos (Revealed, truthCell)
+            in if truthCell == Empty 0
                then foldl revealCell newGrid (neighbors grid pos)
                else newGrid
         _ -> grid
 
--- Checks if all non-mine cells are revealed
+-- Check if all non-mine cells are revealed
 isWin :: Grid -> Bool
-isWin = all
-        (all
-            (\case
-                Mine -> True
-                Empty _ -> True
-                Hidden -> False))
+isWin = all (all (\case (Revealed, Mine) -> False; (Revealed, _) -> True; (Hidden, Mine) -> True; _ -> False))
 
--- Checks if a mine is revealed
+-- Check if a mine is revealed
 isLoss :: Grid -> Bool
-isLoss = any
-        (any
-            (\case
-                Mine -> True
-                Empty _ -> False
-                Hidden -> False
-                Flagged -> False))
+isLoss = any (any (\case (Revealed, Mine) -> True; _ -> False))
 
--- Retrieves the list of adjacent cell positions
+-- Retrieve the list of adjacent cell positions
 neighbors :: Grid -> (Int, Int) -> [(Int, Int)]
 neighbors grid (row, col) =
     [(row + dr, col + dc) | dr <- [-1..1], dc <- [-1..1], (dr, dc) /= (0, 0), isValid (row + dr, col + dc)]
@@ -46,8 +33,17 @@ neighbors grid (row, col) =
         cols = length (head grid)
         isValid (r, c) = r >= 0 && r < rows && c >= 0 && c < cols
 
-playMove :: Grid -> (Int, Int) -> Either GameError Grid
-playMove grid (row, col) =
-  case validateMove grid (row, col) of
-    Left err -> Left err  -- Return the error
-    Right () -> Right (revealCell grid (row, col))  -- Proceed if valid
+playMove :: Grid -> (Int, Int, Char) -> Either GameError Grid
+playMove grid (row, col, action) =
+    case validateMove grid (row, col) of
+        Left err -> Left err  -- Invalid move
+        Right () ->
+            case action of
+                'r' -> -- Reveal action
+                    let newGrid = revealCell grid (row, col)
+                    in if isLoss newGrid
+                       then Left $ InvalidMove "You hit a mine! Game over."
+                       else Right newGrid
+                'f' -> -- Flag action
+                    Right $ flagCell grid (row, col)
+                _ -> Left $ InvalidInput "Invalid action. Use 'r' to reveal or 'f' to flag."

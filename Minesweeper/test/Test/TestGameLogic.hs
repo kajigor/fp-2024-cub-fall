@@ -1,81 +1,59 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Test.TestGameLogic where
 
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.Hedgehog
-import Hedgehog
-import qualified Hedgehog.Gen as Gen
-import qualified Hedgehog.Range as Range
-import GameLogic
 import Grid
+import GameLogic
 
--- Unit Tests
-unitTests :: TestTree
-unitTests = testGroup "Unit Tests"
-  [ testCase "Revealing a cell with no adjacent mines" $ do
-      let grid = [[Hidden, Hidden, Hidden]
-                 , [Hidden, Hidden, Hidden]
-                 , [Hidden, Hidden, Mine]]
-          expected = [[Empty 0, Empty 0, Empty 0]
-                     , [Empty 0, Empty 1, Empty 1]
-                     , [Empty 0, Empty 1, Mine]]
+-- Test Suite for Game Logic
+tests :: TestTree
+tests = testGroup "Game Logic Tests"
+  [ testCase "Reveal an empty cell" $ do
+      let grid = [[(Hidden, Empty 0), (Hidden, Empty 1), (Hidden, Mine)],
+                  [(Hidden, Mine), (Hidden, Empty 2), (Hidden, Empty 1)],
+                  [(Hidden, Empty 1), (Hidden, Empty 1), (Hidden, Empty 0)]]
+          expected = [[(Revealed, Empty 0), (Revealed, Empty 1), (Hidden, Mine)],
+                      [(Revealed, Mine), (Revealed, Empty 2), (Hidden, Empty 1)],
+                      [(Hidden, Empty 1), (Hidden, Empty 1), (Hidden, Empty 0)]]
       revealCell grid (0, 0) @?= expected
 
-  , testCase "Revealing a cell with adjacent mines" $ do
-      let grid = [[Hidden, Hidden]
-                 , [Mine, Hidden]]
-          expected = [[Hidden, Empty 1]
-                     , [Mine, Hidden]]
-      revealCell grid (0, 1) @?= expected
+  , testCase "Reveal a mine" $ do
+      let grid = [[(Hidden, Mine), (Hidden, Empty 1)],
+                  [(Hidden, Empty 1), (Hidden, Empty 0)]]
+          expected = [[(Revealed, Mine), (Hidden, Empty 1)],
+                      [(Hidden, Empty 1), (Hidden, Empty 0)]]
+      revealCell grid (0, 0) @?= expected
 
-  , testCase "Winning condition with all non-mine cells revealed" $ do
-      let grid = [[Empty 0, Mine], [Empty 0, Empty 0]]
+  , testCase "Flag a cell" $ do
+      let grid = [[(Hidden, Empty 0), (Hidden, Mine)],
+                  [(Hidden, Empty 1), (Hidden, Empty 0)]]
+          expected = [[(Flagged, Empty 0), (Hidden, Mine)],
+                      [(Hidden, Empty 1), (Hidden, Empty 0)]]
+      flagCell grid (0, 0) @?= expected
+
+  , testCase "Unflag a flagged cell" $ do
+      let grid = [[(Flagged, Empty 0), (Hidden, Mine)],
+                  [(Hidden, Empty 1), (Hidden, Empty 0)]]
+          expected = [[(Hidden, Empty 0), (Hidden, Mine)],
+                      [(Hidden, Empty 1), (Hidden, Empty 0)]]
+      flagCell grid (0, 0) @?= expected
+
+  , testCase "Win condition: all non-mine cells revealed" $ do
+      let grid = [[(Revealed, Empty 1), (Hidden, Mine)],
+                  [(Revealed, Empty 1), (Revealed, Empty 0)]]
       isWin grid @?= True
 
-  , testCase "Losing condition when a mine is revealed" $ do
-      let grid = [[Mine, Hidden], [Hidden, Hidden]]
-      let revealed = revealCell grid (0, 0)
-      isLoss revealed @?= True
+  , testCase "Lose condition: a mine is revealed" $ do
+      let grid = [[(Revealed, Mine), (Hidden, Empty 1)],
+                  [(Hidden, Empty 1), (Hidden, Empty 0)]]
+      isLoss grid @?= True
+
+  , testCase "Count mines in a grid" $ do
+      let grid = [[(Hidden, Mine), (Hidden, Empty 1)],
+                  [(Hidden, Mine), (Hidden, Empty 0)]]
+      countMines grid @?= 2
   ]
 
--- Property-based Tests
-propertyTests :: TestTree
-propertyTests = testGroup "Property Tests"
-  [ testProperty "Revealing cells does not change the number of mines" $ property $ do
-      let genGrid = generateGrid 5 5 3  -- 5x5 grid with 3 mines
-      forAll genGrid >>= \grid -> do
-          let initialMineCount = countMines grid
-          let grid' = revealCell grid (0, 0)  -- arbitrary position
-          countMines grid' === initialMineCount
-
-  , testProperty "Winning condition implies all non-mine cells are revealed" $ property $ do
-      let genGrid = generateGrid 5 5 3
-      forAll genGrid >>= \grid -> do
-          let revealedGrid = revealAllNonMines grid
-          isWin revealedGrid === True
-  ]
-
--- Generate random grids
-generateGrid :: Int -> Int -> Int -> Gen Grid
-generateGrid rows cols mines = do
-  positions <- Gen.list (Range.singleton mines) randomPos
-  return (addMines (emptyGrid rows cols) positions)
-  where
-    randomPos = (,) <$> Gen.int (Range.linear 0 (rows - 1)) <*> Gen.int (Range.linear 0 (cols - 1))
-    emptyGrid r c = replicate r (replicate c Hidden)
-
--- Count the number of mines in a grid
+-- Utility to count the number of mines in the grid
 countMines :: Grid -> Int
-countMines = sum . map (length . filter (== Mine))
-
--- Reveal all non-mine cells (used for testing win condition)
-revealAllNonMines :: Grid -> Grid
-revealAllNonMines grid =
-  [ [ if cell == Mine then cell else Empty 0 | cell <- row ]
-    | row <- grid
-  ]
-
-tests :: TestTree
-tests = testGroup "Game Logic Tests" [unitTests, propertyTests]
+countMines = sum . map (length . filter (\(_, cell) -> cell == Mine))

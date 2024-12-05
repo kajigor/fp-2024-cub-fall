@@ -3,91 +3,58 @@ module ConsoleUI where
 import Grid
 import GameLogic
 import ErrorHandling
-import Control.Monad (forever)
 import System.IO (hFlush, stdout)
 
-
--- Main function to start the game
+-- Start the game
 startGame :: IO ()
 startGame = do
     putStrLn "Welcome to Minesweeper!"
-    putStrLn "Choose difficulty level: (e)asy, (m)edium, (h)ard"
+    putStrLn "Choose difficulty: (e)asy, (m)edium, (h)ard"
     difficulty <- getLine
     case difficulty of
         "e" -> initializeAndStartGame 10 8 10
         "m" -> initializeAndStartGame 18 14 40
         "h" -> initializeAndStartGame 20 20 99
-        _   -> do
-            putStrLn "Invalid choice. Please enter e, m, or h."
-            startGame
+        _   -> putStrLn "Invalid choice." >> startGame
 
 -- Initialize the grid and start the game loop
 initializeAndStartGame :: Int -> Int -> Int -> IO ()
-initializeAndStartGame width height mines = do
-    grid <- initializeGrid height width mines Nothing
+initializeAndStartGame rows cols mines = do
+    grid <- initializeGrid rows cols mines Nothing
     gameLoop grid
 
--- Game loop to handle user input and update the grid
+-- Game loop to handle moves
 gameLoop :: Grid -> IO ()
 gameLoop grid = do
     printGrid grid
-    putStrLn "Enter your move (row col action):"
-    move <- getLine
-    case parseMove move of
-        Just (r, c, action) -> do
-            let newGrid = case action of
-                            'r' -> revealCell grid (r, c)
-                            'f' -> flagCell grid (r, c)
-                            _   -> grid
-            if isWin newGrid
-                then do
-                    putStrLn "Congratulations! You've won!"
-                    printGrid newGrid
-                else if isLoss newGrid
-                    then do
-                        putStrLn "Game Over! You've hit a mine!"
-                        printGrid newGrid
+    putStr "Enter move (row col action [r/f]): "
+    hFlush stdout
+    input <- getLine
+    case parseMove input of
+        Just (r, c, 'r') ->
+            let newGrid = revealCell grid (r, c)
+            in if isLoss newGrid
+               then putStrLn "Game Over!" >> printGrid newGrid
+               else if isWin newGrid
+                    then putStrLn "You win!" >> printGrid newGrid
                     else gameLoop newGrid
-        Nothing -> do
-            putStrLn "Invalid move. Please enter a valid move."
-            gameLoop grid
+        Just (r, c, 'f') -> gameLoop (flagCell grid (r, c))
+        _ -> putStrLn "Invalid input." >> gameLoop grid
 
--- Parse the grid dimensions
-parseDimensions :: String -> Maybe (Int, Int, Int)
-parseDimensions input =
-    case map reads (words input) of
-        [[(rows, "")], [(cols, "")], [(mines, "")]] 
-            | rows > 0 && cols > 0 && mines > 0 -> Just (rows, cols, mines)
-        _ -> Nothing
-
--- Parse the user's move
+-- Parse a move from input
 parseMove :: String -> Maybe (Int, Int, Char)
-parseMove input =
-    case words input of
-        [rs, cs, [action]] | action `elem` ['r', 'f'] ->
-            case (reads rs, reads cs) of
-                ([(r, "")], [(c, "")]) -> Just (r, c, action)
-                _ -> Nothing
-        _ -> Nothing
+parseMove input = case words input of
+    [r, c, [action]] | action `elem` "rf" -> Just (read r, read c, action)
+    _ -> Nothing
 
 -- Print the grid to the console
 printGrid :: Grid -> IO ()
-printGrid grid = do
-    mapM_ (putStrLn . unwords . map cellToChar) grid
+printGrid = mapM_ (putStrLn . unwords . map cellToChar)
 
--- Convert a Cell to a displayable string
-cellToChar :: Cell -> String
-cellToChar Hidden    = "■"  -- Hidden cells
-cellToChar Flagged   = "F"  -- Flagged cells
-cellToChar (Empty 0) = " "  -- Empty cells with no adjacent mines
-cellToChar (Empty n) = show n  -- Revealed cells with adjacent mines
-cellToChar Mine      = "*"  -- Mine (shown when game is over)
-
-initializeGame :: Int -> Int -> Int -> Maybe [(Int, Int)] -> IO (Either GameError Grid)
-initializeGame rows cols mineCount minePositions = 
-    case (validateGridDimensions rows cols, validateMineCount rows cols mineCount) of
-        (Left err, _) -> return (Left err)
-        (_, Left err) -> return (Left err)
-        (Right (), Right ()) -> do
-            grid <- initializeGrid rows cols mineCount minePositions
-            return (Right grid)
+-- Convert a cell to displayable text
+cellToChar :: (VisibleState, Cell) -> String
+cellToChar (Hidden, _) = "■"
+cellToChar (Flagged, _) = "F"
+cellToChar (Revealed, Mine) = "*"
+cellToChar (Revealed, Empty 0) = " "
+cellToChar (Revealed, Empty n) = show n

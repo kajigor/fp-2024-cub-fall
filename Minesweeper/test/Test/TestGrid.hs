@@ -11,6 +11,10 @@ import qualified Hedgehog.Range as Range
 import Grid
 import Data.List (concat)
 
+-- Extract Cell from (VisibleState, Cell)
+extractCell :: (VisibleState, Cell) -> Cell
+extractCell (_, cell) = cell
+
 -- Property: Mine count matches input parameter
 prop_correctMineCount :: Property
 prop_correctMineCount = property $ do
@@ -18,7 +22,8 @@ prop_correctMineCount = property $ do
   cols <- forAll $ Gen.int (Range.linear 5 20)
   mines <- forAll $ Gen.int (Range.linear 1 (rows * cols `div` 2))
   grid <- liftIO $ initializeGrid rows cols mines Nothing
-  H.assert (length (concatMap (filter (== Mine)) grid) == mines)
+  let mineCount = length $ concatMap (filter ((== Mine) . extractCell)) grid
+  H.assert (mineCount == mines)
 
 -- Property: Numbers on the grid correctly represent adjacent mines
 prop_correctNumberCalculation :: Property
@@ -28,14 +33,14 @@ prop_correctNumberCalculation = property $ do
   mines <- forAll $ Gen.int (Range.linear 1 (rows * cols `div` 2))
   grid <- liftIO $ initializeGrid rows cols mines Nothing
   let isMine (r, c) = case safeAccess grid r c of
-                        Just Mine -> True
-                        _         -> False
+                        Just (_, Mine) -> True
+                        _              -> False
       countAdjacentMines r c = length $ filter isMine [(r-1, c-1), (r-1, c), (r-1, c+1),
                                                        (r,   c-1),           (r,   c+1),
                                                        (r+1, c-1), (r+1, c), (r+1, c+1)]
       isValidNumber (r, c) = case safeAccess grid r c of
-            Just (Empty n) -> n == countAdjacentMines r c
-            _              -> True
+            Just (_, Empty n) -> n == countAdjacentMines r c
+            _                 -> True
   let allValid = all (\(r, c) -> isValidNumber (r, c)) [(r, c) | r <- [0..rows-1], c <- [0..cols-1]]
   H.assert allValid
 
@@ -47,7 +52,7 @@ testMinePlacement = do
         mines = 5
         minePositions = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)]
     grid <- initializeGrid rows cols mines (Just minePositions)
-    let mineCount = length $ concatMap (filter (== Mine)) grid
+    let mineCount = length $ concatMap (filter ((== Mine) . extractCell)) grid
     assertEqual "Number of mines should match" mines mineCount
 
 testNumberCalculation :: IO ()
@@ -58,14 +63,14 @@ testNumberCalculation = do
         minePositions = [(1, 1)]
     grid <- initializeGrid rows cols mines (Just minePositions)
     let isMine (r, c) = case safeAccess grid r c of
-                          Just Mine -> True
-                          _         -> False
+                          Just (_, Mine) -> True
+                          _              -> False
         countAdjacentMines r c = length $ filter isMine [(r-1, c-1), (r-1, c), (r-1, c+1),
                                                          (r,   c-1),           (r,   c+1),
                                                          (r+1, c-1), (r+1, c), (r+1, c+1)]
         isValidNumber (r, c) = case safeAccess grid r c of
-            Just (Empty n) -> n == countAdjacentMines r c
-            _              -> True
+            Just (_, Empty n) -> n == countAdjacentMines r c
+            _                 -> True
     let allValid = and [isValidNumber (r, c) | r <- [0..rows-1], c <- [0..cols-1]]
     assertBool "Numbers on the grid should be accurate" allValid
 
@@ -81,6 +86,6 @@ tests :: TestTree
 tests = testGroup "Grid Tests"
     [ testProperty "Correct mine count" prop_correctMineCount
     , testProperty "Accurate number calculation" prop_correctNumberCalculation
-    , testCase "Fixed mine placement" testMinePlacement
-    , testCase "Fixed number calculation" testNumberCalculation
+    , testCase "Fixed mine placement" (liftIO testMinePlacement)
+    , testCase "Fixed number calculation" (liftIO testNumberCalculation)
     ]
