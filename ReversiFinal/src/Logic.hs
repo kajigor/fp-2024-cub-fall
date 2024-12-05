@@ -46,9 +46,13 @@ switchPlayer game = case player game of
     Player1 -> game { player = Player2 }
     Player2 -> game { player = Player1 }
 
+isThereMoves :: Game -> Bool
+isThereMoves game = any (== True) $ map (\(x, y) -> board ! (x, y) == Nothing && isPlaceValid game (x, y)) [(x, y) | x <- [0..n-1], y <- [0..n-1]]
+    where board = gameBoard game
+
 checkEnding :: Game -> Game
-checkEnding game = case (length $ filter (== Nothing) $ elems $ gameBoard game) of
-    0 -> game { state = GameOver (winner game) }
+checkEnding game = case ((length $ filter (== Nothing) $ elems $ gameBoard game) == 0 || isThereMoves game == False) of
+    True -> game { state = GameOver (winner game) }
     _ -> game
     where winner game
             | length (filter (== Just Player1) $ elems $ gameBoard game) > length (filter (== Just Player2) $ elems $ gameBoard game) = Just Player1
