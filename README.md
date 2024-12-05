@@ -55,7 +55,7 @@ It waits for 3 integers: the size of the board, screen width, and screen height.
 
 ### Game
 
-Here I defined all essential data for the game. The most essential one is the `Game` data, which consists of the `gameBoard` (the state of the board), `player` (whose turn it is), `state` (the state of the game: Running or Finished), the size of the board, and screen dimensions (width and height). It also has other supportive data types. 
+Here I defined all essential data for the game. The most essential one is the `Game` data, which consists of the `gameBoard` (the state of the board), `player` (whose turn it is), `state` (the state of the game: Running or Finished), the size of the board, and screen dimensions (width and height). It also has describes these supportive data types. 
 
 ### Rendering
 
