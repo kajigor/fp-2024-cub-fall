@@ -1,0 +1,66 @@
+cabal-version:       2.2
+
+name:                scientific-calculator
+version:             0.1.0.0
+homepage:            https://github.com/KlestidP/scientific-calculator#readme
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              KlestidP
+maintainer:          klestidp@gmail.com
+copyright:           2024 Author name here
+category:            Math, Calculator
+build-type:          Simple
+extra-source-files:  README.md
+                     CHANGELOG.md
+
+executable scientific-calculator
+  hs-source-dirs: src
+  main-is: Main.hs
+  other-modules: Parser, Evaluator, Memory
+  default-language: Haskell2010
+  build-depends:
+    base >=4.7 && <5,
+    containers,
+    mtl,
+    scientific,
+    text,
+    parsec >= 3.1,
+    parser-combinators >= 1.3,
+    HUnit,
+    QuickCheck
+  ghc-options: -Wall
+               -Wcompat
+               -Widentities
+               -Wincomplete-record-updates
+               -Wincomplete-uni-patterns
+               -Wmissing-export-lists
+               -Wmissing-home-modules
+               -Wpartial-fields
+               -Wredundant-constraints
+
+test-suite scientific-calculator-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tesst, src
+  main-is:             Test.hs
+  other-modules:       Parser,
+                       Evaluator,
+                       Memory
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                       containers,
+                       mtl,
+                       scientific,
+                       text,
+                       parsec >= 3.1,
+                       parser-combinators >= 1.3,
+                       HUnit,
+                       QuickCheck
+  ghc-options:         -Wall
+                       -Wcompat
+                       -Widentities
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wmissing-export-lists
+                       -Wmissing-home-modules
+                       -Wpartial-fields
+                       -Wredundant-constraints
