@@ -27,10 +27,15 @@ main = scotty 3000 $ do
             Left err -> do
                 status status400
                 text $ "Error: " <> err
-            Right grid -> if S.checkSudoku grid
-                          then text "Valid"
-                          else do
-                              text "Invalid"
+            Right grid -> do
+                if S.checkSudoku grid
+                    then do
+                        result <- liftIO $ S.solveSudoku grid
+                        case result of
+                            Left _ -> text "Valid but Unsolvable"
+                            Right _ -> text "Valid and Solvable"
+                    else text "Invalid"
+
 
     post "/solve" $ do
         formData <- params

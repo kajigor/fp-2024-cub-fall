@@ -3,15 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sudoku Solver</title>
+    <title>Haskudoku!</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
-            background-color: #f4f4f9;
+            background-color: #ffe6f0;
+            margin: 0;
+            padding: 0;
         }
         h1 {
-            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a4a4a;
+            margin-top: 20px;
+        }
+        h1 img {
+            width: 50px; 
+            height: 50px; 
+            margin: 0 15px; 
+        }
+        p {
+            font-size: 18px;
+            color: #555;
         }
         .sudoku-grid {
             display: grid;
@@ -29,9 +44,15 @@
             border: 1px solid #ccc;
             background-color: #fff;
             color: #333;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
+
         .sudoku-cell:focus {
-            outline: 2px solid #007bff;
+            outline: 2px solid #ff4da6;
+            outline-offset: -2px;
+            box-shadow: 0 0 8px #ff4da6; 
+            z-index: 1; 
         }
         .actions {
             margin-top: 20px;
@@ -41,24 +62,59 @@
             padding: 10px 20px;
             margin: 5px;
             cursor: pointer;
+            border-radius: 5px;
+            border: none;
+            transition: background-color 0.3s, transform 0.2s;
         }
         .actions button {
-            background-color: #007bff;
+            background-color: #ff4da6;
             color: #fff;
-            border: none;
-            border-radius: 5px;
         }
         .actions button:hover {
-            background-color: #0056b3;
+            background-color: #d43d91;
+            transform: scale(1.05);
+        }
+        .actions select {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            color: #555;
+        }
+        .actions select:hover {
+            border-color: #ff4da6;
         }
         .message {
             margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .message.error {
+            color: #d43d91;
+        }
+        .message.success {
             color: #007bff;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #777;
+        }
+        footer a {
+            color: #ff4da6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <h1>Sudoku Solver</h1>
+    <h1>
+        <img src="baby-boy-cartoon.gif" alt="Haskudoku Left GIF" class="gif-left">
+        Haskudoku!
+        <img src="baby-boy-cartoon.gif" alt="Haskudoku Right GIF" class="gif-right">
+    </h1>
+    <p>to play: generate a board, type your values and try to validate it. If you are giving up - click solve it</p>
     <form id="sudoku-form">
         <div class="sudoku-grid">
             <script>
@@ -93,6 +149,8 @@
         <div class="message" id="message"></div>
     </form>
 
+    <p>Haskudoku = haskell + sudoku, by <a href="https://t.me/kalexina" target="_blank">kalexina</a></p>
+
     <script>
         const backendUrl = "http://localhost:3000";
 
@@ -118,7 +176,7 @@
         function showMessage(msg, error = false) {
             const messageDiv = document.getElementById('message');
             messageDiv.textContent = msg;
-            messageDiv.style.color = error ? 'red' : '#007bff';
+            messageDiv.className = error ? 'message error' : 'message success';
         }
 
         document.getElementById('generate-btn').addEventListener('click', async () => {
@@ -166,7 +224,7 @@
                 showMessage(error.message, true);
             }
         });
-        
+
         document.getElementById('clear-btn').addEventListener('click', () => {
             const inputs = document.querySelectorAll('.sudoku-cell');
             inputs.forEach(input => input.value = '');

@@ -7,20 +7,18 @@ import qualified Test.HUnit as HUnit
 import Control.Monad (forM_)
 import qualified Data.Text as T
 
--- Hedgehog imports
+
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
 import qualified Hedgehog.Range as Range
 import Control.Monad.IO.Class (liftIO)
 
--- Helper to create a grid from a list of lists
 createGrid :: [[Int]] -> [[Maybe Int]]
 createGrid = map (map toMaybe)
   where
     toMaybe 0 = Nothing
     toMaybe n = Just n
 
--- Check if the solution is consistent with the original puzzle
 isConsistent :: [[Maybe Int]] -> [[Maybe Int]] -> Bool
 isConsistent original solution = all cellsMatch positions
   where
@@ -29,7 +27,6 @@ isConsistent original solution = all cellsMatch positions
         Nothing -> True
         Just v  -> solution !! r !! c == Just v
 
--- Unit Tests (HUnit)
 testCheckSudoku :: HUnit.Test
 testCheckSudoku = HUnit.TestLabel "Test checkSudoku function" $ HUnit.TestList
     [ HUnit.TestCase $ do
@@ -206,7 +203,6 @@ hardPuzzle = createGrid
     , [3,4,0,0,0,0,0,0,0]
     ]
 
--- Property-based tests with Hedgehog
 cellGen :: Gen (Maybe Int)
 cellGen = Gen.frequency
   [ (1, pure Nothing)
