@@ -1,0 +1,38 @@
+name: Stack tests
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: haskell/actions/setup@v2
+        name: Setup Haskell Stack
+        with:
+          ghc-version: ${{ matrix.ghc }}
+          stack-version: ${{ matrix.stack }}
+
+      - uses: actions/cache@v4
+        name: Cache ~/.stack
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-${{ matrix.ghc }}-stack
+
+      - name: Install dependencies
+        run: |
+          cd reversi
+          stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks --only-dependencies
+
+      - name: Build
+        run: |
+          cd reversi
+          stack build --system-ghc --test --bench --no-run-tests --no-run-benchmarks
+
+      - name: Test
+        run: |
+          cd reversi
+          stack test --system-ghc
