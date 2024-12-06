@@ -14,7 +14,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import System.Random (randomRIO)
 import Data.Maybe (isJust, catMaybes, isNothing)
-import Data.List (nub, transpose, find, sortOn, (\\))
+import Data.List (nub, transpose, sortOn, (\\))
 import Text.Read (readMaybe)
 import Data.Char (isDigit)
 import System.Random.Shuffle (shuffleM)
@@ -120,7 +120,7 @@ solve grid = do
                     tryValues grid r c nums
 
 isValidState :: [[Maybe Int]] -> Bool
-isValidState grid = all isCellValueValid (concat grid) && all (\(r, c) -> not . null $ possibleValues grid r c) emptyCells && sizeConsistent grid
+isValidState grid = all (all isCellValueValid) grid && all (\(r, c) -> not . null $ possibleValues grid r c) emptyCells && sizeConsistent grid
   where
     isCellValueValid :: Maybe Int -> Bool
     isCellValueValid Nothing    = True
@@ -157,7 +157,7 @@ tryValues _ _ _ [] = return Nothing
 tryValues grid r c (v:vs) = do
     let newGrid = updateGrid grid r c (Just v)
     if not (checkSudoku newGrid)
-        then tryValues grid r c vs 
+        then tryValues grid r c vs
         else do
             result <- solve newGrid
             case result of

@@ -68,3 +68,4 @@ tests:
     dependencies:
     - haskudoku-solver
     - HUnit
+    - hedgehog

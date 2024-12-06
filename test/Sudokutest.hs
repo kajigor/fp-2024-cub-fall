@@ -3,18 +3,24 @@
 module Main where
 
 import Sudoku
-import Test.HUnit
-import Data.Maybe (isJust, isNothing)
-import Data.List (nub, sort)
+import qualified Test.HUnit as HUnit
 import Control.Monad (forM_)
 import qualified Data.Text as T
 
+-- Hedgehog imports
+import Hedgehog
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+import Control.Monad.IO.Class (liftIO)
+
+-- Helper to create a grid from a list of lists
 createGrid :: [[Int]] -> [[Maybe Int]]
 createGrid = map (map toMaybe)
   where
     toMaybe 0 = Nothing
     toMaybe n = Just n
 
+-- Check if the solution is consistent with the original puzzle
 isConsistent :: [[Maybe Int]] -> [[Maybe Int]] -> Bool
 isConsistent original solution = all cellsMatch positions
   where
@@ -23,92 +29,88 @@ isConsistent original solution = all cellsMatch positions
         Nothing -> True
         Just v  -> solution !! r !! c == Just v
 
-testCheckSudoku :: Test
-testCheckSudoku = TestLabel "Test checkSudoku function" $ TestList
-    [ TestCase $ do
-        assertBool "Valid complete grid" (checkSudoku validCompleteGrid)
+-- Unit Tests (HUnit)
+testCheckSudoku :: HUnit.Test
+testCheckSudoku = HUnit.TestLabel "Test checkSudoku function" $ HUnit.TestList
+    [ HUnit.TestCase $ do
+        HUnit.assertBool "Valid complete grid" (checkSudoku validCompleteGrid)
         putStrLn " Completed: Valid complete grid"
-    , TestCase $ do
-        assertBool "Valid incomplete grid" (checkSudoku validIncompleteGrid)
+    , HUnit.TestCase $ do
+        HUnit.assertBool "Valid incomplete grid" (checkSudoku validIncompleteGrid)
         putStrLn " Completed: Valid incomplete grid"
-    , TestCase $ do
-        assertBool "Invalid grid (row conflict)" (not $ checkSudoku invalidGridRow)
+    , HUnit.TestCase $ do
+        HUnit.assertBool "Invalid grid (row conflict)" (not $ checkSudoku invalidGridRow)
         putStrLn " Completed: Invalid grid (row conflict)"
-    , TestCase $ do
-        assertBool "Invalid grid (column conflict)" (not $ checkSudoku invalidGridCol)
+    , HUnit.TestCase $ do
+        HUnit.assertBool "Invalid grid (column conflict)" (not $ checkSudoku invalidGridCol)
         putStrLn " Completed: Invalid grid (column conflict)"
-    , TestCase $ do
-        assertBool "Invalid grid (box conflict)" (not $ checkSudoku invalidGridBox)
+    , HUnit.TestCase $ do
+        HUnit.assertBool "Invalid grid (box conflict)" (not $ checkSudoku invalidGridBox)
         putStrLn " Completed: Invalid grid (box conflict)"
-    , TestCase $ do
-        assertBool "Empty grid is valid" (checkSudoku emptyGrid)
+    , HUnit.TestCase $ do
+        HUnit.assertBool "Empty grid is valid" (checkSudoku emptyGrid)
         putStrLn " Completed: Empty grid is valid"
-    , TestCase $ do
-        assertBool "Grid with numbers out of range is invalid" (not $ checkSudoku invalidGridOutOfRange)
+    , HUnit.TestCase $ do
+        HUnit.assertBool "Grid with numbers out of range is invalid" (not $ checkSudoku invalidGridOutOfRange)
         putStrLn " Completed: Grid with numbers out of range"
     ]
 
-testSolveSudoku :: Test
-testSolveSudoku = TestLabel "Test solveSudoku function" $ TestList
-    [ TestCase $ do
+testSolveSudoku :: HUnit.Test
+testSolveSudoku = HUnit.TestLabel "Test solveSudoku function" $ HUnit.TestList
+    [ HUnit.TestCase $ do
         result <- solveSudoku validIncompleteGrid
         case result of
-            Left errMsg -> assertFailure $ "Failed to solve valid puzzle: " ++ errMsg
+            Left errMsg -> HUnit.assertFailure $ "Failed to solve valid puzzle: " ++ errMsg
             Right solution -> do
-                assertBool "Solution is valid" (checkSudoku solution)
-                assertBool "Solution is consistent with original puzzle" (isConsistent validIncompleteGrid solution)
+                HUnit.assertBool "Solution is valid" (checkSudoku solution)
+                HUnit.assertBool "Solution is consistent with original puzzle" (isConsistent validIncompleteGrid solution)
                 putStrLn " Completed: Solved valid incomplete grid"
-    , TestCase $ do
+    , HUnit.TestCase $ do
         result <- solveSudoku invalidGridRow
         case result of
-            Left _ -> do
-                putStrLn " Completed: Correctly failed to solve invalid grid (row conflict)"
-                return () 
-            Right _ -> assertFailure "Solved an invalid puzzle (row conflict)"
-    , TestCase $ do
+            Left _ -> putStrLn " Completed: Correctly failed to solve invalid grid (row conflict)"
+            Right _ -> HUnit.assertFailure "Solved an invalid puzzle (row conflict)"
+    , HUnit.TestCase $ do
         result <- solveSudoku invalidGridCol
         case result of
-            Left _ -> do
-                putStrLn " Completed: Correctly failed to solve invalid grid (column conflict)"
-                return () 
-            Right _ -> assertFailure "Solved an invalid puzzle (column conflict)"
-    , TestCase $ do
+            Left _ -> putStrLn " Completed: Correctly failed to solve invalid grid (column conflict)"
+            Right _ -> HUnit.assertFailure "Solved an invalid puzzle (column conflict)"
+    , HUnit.TestCase $ do
         result <- solveSudoku invalidGridBox
         case result of
-            Left _ -> do
-                putStrLn " Completed: Correctly failed to solve invalid grid (box conflict)"
-                return ()
-            Right _ -> assertFailure "Solved an invalid puzzle (box conflict)"
-    , TestCase $ do
+            Left _ -> putStrLn " Completed: Correctly failed to solve invalid grid (box conflict)"
+            Right _ -> HUnit.assertFailure "Solved an invalid puzzle (box conflict)"
+    , HUnit.TestCase $ do
         result <- solveSudoku emptyGrid
         case result of
-            Left errMsg -> assertFailure $ "Failed to solve empty grid: " ++ errMsg
+            Left errMsg -> HUnit.assertFailure $ "Failed to solve empty grid: " ++ errMsg
             Right solution -> do
-                assertBool "Solution is valid for empty grid" (checkSudoku solution)
+                HUnit.assertBool "Solution is valid for empty grid" (checkSudoku solution)
                 putStrLn " Completed: Solved empty grid"
-    , TestCase $ do
+    , HUnit.TestCase $ do
         result <- solveSudoku hardPuzzle
         case result of
-            Left errMsg -> assertFailure $ "Failed to solve hard puzzle: " ++ errMsg
+            Left errMsg -> HUnit.assertFailure $ "Failed to solve hard puzzle: " ++ errMsg
             Right solution -> do
-                assertBool "Solution is valid for hard puzzle" (checkSudoku solution)
-                assertBool "Solution is consistent with original hard puzzle" (isConsistent hardPuzzle solution)
+                HUnit.assertBool "Solution is valid for hard puzzle" (checkSudoku solution)
+                HUnit.assertBool "Solution is consistent with original hard puzzle" (isConsistent hardPuzzle solution)
                 putStrLn " Completed: Solved hard puzzle"
     ]
 
-testGenerateSudoku :: Test
-testGenerateSudoku = TestLabel "Test generateSudoku function" $ TestCase $ do
+testGenerateSudoku :: HUnit.Test
+testGenerateSudoku = HUnit.TestLabel "Test generateSudoku function" $ HUnit.TestCase $ do
     let difficulties = ["easy", "medium", "hard", "expert"]
     forM_ difficulties $ \difficulty -> do
         puzzle <- generateSudoku (T.pack difficulty)
-        assertBool ("Generated puzzle is valid (" ++ difficulty ++ ")") (checkSudoku puzzle)
+        HUnit.assertBool ("Generated puzzle is valid (" ++ difficulty ++ ")") (checkSudoku puzzle)
         result <- solveSudoku puzzle
         case result of
-            Left errMsg -> assertFailure $ "Failed to solve generated puzzle (" ++ difficulty ++ "): " ++ errMsg
+            Left errMsg -> HUnit.assertFailure $ "Failed to solve generated puzzle (" ++ difficulty ++ "): " ++ errMsg
             Right solution -> do
-                assertBool ("Solution is valid (" ++ difficulty ++ ")") (checkSudoku solution)
-                assertBool ("Solution is consistent with puzzle (" ++ difficulty ++ ")") (isConsistent puzzle solution)
+                HUnit.assertBool ("Solution is valid (" ++ difficulty ++ ")") (checkSudoku solution)
+                HUnit.assertBool ("Solution is consistent with puzzle (" ++ difficulty ++ ")") (isConsistent puzzle solution)
                 putStrLn $ " Completed: Generated and solved puzzle (" ++ difficulty ++ ")"
+
 
 validCompleteGrid :: [[Maybe Int]]
 validCompleteGrid = createGrid
@@ -138,7 +140,7 @@ validIncompleteGrid = createGrid
 
 invalidGridRow :: [[Maybe Int]]
 invalidGridRow = createGrid
-    [ [5,3,3,0,7,0,0,0,0] -- Conflict: two 3's in first row
+    [ [5,3,3,0,7,0,0,0,0]
     , [6,0,0,1,9,5,0,0,0]
     , [0,9,8,0,0,0,0,6,0]
     , [8,0,0,0,6,0,0,0,3]
@@ -153,7 +155,7 @@ invalidGridCol :: [[Maybe Int]]
 invalidGridCol = createGrid
     [ [5,3,0,0,7,0,0,0,0]
     , [6,0,0,1,9,5,0,0,0]
-    , [5,9,8,0,0,0,0,6,0] -- Conflict: two 5's in first column
+    , [5,9,8,0,0,0,0,6,0]
     , [8,0,0,0,6,0,0,0,3]
     , [4,0,0,8,0,3,0,0,1]
     , [7,0,0,0,2,0,0,0,6]
@@ -166,7 +168,7 @@ invalidGridBox :: [[Maybe Int]]
 invalidGridBox = createGrid
     [ [5,3,0,0,7,0,0,0,0]
     , [6,0,0,1,9,5,0,0,0]
-    , [0,9,5,0,0,0,0,6,0] -- Conflict: two 5's in the top-left box
+    , [0,9,5,0,0,0,0,6,0]
     , [8,0,0,0,6,0,0,0,3]
     , [4,0,0,8,0,3,0,0,1]
     , [7,0,0,0,2,0,0,0,6]
@@ -180,7 +182,7 @@ emptyGrid = replicate 9 (replicate 9 Nothing)
 
 invalidGridOutOfRange :: [[Maybe Int]]
 invalidGridOutOfRange = createGrid
-    [ [10,3,0,0,7,0,0,0,0] -- 10 is out of range
+    [ [10,3,0,0,7,0,0,0,0]
     , [6,0,0,1,9,5,0,0,0]
     , [0,9,8,0,0,0,0,6,0]
     , [8,0,0,0,6,0,0,0,3]
@@ -204,10 +206,33 @@ hardPuzzle = createGrid
     , [3,4,0,0,0,0,0,0,0]
     ]
 
+-- Property-based tests with Hedgehog
+cellGen :: Gen (Maybe Int)
+cellGen = Gen.frequency
+  [ (1, pure Nothing)
+  , (9, Just <$> Gen.int (Range.constant 1 9))
+  ]
+
+gridGen :: Gen [[Maybe Int]]
+gridGen = Gen.list (Range.singleton 9) (Gen.list (Range.singleton 9) cellGen)
+
+prop_randomPuzzle :: Property
+prop_randomPuzzle = property $ do
+  grid <- forAll gridGen
+  result <- liftIO $ solveSudoku grid
+  case result of
+    Right solution -> checkSudoku solution === True
+    Left _ -> success
+
 main :: IO ()
 main = do
-  counts <- runTestTT $ TestList [testCheckSudoku, testSolveSudoku, testGenerateSudoku]
-  putStrLn $ "Ran " ++ show (cases counts) ++ " tests."
-  if errors counts + failures counts == 0
-    then putStrLn "All tests passed."
-    else putStrLn $ "Tests failed: " ++ show (errors counts + failures counts)
+  counts <- HUnit.runTestTT $ HUnit.TestList [testCheckSudoku, testSolveSudoku, testGenerateSudoku]
+  putStrLn $ "Ran " ++ show (HUnit.cases counts) ++ " tests."
+  if HUnit.errors counts + HUnit.failures counts == 0
+    then putStrLn "All unit tests passed."
+    else putStrLn $ "Tests failed: " ++ show (HUnit.errors counts + HUnit.failures counts)
+
+  propRes <- check prop_randomPuzzle
+  if not propRes
+    then putStrLn "Property test failed"
+    else putStrLn "Property tests passed"

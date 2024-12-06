@@ -48,6 +48,7 @@ extra-deps:
 - containers-0.6.7
 - random-shuffle-0.0.4
 - http-types-0.12.4
+- hedgehog-1.4
 
 # Override default flag values for project packages and extra-deps
 # flags: {}

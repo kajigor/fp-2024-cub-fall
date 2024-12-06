@@ -53,6 +53,13 @@ packages:
       size: 910
   original:
     hackage: http-types-0.12.4
+- completed:
+    hackage: hedgehog-1.4@sha256:9860ab34ab3951d9515c71b777d8c9c47610aae7339933e17d26ad9a4afa5618,4754
+    pantry-tree:
+      sha256: 8fd5983d447a5362856d4741d9e19cac8dcab150017c91b0c5acad6472afb0f6
+      size: 2713
+  original:
+    hackage: hedgehog-1.4
 snapshots:
 - completed:
     sha256: 08bd13ce621b41a8f5e51456b38d5b46d7783ce114a50ab604d6bbab0d002146
