@@ -13,7 +13,7 @@ tests = TestList
 
 testSuccessfulFileRead :: Test
 testSuccessfulFileRead = TestCase $ do
-    let filePath = "test/testfiles/sample.txt"
+    let filePath = "test/testfiles/10000words.txt"
     fileExists <- doesFileExist filePath
     if not fileExists
        then assertFailure "sample.txt not found. Create test/testfiles/sample.txt with some content."

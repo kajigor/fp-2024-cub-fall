@@ -18,8 +18,8 @@ testStatisticsComputation = TestCase $ do
     let content = "Hello World\nThis is a test."
         stats = computeStatistics content
     assertEqual "Line count should be 2" 2 (lineCount stats)
-    assertEqual "Word count should be 5" 5 (wordCount stats)
-    assertEqual "Character count should be 25" 25 (characterCount stats)
+    assertEqual "Word count should be 6" 6 (wordCount stats)
+    assertEqual "Character count should be 27" 27 (characterCount stats)
 
 prop_charCountGreaterOrEqualWordCount :: Test
 prop_charCountGreaterOrEqualWordCount = TestCase $ quickCheck prop

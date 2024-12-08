@@ -7,6 +7,7 @@ import qualified FrequentWordsSpec
 import qualified NGramAnalysisSpec
 import qualified WordCloudSpec
 import qualified ErrorHandlingSpec
+import qualified TextUtilsSpec
 
 main :: IO ()
 main = do
@@ -17,5 +18,6 @@ main = do
         , NGramAnalysisSpec.tests
         , WordCloudSpec.tests
         , ErrorHandlingSpec.tests
+        , TextUtilsSpec.tests
         ]
     return ()

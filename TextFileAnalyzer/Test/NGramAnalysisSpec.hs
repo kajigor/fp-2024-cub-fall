@@ -24,8 +24,8 @@ testNGreaterThanWordCount = TestCase $ do
 
 testRepeatedPhrases :: Test
 testRepeatedPhrases = TestCase $ do
-    let content = "i love jetrbains i love jetbrains i love jetbrains"
+    let content = "i love jetbrains i love jetbrains i love jetbrains"
         ngrams = generateNGrams 3 content
     assertBool "Should have non-empty n-grams" (not (null ngrams))
     let (topNGram, freq) = head ngrams
-    assertEqual "Most frequent n-gram" ("i love jetrbains", 3) (topNGram, freq)
+    assertEqual "Most frequent n-gram" ("i love jetbrains", 3) (topNGram, freq)
