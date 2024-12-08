@@ -18,7 +18,13 @@ revealCell grid pos =
 
 -- Check if all non-mine cells are revealed
 isWin :: Grid -> Bool
-isWin = all (all (\case (Revealed, Mine) -> False; (Revealed, _) -> True; (Hidden, Mine) -> True; _ -> False))
+isWin = all (all (\case
+    (Revealed, Mine) -> False           -- Revealed mines lead to loss
+    (Revealed, _) -> True                -- Revealed non-mine cells are okay
+    (Hidden, Mine) -> True               -- Hidden mines are considered "safe" for the win condition
+    (Flagged, _) -> True                 -- Flagged cells are considered correctly handled
+    _ -> False                           -- Any other state is not a valid win
+  ))
 
 -- Check if a mine is revealed
 isLoss :: Grid -> Bool
