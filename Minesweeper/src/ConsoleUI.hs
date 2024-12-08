@@ -49,7 +49,11 @@ parseMove input = case words input of
 
 -- Print the grid to the console
 printGrid :: Grid -> IO ()
-printGrid grid = putStr (unlines (map (unwords . map cellToChar) grid))
+printGrid grid = do
+    let cols = "  " ++ unwords (map show [0 .. length (head grid) - 1])
+    let rows = zipWith (\i row -> show i ++ " " ++ unwords (map cellToChar row)) [0..] grid
+    putStrLn cols
+    putStr (unlines rows)
 
 -- Convert a cell to displayable text
 cellToChar :: (VisibleState, Cell) -> String
