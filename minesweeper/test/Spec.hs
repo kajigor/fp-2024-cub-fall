@@ -56,7 +56,7 @@ validateParametersTests = testGroup "Validate Parameters Tests"
   , testCase "Negative Dimensions" $
       validateParameters (-1) 5 5 @?= Left "Grid dimensions must be greater than 0."
   , testCase "Too Many Mines" $
-      validateParameters 5 5 26 @?= Left "Number of mines must be less than the total number of cells."
+      validateParameters 5 5 26 @?= Left "Number of mines must be less than the total number of valid cells after excluding the first chosen cell."
   , testCase "Negative Mines" $
       validateParameters 5 5 (-1) @?= Left "Number of mines must be non-negative."
   ]

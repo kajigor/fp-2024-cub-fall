@@ -50,7 +50,7 @@ validateParameters rows cols mines
     | rows <= 0 || cols <= 0 = Left "Grid dimensions must be greater than 0."
     | mines < 0 = Left "Number of mines must be non-negative."
     | mines == 0 = Left "Number of mines must be greater than 0."
-    | mines >= rows * cols = Left "Number of mines must be less than the total number of cells."
+    | mines >= (rows * cols) - 1 = Left "Number of mines must be less than the total number of valid cells after excluding the first chosen cell."
     | otherwise = Right ()
 
 -- Ask the user for their first move
