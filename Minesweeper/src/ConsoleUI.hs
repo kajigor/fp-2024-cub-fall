@@ -49,7 +49,7 @@ parseMove input = case words input of
 
 -- Print the grid to the console
 printGrid :: Grid -> IO ()
-printGrid = mapM_ (putStrLn . unwords . map cellToChar)
+printGrid grid = putStr (unlines (map (unwords . map cellToChar) grid))
 
 -- Convert a cell to displayable text
 cellToChar :: (VisibleState, Cell) -> String

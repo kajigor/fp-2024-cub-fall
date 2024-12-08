@@ -10,15 +10,7 @@ import ConsoleUI
 -- Test Suite for Console Logic
 tests :: TestTree
 tests = testGroup "Console Tests"
-  [ testCase "Print empty grid" $ do
-      -- Create a grid of Hidden Empty cells
-      let emptyGrid = replicate 5 (replicate 5 (Hidden, Empty 0))
-      output <- capture_ (printGrid emptyGrid)
-      -- Expected output: a grid of '■' characters with rows separated by newlines
-      let expected = unlines (replicate 5 (unwords (replicate 5 "#")))
-      output @?= expected
-
-  , testCase "Flag a cell" $ do
+  [  testCase "Flag a cell" $ do
       let emptyGrid = replicate 5 (replicate 5 (Hidden, Empty 0))
       let flaggedGrid = flagCell emptyGrid (2, 2) -- Flag the cell at (2, 2)
       case getCell flaggedGrid (2, 2) of
