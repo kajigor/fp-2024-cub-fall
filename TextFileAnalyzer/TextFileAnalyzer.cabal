@@ -60,7 +60,7 @@ test-suite text-file-analyzer-test
       WordCloudSpec
       Paths_TextFileAnalyzer
   hs-source-dirs:
-      Test
+      test
   ghc-options: -Wall
   build-depends:
       HUnit >=1.6

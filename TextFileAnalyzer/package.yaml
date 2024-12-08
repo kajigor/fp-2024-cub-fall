@@ -53,7 +53,7 @@ benchmarks:
 tests:
   text-file-analyzer-test:
     main: Spec.hs
-    source-dirs: Test
+    source-dirs: test
     ghc-options: -Wall
     language: Haskell2010
     dependencies:
