@@ -6,7 +6,7 @@ import Memory
 import Text.Parsec (parse, ParseError, (<|>), try, string, spaces, char, many1, letter)
 import Text.Parsec.String (Parser)
 import qualified Data.Map as Map
-
+import Text.Printf (printf)  -- For clean floating-point formatting
 
 -- command type to handle different user inputs
 data Command
@@ -37,7 +37,6 @@ parseMemorySet = do
     evaluateExpr (Num x) = x
     evaluateExpr _ = error "Invalid memory value: expected a constant"
 
-
 parseMemoryPrint :: Parser Command
 parseMemoryPrint = string "memory" >> return MemoryPrint
 
@@ -58,21 +57,19 @@ repl state = do
                 then putStrLn "Error: Invalid operation"
             else if isInfinite result
                 then putStrLn "Error: Division by zero resulted in Infinity."
-            else print result
+            else putStrLn $ "Result: " ++ printf "%.10g" result
             repl newState
         Right MemoryPrint -> do
             if null (Map.toList $ memory state)
                 then putStrLn "Memory is empty."
                 else do
                     putStrLn "Memory:"
-                    mapM_ (\(key, value) -> putStrLn $ key ++ " = " ++ show value) (Map.toList $ memory state)
+                    mapM_ (\(key, value) -> putStrLn $ key ++ " = " ++ printf "%.10g" value) (Map.toList $ memory state)
             repl state
         Right (MemorySet key value) -> do
             let newState = storeMemory key value state
-            putStrLn $ "Stored: " ++ key ++ " = " ++ show value
+            putStrLn $ "Stored: " ++ key ++ " = " ++ printf "%.10g" value
             repl newState
-
-
 
 main :: IO ()
 main = do
