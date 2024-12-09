@@ -14,19 +14,15 @@ main = do
             content <- processFileMaybe path_file
             case content of
                 Just fileContent -> do
-                    numWords <- wordCounter fileContent
-                    putStrLn $ "Number of words: " ++ show numWords
-                    numLines <- lineCounter fileContent
-                    putStrLn $ "Number of lines: " ++ show numLines
-                    numChar <- characterCounter fileContent
-                    putStrLn $ "Number of characters: " ++ show numChar
-                    frqtWord <- frequentWord fileContent
-                    putStrLn $ "Frequent word: " ++ show frqtWord
+                    putStrLn $ "Number of words: " ++ show (wordCounter fileContent)
+                    putStrLn $ "Number of lines: " ++ show (lineCounter fileContent)
+                    putStrLn $ "Number of characters: " ++ show (characterCounter fileContent)
+                    putStrLn $ "Frequent word: " ++ show (frequentWord fileContent)
                     number <- checkNum
                     putStrLn "N-grams:"
-                    ngram fileContent number
-                    putStrLn "Cloud representation:"
-                    couldRepresentation fileContent
+                    let ngrams = ngram fileContent number
+                    mapM_ putStrLn (formatNgrams ngrams)
+                    putStrLn ("Cloud representation:" ++ generateWordCloud fileContent)
                 Nothing -> putStrLn "File is empty"
         else putStrLn "File doesn't exist"
 

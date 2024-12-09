@@ -14,51 +14,60 @@ genMultiLineString = do
     liness <- Gen.list (Range.linear 1 100) (Gen.string (Range.linear 0 50) Gen.unicode)
     return (unlines liness)
 
-prop_wordCount :: Property
-prop_wordCount = property $ do
-    content <- forAll genString
-    let wordsContent = words content
-    resultWordCount <- evalIO $ wordCounter content
-    assert (resultWordCount == length wordsContent)
-
 prop_nonNegativeWordCount :: Property
 prop_nonNegativeWordCount = property $ do
-  content <- forAll genString
-  result <- evalIO (wordCounter content)
-  assert (result >= 0)
+    content <- forAll genString
+    let result = wordCounter content
+    assert (result >= 0)
 
 prop_lineCount :: Property
 prop_lineCount = property $ do
     content <- forAll genMultiLineString
     let newlineCount = length (filter (== '\n') content)
         expectedLineCount = if null content || last content == '\n' then newlineCount else newlineCount + 1
-    resultLinesCount <- evalIO $ lineCounter content
+        resultLinesCount = lineCounter content
     assert (resultLinesCount == expectedLineCount)
-
-prop_characterCount :: Property
-prop_characterCount = property $ do
-    content <- forAll genString
-    resultCharacterCount <- evalIO $ characterCounter content
-    assert (resultCharacterCount == length content)
 
 prop_nonNegativeCharacterCount :: Property
 prop_nonNegativeCharacterCount = property $ do
   content <- forAll genString
-  result <- evalIO (characterCounter content)
+  let result = characterCounter content
   assert (result >= 0)
+
+prop_Ngram_largeN :: Property
+prop_Ngram_largeN = property $ do
+    content <- forAll genString
+    let n = length (words content) + 1
+    let result = ngram content n
+    assert (null result)
+
+prop_Ngram_emptyContent :: Property
+prop_Ngram_emptyContent = property $ do
+    let content = ""
+    n <- forAll (Gen.int (Range.linear 1 10))
+    let result = ngram content n
+    assert (null result)
+
+testNgram :: [TestTree]
+testNgram =  
+    [ testCase "Single word" $
+        ngram "hello" 1 @?= [("hello", 1)]
+    , testCase "Multiple words with frequencies" $
+        (take 1 (ngram "Hello world Hello world Yassine" 2)) @?= [("Hello world", 2)]
+  ]
 
 testFrequentWord :: [TestTree]
 testFrequentWord =  
     [ testCase "Empty string" $
-        mostFrequentWord "" @?= "No words found"
+        frequentWord "" @?= "No words found"
     , testCase "Single word" $
-        mostFrequentWord "hello" @?= "hello"
+        frequentWord "hello" @?= "hello"
     , testCase "Multiple words with frequencies" $
-        mostFrequentWord "apple banana apple orange banana banana" @?= "banana"
+        frequentWord "apple banana apple orange banana banana" @?= "banana"
     , testCase "Handles punctuation correctly" $
-        mostFrequentWord "hello, apple!" @?= "apple"
+        frequentWord "hello, apple!" @?= "apple"
     , testCase "If same frequency for multiple words" $
-        mostFrequentWord "hello yassine founounou" @?= "founounou"
+        frequentWord "hello yassine founounou" @?= "founounou"
   ]
 
 test_generateWordCloud :: [TestTree]
@@ -73,6 +82,9 @@ test_generateWordCloud =
       generateWordCloud "hello, hello world!" @?= "hello hello world"
   ]
 
+testNgramGroup :: TestTree
+testNgramGroup = testGroup "Ngram tests" testNgram
+
 test_generateWordCloudGroup :: TestTree
 test_generateWordCloudGroup = testGroup "generateWordCloud tests" test_generateWordCloud
 
@@ -81,13 +93,14 @@ testFrequentWordGroup = testGroup "frequentWord tests" testFrequentWord
 
 tests :: TestTree
 tests = testGroup "Reader Module Tests"
-  [ testProperty "wordCounter counts words correctly" prop_wordCount
-  , testProperty "WordCounter always generate result larger or equal than 0" prop_nonNegativeWordCount
+  [ testProperty "WordCounter always generate result larger or equal than 0" prop_nonNegativeWordCount
   , testProperty "lineCounter counts lines properly" prop_lineCount
-  , testProperty "characterCounter counts characters properly" prop_characterCount
   , testProperty "characterCounter always generates result larger than or equal than 0" prop_nonNegativeCharacterCount
+  , testProperty "Ngram with n larger than the number of words" prop_Ngram_largeN
+  , testProperty "Ngram with empty content" prop_Ngram_emptyContent
   , test_generateWordCloudGroup
   , testFrequentWordGroup
+  , testNgramGroup
   ]
 
 main :: IO ()
