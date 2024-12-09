@@ -85,6 +85,29 @@ prop_mulCommutative x y =
     fst (evaluate (Mul (Num x) (Num y)) initialState) ==
     fst (evaluate (Mul (Num y) (Num x)) initialState)
 
+prop_addCommutativeComplex :: Expr -> Expr -> Bool
+prop_addCommutativeComplex e1 e2 =
+    fst (evaluate (Add e1 e2) initialState) ==
+    fst (evaluate (Add e2 e1) initialState)
+
+prop_mulCommutativeComplex :: Expr -> Expr -> Bool
+prop_mulCommutativeComplex e1 e2 =
+    fst (evaluate (Mul e1 e2) initialState) ==
+    fst (evaluate (Mul e2 e1) initialState)
+
+-- Example generators for complex expressions
+instance Arbitrary Expr where
+    arbitrary = do
+        let base = oneof [Num <$> arbitrary]
+        sized $ \n ->
+            if n == 0
+            then base
+            else oneof
+                [ Add <$> resize (n `div` 2) arbitrary <*> resize (n `div` 2) arbitrary
+                , Mul <$> resize (n `div` 2) arbitrary <*> resize (n `div` 2) arbitrary
+                , base
+                ]
+
 prop_memoryStorage :: String -> Double -> Bool
 prop_memoryStorage key value =
     let state = storeMemory key value initialState
@@ -107,5 +130,7 @@ main = do
         ])
     putStrLn "Running QuickCheck tests..."
     quickCheck prop_addCommutative
+    quickCheck prop_mulCommutativeComplex
+    quickCheck prop_addCommutativeComplex
     quickCheck prop_mulCommutative
     quickCheck prop_memoryStorage
