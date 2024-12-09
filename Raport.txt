@@ -1,0 +1,133 @@
+Scientific Calculator
+Author: Klestid Poloska
+Subject: Functional Programming 
+
+
+
+1. What the Task Was
+
+The goal of the project was to create a scientific calculator, capable of performing complex mathematical expressions.The following functionalities were implemented:
+- Arithmetic Operations: addition, subtraction, multiplication, division, and exponentiation.
+- Square Root and Negation: square root and negation of numbers.
+- Trigonometric Functions: sine, cosine, and tangent calculations.
+- Logarithmic and Exponential Functions: base-10 logarithm, ln, and exponentiation (e).
+- Constants and Variables: pi and e, and allows the use of variables.
+- Memory Management: commands to store and recall variable values, clear specific variables, or clear all memory.
+- UI: a command-line-based REPL for interactive use.
+
+However, the task required also ensuring that the code was modular, maintainable and testable, in addition to testing to verify correctness and functionality.
+
+
+
+2. The Architecture of Your Solution
+
+The solution was designed to ensure modularity and clarity, using these components:
+
+Parser.hs:
+   - Defines the syntax for mathematical expressions using the `Parsec` library.
+   - Supports variables, constants, functions, number parsing and operators. 
+   - Designed to correctly handle the order of operations and how operators group with operands.
+
+Evaluator.hs:
+   - Implements the logic for evaluating parsed expressions.
+   - Uses a state monad to maintain and update the calculator's memory.
+   - Error handling for cases like division by zero, square root of negative numbers, or undefined variables.
+   - Supports extensible operations, enabling the possibility of adding new functions and features.
+
+Memory.hs:
+   - Manages calculator memory as a map.
+   - Provides functions to store, delete, or clear memory.
+
+Main.hs:
+   - Implements a REPL interface for UI.
+   - Handles user input, calls the parser and evaluator, and displays results or errors.
+   - Supports commands like storing values in memory, printing it and evaluating expressions.
+
+Test.hs:
+   - Contains unit tests and property tests.
+   - Tests were designed to cover all the functionalities, from arithmetic to edge cases like invalid operations or complex expressions.
+   - Property-based testing was implemented to ensure the correctness of the properties, such commutativity of addition.
+
+
+
+3. Why Certain Architecture Decisions Were Made:
+
+The reasons why such decisions had to be made are as following: 
+- Seperating the code into several components ensured readability, easy-maintanace and proper testing.
+- State monad for the memory was chosed due to its ability for easy memory management, which simplified the state transition and eleminate the need for globel variables.
+- REPL interface provided a simple enough way for the users to interact with the calculator
+
+The design also is open to future improvements, such as adding new operations, extending memory capabilities, or integrating a graphical UI.
+
+
+
+4. Why Certain Libraries Were Chosen
+
+The following libraries were chosen to fulfill the requirement:
+
+- base: provides basic Haskell functionality.
+- containers: makes the implementation of the calculator's memory using `Map` possible, which supports fast insertion and lookup.
+- mtl: gives access the state monad, simplifying memory management.
+- parsec: used for defining and parsing the grammar of mathematical expressions, chosen for its support for complex grammars.
+- scientific: high precision in floating-point arithmetic.
+- HUnit and QuickCheck: enable rigorous testing. HUnit is used for unit testing individual components, while `QuickCheck` is used for property-based testing.
+
+
+
+5. Investigation of the Performance
+
+Performance was evaluated using the following criteria:
+
+1. Correctness Testing:
+   - Unit tests were written for parsing, evaluation, and memory operations.
+   - Edge cases were covered, such as division by zero, logarithm of negative numbers, and handling of invalid inputs.
+   - Property tests verified mathematical properties like commutativity of addition and multiplication.
+
+2. Efficiency of Memory Management:
+   - Memory was implemented using `Map` from the `containers` library, ensuring efficient lookup.
+   - Commands for clearing and managing memory were tested for performance with several numbers of variables.
+
+3. Precision of Calculations:
+   - The use of the scientific library ensured precision.
+   - Trigonometric and logarithmic calculations were tested for accuracy against known values.
+
+4. Error Handling:
+   - The application handled errors like invalid memory access or unsupported operations, ensuring that such cases did not crash the application.
+   - Specific error messages were displayed to notify the users when mistakees were made.
+
+5. User Experience:
+   - The REPL interface provided a simple and intuitive user experience.
+   - Commands were parsed and executed efficiently, with quick feedback provided to the user.
+
+
+6. Testing
+In order to manually test the calculator, the following commands should be executed:
+
+- stack build - build the project
+- stack test - run the provided tests
+- stack exec scientific-calculator - test it manually (ensure that the characters are spaced when entering the desired calculation, i.e [x + 5])
+
+Example: 
+
+    >> memory x = 5
+    Stored: x = 5.0
+
+    >> x + 5
+    10.0
+
+    >> sin (5 + 2)
+    0.6569865987187891
+
+    >> sqrt -1
+    Error: Invalid operation (e.g., square root of a negative number).
+
+    >> 1 / 0
+    Warning: Division by zero resulted in Infinity.
+
+In order to exit the program, click Ctrl+C.
+
+Conclusion
+The project implementation of a modular and efficient scientific calculator was successful. The architecture, error handling and rigorous testing
+made sure that the application met the expected requirements for accuracy and performance. The design makes it easy to expand upon adding more complex
+functions or creating a graphical UI.
+
