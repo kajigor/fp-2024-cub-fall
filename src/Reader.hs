@@ -24,23 +24,19 @@ frequentWord content = mostFrequentWord content
 mostFrequentWord :: String -> String
 mostFrequentWord content =
     let cleanWords = processContent content
-        groupedWords = group $ sort cleanWords
-        wordCounts = map (\ws -> (head ws, length ws)) groupedWords
+        wordCounts = countOccurrence cleanWords
         sortedWordCounts = sortBy (comparing (Down . snd)) wordCounts
     in if not (null sortedWordCounts)
        then fst (head sortedWordCounts)
        else "No words found"
 
 ngram :: String -> Int -> [(String, Int)]
-ngram content n =
-    let cleanWords = processContent content
-        sortedNgrams = generateOccurrences n cleanWords
-    in sortedNgrams
+ngram content n = generateNgrams content n
 
 generateWordCloud :: String -> String
 generateWordCloud content =
-    let cleanWords = processContent content
-        sortedNgrams = generateOccurrences 1 cleanWords
+    let ngrams = generateNgrams content 1
+        sortedNgrams = sortBy (comparing (Down . snd)) ngrams
     in unwords $ concatMap (\(word, count) -> replicate count word) sortedNgrams
 
 processFileMaybe :: FilePath -> IO (Maybe String)
@@ -54,7 +50,7 @@ cleanWord :: String -> String
 cleanWord = filter isAlphaNum
 
 outputFormatting :: (String, Int) -> String
-outputFormatting (sentence, count) = sentence ++ ": " ++ show count ++ " occurences"
+outputFormatting (sentence, count) = sentence ++ ": " ++ show count ++ " occurrences"
 
 formatNgrams :: [(String, Int)] -> [String]
 formatNgrams ngrams = map outputFormatting ngrams
@@ -62,16 +58,20 @@ formatNgrams ngrams = map outputFormatting ngrams
 ngramHelper :: Int -> [String] -> [String]
 ngramHelper n tokens
     | length tokens < n = []
-    | otherwise =  unwords (take n tokens) : (ngramHelper n (tail tokens))
+    | otherwise = unwords (take n tokens) : ngramHelper n (tail tokens)
 
 generateOccurrences :: Int -> [String] -> [(String, Int)]
 generateOccurrences n wordsList =
     let ngrams = ngramHelper n wordsList
-        occurrences = countOccurence ngrams
-    in sortBy (comparing (Down . snd)) occurrences
+    in countOccurrence ngrams
+
+generateNgrams :: String -> Int -> [(String, Int)]
+generateNgrams content n =
+    let cleanWords = processContent content
+    in generateOccurrences n cleanWords
 
 processContent :: String -> [String]
 processContent content = map cleanWord (words content)
 
-countOccurence :: [String] -> [(String, Int)]
-countOccurence ngrams = map (\ws -> (head ws, length ws)) ((group . sort) ngrams)
+countOccurrence :: Ord a => [a] -> [(a, Int)]
+countOccurrence xs = map (\ws -> (head ws, length ws)) (group . sort $ xs)
