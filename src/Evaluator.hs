@@ -7,7 +7,7 @@ import Memory
 import Control.Monad.State
 import qualified Data.Map as Map
 
--- Evaluate an expression
+-- evaluate an expression
 evaluate :: Expr -> CalcState -> (Double, CalcState)
 evaluate expr calcState = runState (evalExpr expr) calcState
 
@@ -24,7 +24,7 @@ evalExpr (Mul x y) = (*) <$> evalExpr x <*> evalExpr y
 evalExpr (Div x y) = do
     divisor <- evalExpr y
     if divisor == 0
-        then return (1 / 0) -- Return Infinity or some other default value
+        then return (1 / 0)
         else (/) <$> evalExpr x <*> pure divisor
 evalExpr (Pow x y) = (**) <$> evalExpr x <*> evalExpr y
 evalExpr (Sqrt x) = do
