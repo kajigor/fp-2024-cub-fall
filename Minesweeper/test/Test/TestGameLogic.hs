@@ -53,3 +53,7 @@ tests = testGroup "Game Logic Tests"
                   [(Hidden, Mine), (Hidden, Empty 0)]]
       countMines grid @?= 2
   ]
+
+-- Utility to count the number of mines in the grid	
+countMines :: Grid -> Int
+countMines = sum . map (length . filter (\(_, cell) -> cell == Mine))

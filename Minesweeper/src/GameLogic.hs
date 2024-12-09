@@ -53,12 +53,3 @@ playMove grid (row, col, action) =
                 'f' -> -- Flag action
                     Right $ flagCell grid (row, col)
                 _ -> Left $ InvalidInput "Invalid action. Use 'r' to reveal or 'f' to flag."
-
-calculateMinesLeft :: Grid -> Int
-calculateMinesLeft grid = totalMines - flaggedCells
-  where
-    totalMines = countMines grid
-    flaggedCells = length [(vs, c) | row <- grid, (vs, c) <- row, vs == Flagged]
-
-countMines :: Grid -> Int
-countMines = sum . map (length . filter (\(_, cell) -> cell == Mine))

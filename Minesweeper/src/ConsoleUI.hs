@@ -26,9 +26,7 @@ initializeAndStartGame rows cols mines = do
 -- Game loop to handle moves
 gameLoop :: Grid -> IO ()
 gameLoop grid = do
-    let minesLeft = calculateMinesLeft grid
     printGrid grid
-    putStrLn $ "Mines left: " ++ show minesLeft
     putStr "Enter move (row col action [r/f]): "
     hFlush stdout
     input <- getLine
@@ -77,11 +75,8 @@ parseMove input = case words input of
 
 -- Print the grid to the console
 printGrid :: Grid -> IO ()
-printGrid grid = do
-    let cols = "  " ++ unwords (map show [0 .. length (head grid) - 1])
-    let rows = zipWith (\i row -> show i ++ " " ++ unwords (map cellToChar row)) [0..] grid
-    putStrLn cols
-    putStr (unlines rows)
+printGrid grid = putStr (unlines (map (unwords . map cellToChar) grid))
+
 
 -- Convert a cell to displayable text
 cellToChar :: (VisibleState, Cell) -> String
