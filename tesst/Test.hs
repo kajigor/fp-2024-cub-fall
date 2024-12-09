@@ -95,7 +95,6 @@ prop_mulCommutativeComplex e1 e2 =
     fst (evaluate (Mul e1 e2) initialState) ==
     fst (evaluate (Mul e2 e1) initialState)
 
--- Example generators for complex expressions
 instance Arbitrary Expr where
     arbitrary = do
         let base = oneof [Num <$> arbitrary]
