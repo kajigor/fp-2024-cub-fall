@@ -70,7 +70,11 @@ parseConstant :: Parser Expr
 parseConstant = (string "pi" >> return Pi) <|> (string "e" >> return E)
 
 parseNumber :: Parser Expr
-parseNumber = (Num . read) <$> many1 (digit <|> char '.' <|> oneOf "-+eE")
+parseNumber = do
+    num <- many1 (oneOf "0123456789.")
+    if length (filter (=='.') num) > 1 
+        then fail "Invalid number format"
+        else return $ Num (read num)
 
 parseFactor :: Parser Expr
 parseFactor = spaces *> (parseConstant
