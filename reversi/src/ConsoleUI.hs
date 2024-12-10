@@ -10,10 +10,17 @@ import Text.Read (readMaybe)
 
 renderBoard :: Board -> String
 renderBoard board =
-  dropWhileEnd isSpace ("  " ++ concatMap (: " ") (take (length board) ['A' ..])) ++ "\n"
-  ++ unlines (map renderRow (zip [1..] board))
+  let maxRowNumLen = length (show (length board))
+      columnHeaders = concatMap (: " ") (take (length board) ['A' ..])
+      columnHeadersPadded = replicate maxRowNumLen ' ' ++ columnHeaders
+  in dropWhileEnd isSpace (" " ++ columnHeadersPadded) ++ "\n"
+     ++ unlines (map (renderRow maxRowNumLen) (zip [1..] board))
   where
-    renderRow (rowNum, row) = dropWhileEnd isSpace $ show rowNum ++ " " ++ concatMap renderCell row
+    renderRow maxRowNumLen (rowNum, row) =
+      let rowNumStr = show rowNum
+          padding = replicate (maxRowNumLen - length rowNumStr) ' '
+      in dropWhileEnd isSpace $ padding ++ rowNumStr ++ " " ++ concatMap renderCell row
+
     renderCell Nothing = ". "
     renderCell (Just Black) = "B "
     renderCell (Just White) = "W "
