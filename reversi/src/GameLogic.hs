@@ -17,6 +17,9 @@ opponent White = Black
 directions :: [(Int, Int)]
 directions = [(dx, dy) | dx <- [-1 .. 1], dy <- [-1 .. 1], (dx, dy) /= (0, 0)]
 
+outOfBounds :: Board -> Int -> Int -> Bool
+outOfBounds board x y = x < 0 || y < 0 || x >= length board || y >= length board
+
 canFlipInDirection :: Board -> Disc -> (Int, Int) -> (Int, Int) -> Bool
 canFlipInDirection board player (x, y) (dx, dy) = go (x + dx, y + dy) False
   where
@@ -29,26 +32,28 @@ canFlipInDirection board player (x, y) (dx, dy) = go (x + dx, y + dy) False
 
 isValidMove :: GameState -> (Int, Int) -> Either MoveError ()
 isValidMove (GameState board player _) (x, y)
-  | not inBounds = Left OutOfBounds
+  | outOfBounds board x y = Left OutOfBounds
   | isJust (board !! x !! y) = Left PositionOccupied
   | not canFlip = Left CannotFlip
   | otherwise = Right ()
   where
-    size = length board
-    inBounds = x >= 0 && y >= 0 && x < size && y < size
     canFlip = any (canFlipInDirection board player (x, y)) directions
 
 getDisksToFlip :: Disc -> (Int, Int) -> (Int, Int) -> Board -> [(Int, Int)]
 getDisksToFlip player (x, y) (dx, dy) board
-  | x < 0 || y < 0 || x >= length board || y >= length board = []
+  | outOfBounds board x y = []
   | isNothing (board !! x !! y) = []
   | board !! x !! y == Just player = []
   | otherwise =
-      let nextToFlip = getDisksToFlip player (x + dx, y + dy) (dx, dy) board
-      in if null nextToFlip && isNothing (board !! (x + dx) !! (y + dy))
+      let nextX = x + dx
+          nextY = y + dy
+      in if outOfBounds board nextX nextY || isNothing (board !! nextX !! nextY)
          then []
-         else (x, y) : nextToFlip
-
+         else
+            let nextToFlip = getDisksToFlip player (nextX, nextY) (dx, dy) board
+            in if null nextToFlip && board !! nextX !! nextY /= Just player
+               then []
+               else (x, y) : nextToFlip
 
 flipDiscs :: Disc -> (Int, Int) -> Board -> (Int, Int) -> Board
 flipDiscs player (x, y) board (dx, dy) =
