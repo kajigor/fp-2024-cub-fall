@@ -158,6 +158,83 @@ unitTests = testGroup "Unit Tests"
         ]
 
       return ()
+
+  , testCase "Test another game" $ do
+      let curBoard = initGame 8
+      curBoard1 <- checkValidMove (applyMove curBoard (2, 3)) $ unlines  -- B: 3D
+        [ "  A B C D E F G H"
+        , "1 . . . . . . . ."
+        , "2 . . . . . . . ."
+        , "3 . . . B . . . ."
+        , "4 . . . B B . . ."
+        , "5 . . . B W . . ."
+        , "6 . . . . . . . ."
+        , "7 . . . . . . . ."
+        , "8 . . . . . . . ."
+        ]
+
+      curBoard2 <- checkValidMove (applyMove curBoard1 (2, 2)) $ unlines  -- W: 3C
+        [ "  A B C D E F G H"
+        , "1 . . . . . . . ."
+        , "2 . . . . . . . ."
+        , "3 . . W B . . . ."
+        , "4 . . . W B . . ."
+        , "5 . . . B W . . ."
+        , "6 . . . . . . . ."
+        , "7 . . . . . . . ."
+        , "8 . . . . . . . ."
+        ]
+
+      curBoard3 <- checkValidMove (applyMove curBoard2 (3, 2)) $ unlines  -- B: 4C
+        [ "  A B C D E F G H"
+        , "1 . . . . . . . ."
+        , "2 . . . . . . . ."
+        , "3 . . W B . . . ."
+        , "4 . . B B B . . ."
+        , "5 . . . B W . . ."
+        , "6 . . . . . . . ."
+        , "7 . . . . . . . ."
+        , "8 . . . . . . . ."
+        ]
+
+      curBoard4 <- checkValidMove (applyMove curBoard3 (4, 2)) $ unlines  -- W: 5C
+        [ "  A B C D E F G H"
+        , "1 . . . . . . . ."
+        , "2 . . . . . . . ."
+        , "3 . . W B . . . ."
+        , "4 . . W B B . . ."
+        , "5 . . W W W . . ."
+        , "6 . . . . . . . ."
+        , "7 . . . . . . . ."
+        , "8 . . . . . . . ."
+        ]
+
+
+      curBoard5 <- checkValidMove (applyMove curBoard4 (5, 1)) $ unlines  -- B: 6B
+        [ "  A B C D E F G H"
+        , "1 . . . . . . . ."
+        , "2 . . . . . . . ."
+        , "3 . . W B . . . ."
+        , "4 . . W B B . . ."
+        , "5 . . B W W . . ."
+        , "6 . B . . . . . ."
+        , "7 . . . . . . . ."
+        , "8 . . . . . . . ."
+        ]
+
+      curBoard6 <- checkValidMove (applyMove curBoard5 (2, 4)) $ unlines  -- W: 3E
+        [ "  A B C D E F G H"
+        , "1 . . . . . . . ."
+        , "2 . . . . . . . ."
+        , "3 . . W W W . . ."
+        , "4 . . W B W . . ."
+        , "5 . . B W W . . ."
+        , "6 . B . . . . . ."
+        , "7 . . . . . . . ."
+        , "8 . . . . . . . ."
+        ]
+
+      return ()
   ]
 
 propertyTests :: TestTree
