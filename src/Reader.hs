@@ -71,7 +71,7 @@ generateNgrams content n =
     in generateOccurrences n cleanWords
 
 processContent :: String -> [String]
-processContent content = map cleanWord (words content)
+processContent content = filter (not . null) $ map cleanWord (words content)
 
 countOccurrence :: Ord a => [a] -> [(a, Int)]
 countOccurrence xs = map (\ws -> (head ws, length ws)) (group . sort $ xs)
