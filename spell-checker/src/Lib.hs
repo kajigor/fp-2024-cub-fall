@@ -6,6 +6,7 @@ import System.IO (withFile, IOMode(ReadMode), hGetLine, hIsEOF)
 import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Array
+import qualified Data.PQueue.Min as PQ
 
 -- Trie data structure
 data Trie = Trie
@@ -63,12 +64,35 @@ levenshtein s1 s2 = table ! (m, n)
             table ! (i - 1, j - 1) 
           ]
 
--- Suggest corrections for a misspelled word with filtering and sorting
+-- Optimized function to suggest corrections using Trie traversal
 suggestCorrections :: Trie -> String -> Int -> [String]
 suggestCorrections trie word tolerance =
-  let allWords = collectWords trie ""
-      closeWords = filter (\w -> levenshtein word w <= tolerance && abs (length word - length w) <= 2) allWords
-  in take 5 $ sortBy (comparing (levenshtein word)) closeWords
+  let
+    searchTrie :: Trie -> String -> Int -> String -> PQ.MinQueue (Int, String) -> PQ.MinQueue (Int, String)
+    searchTrie trie remainingWord currentDistance prefix queue
+      | currentDistance > tolerance = queue
+      | otherwise =
+        let updatedQueue =
+              if null remainingWord && isEndOfWord trie
+              then PQ.insert (currentDistance, prefix) queue
+              else queue
+            nextChars = Map.assocs (children trie)
+            nextQueue = foldl (\q (c, child) ->
+                              let newRemainingWord = drop 1 remainingWord
+                                  nextDistance = case remainingWord of
+                                    [] -> currentDistance + 1  
+                                    (r:_) -> if c == r then currentDistance else currentDistance + 1
+                              in if nextDistance <= tolerance
+                                 then searchTrie child newRemainingWord nextDistance (prefix ++ [c]) q
+                                 else q 
+                           ) updatedQueue nextChars
+      in nextQueue
+
+
+    initialQueue = PQ.empty
+    resultQueue = searchTrie trie word 0 "" initialQueue
+  in take 5 [w | (_, w) <- PQ.toAscList resultQueue] 
+
 
 -- Check if a token is a valid word
 isWord :: String -> Bool
