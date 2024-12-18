@@ -29,6 +29,8 @@ dependencies:
 - tasty
 - tasty-hedgehog
 - tasty-hunit
+- async
+- pqueue
 
 ghc-options:
 - -Wall
