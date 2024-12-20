@@ -13,4 +13,4 @@ main = do
     putStr "Please provide the path to your text file: "
     hFlush stdout
     filePath <- getLine
-    checkFileExistence filePath
+    checkFile filePath

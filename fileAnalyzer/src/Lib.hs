@@ -8,6 +8,7 @@ import Data.List
 import Text.Read (readMaybe)
 import Control.Monad
 import System.Random
+import System.IO.Error
 import qualified Data.Map as Map
 
 --Main menu for navigation and commands
@@ -123,7 +124,12 @@ capitalize :: String -> String
 capitalize [] = []
 capitalize (x:xs) = toUpper x : xs
 
---Transforms the content of the text file into a list of tuples that contain words and an assigned importance level based on frequency
+importanceLevels :: Int
+importanceLevels = 3
+
+minLevelsForSpecialHandling :: Int
+minLevelsForSpecialHandling = 2
+
 transform :: String -> [(String, Int)]
 transform content =
     let wordsList = map (filter isValidChar) (words (map toLower content))
@@ -131,14 +137,14 @@ transform content =
         frequency = Map.toList frequencyMap
         sortedFreq = sortOn (negate . snd) frequency
         total = length sortedFreq
-    in if total >= 3
+    in if total >= importanceLevels
         then
-            let (high, mediumHigh) = splitAt (total `div` 3) sortedFreq
-                (medium, low) = splitAt (total `div` 3) mediumHigh
+            let (high, mediumHigh) = splitAt (total `div` importanceLevels) sortedFreq
+                (medium, low) = splitAt (total `div` importanceLevels) mediumHigh
                 (adjustedHigh, newMedium) = adjustLists high medium
                 (finalMedium, adjustedLow) = adjustLists newMedium low
             in introduceLevel 3 adjustedHigh ++ introduceLevel 2 finalMedium ++ introduceLevel 1 adjustedLow
-        else if total == 2
+        else if total == minLevelsForSpecialHandling
             then
                 if snd (head sortedFreq) > snd (last sortedFreq)
                     then introduceLevel 3 [(fst (head sortedFreq), snd (head sortedFreq))] ++ introduceLevel 1 [(fst (last sortedFreq), snd (last sortedFreq))]
@@ -216,80 +222,63 @@ createCloud content = do
 
 --Error Handling--
 
-checkFileExistence :: String -> IO ()
-checkFileExistence filePath = do
+checkFile :: String -> IO ()
+checkFile filePath = do
     fileExists <- doesFileExist filePath
     if fileExists
         then do
-            content <- readFile filePath `catch` handleReadError
-            putStrLn "File Loaded Successfully!"
-            if null content
-                then do
-                    putStrLn "Error: Your file is empty"
-                    return ()
-                else if not (isFileContentValid content)
-                    then do
-                        putStrLn "Error: File contains invalid characters!"
-                        return ()
-                    else menu content
-        else do
-            putStrLn "Error: The file does not exist!"
-            return ()
-
-handleReadError :: IOException -> IO String
-handleReadError _ = do
-    putStrLn "Error: Unable to read the file"
-    return ""
+            valid <- tryIOError (readFile filePath)
+            case valid of
+                Right content -> do
+                    if isFileContentValid content
+                        then menu content
+                        else putStrLn "Error: File contains invalid characters!"
+                Left _ -> putStrLn "Error: Unable to read the file! Please check if it is accessible and fits into memory."
+    else putStrLn "Error: The file does not exist!"
 
 isValidChar :: Char -> Bool
 isValidChar c = isAlpha c || isDigit c || c `elem` "- '"
 
 isValidFileChar :: Char -> Bool
-isValidFileChar c = isAlpha c || isSpace c || c `elem` "-',.?!" || isDigit c
+isValidFileChar c = isAlpha c || isSpace c || c `elem` "-',.?!\"" || isDigit c
 
 isFileContentValid :: String -> Bool
 isFileContentValid content = all isValidFileChar content
 
-getValidInt :: String -> IO Int
-getValidInt prompt = do
+getValidatedInput :: String -> (String -> Maybe a) -> String -> IO a
+getValidatedInput prompt validator errorMsg = do
     putStr prompt
     hFlush stdout
-    n <- getLine
-    case readMaybe n :: Maybe Int of
-        Just x -> do
-            if x > 0 
-                then return x
-                else do
-                    putStrLn "Invalid input! Please enter a valid integer."
-                    getValidInt prompt
+    input <- getLine
+    case validator input of
+        Just value -> return value
         Nothing -> do
-            putStrLn "Invalid input! Please enter a valid integer."
-            getValidInt prompt
+            putStrLn errorMsg
+            getValidatedInput prompt validator errorMsg
 
-getValidChoice :: String -> IO()
+getValidInt :: String -> IO Int
+getValidInt prompt = 
+    getValidatedInput prompt (\input -> readMaybe input >>= \n -> if n > 0 then Just n else Nothing)
+    "Invalid input! Please enter a valid positive integer."
+
+getValidChoice :: String -> IO ()
 getValidChoice content = do
-    putStr "Would you like to perform n-gram analysis for another value? (yes/no): "
-    hFlush stdout
-    choice <- getLine
+    choice <- getValidatedInput
+        "Would you like to perform n-gram analysis for another value? (yes/no): "
+        (\input -> if input `elem` ["yes", "no"] then Just input else Nothing)
+        "Invalid command! Please try again!"
     case choice of
-        "yes" -> do
-            askForNGram content
+        "yes" -> askForNGram content
         "no" -> menu content
-        _ -> do
-            putStrLn "Invalid command! Please try again!"
-            getValidChoice content
 
-askForFullList :: [(String, Int)] -> IO()
-askForFullList frequency = do 
-    putStr "Would you like to see the full list? (yes/no): "
-    hFlush stdout
-    choice <- getLine
+askForFullList :: [(String, Int)] -> IO ()
+askForFullList frequency = do
+    choice <- getValidatedInput
+        "Would you like to see the full list? (yes/no): "
+        (\input -> if input `elem` ["yes", "no"] then Just input else Nothing)
+        "Invalid command! Please try again!"
     case choice of
         "yes" -> do
             putStrLn "Here is the full list: "
             mapM_ (\(w, fr) -> putStrLn("( " ++ show w ++ " )" ++ " appears " ++ show fr ++ " times")) $ sortOn (negate . snd) frequency
-        "no" ->
-            return ()
-        _ -> do
-            putStrLn "Invalid command! Please try again!"
-            askForFullList frequency
+        "no" -> return ()

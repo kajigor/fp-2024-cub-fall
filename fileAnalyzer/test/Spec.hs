@@ -131,12 +131,12 @@ propertyTests = testGroup "Property Tests"
   [ testProperty "Word Count Non-Negative" $
       property $ do
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
-        (wordCount content >= 0) === True
+        Hedgehog.assert (wordCount content >= 0)
 
   , testProperty "Line Count Non-Negative" $
       property $ do
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
-        (linesCount content >= 0) === True
+        Hedgehog.assert (linesCount content >= 0)
 
   , testProperty "Character Count Correctness" $
       property $ do
@@ -147,14 +147,14 @@ propertyTests = testGroup "Property Tests"
       property $ do
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
         let frequencies = commonWordsHelper content
-        all (\(_, count) -> count >= 0) frequencies === True
+        Hedgehog.assert $ all (\(_, count) -> count >= 0) frequencies
 
   , testProperty "Frequencies are non-negative N-Gram" $
       property $ do
         content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
         n <- forAll $ Gen.int (Range.linear 1 10)
         let frequencies = nGramHelper content n
-        all (\(_, count) -> count >= 0) frequencies === True
+        Hedgehog.assert $ all (\(_, count) -> count >= 0) frequencies
 
   , testProperty "Words in output are derived from input CommonWords" $
       property $ do
@@ -177,7 +177,7 @@ propertyTests = testGroup "Property Tests"
         let inputWords = map (filter isValidChar . map toLower) (words content)
         if null inputWords
             then frequencies === []
-            else all (\(word, freq) -> freq == length (filter (== word) inputWords)) frequencies === True
+            else Hedgehog.assert $ all (\(word, freq) -> freq == length (filter (== word) inputWords)) frequencies
 
   , testProperty "Frequency matches n-gram occurrences nGrams" $
      property $ do
@@ -213,13 +213,6 @@ propertyTests = testGroup "Property Tests"
         let transformed = transform content
             levels = map snd transformed
         levels === sortBy (compare) levels
-
-  , testProperty "Transform function is consistent" $
-     property $ do
-        content <- forAll $ Gen.string (Range.linear 0 1000) Gen.unicode
-        let transformed1 = transform content
-            transformed2 = transform content
-        transformed1 === transformed2
 
   , testProperty "Transform preserves word count" $
      property $ do
