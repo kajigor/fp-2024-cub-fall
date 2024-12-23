@@ -31,7 +31,8 @@ localCheckWord dict word = do
         else do
             putStrLn $ T.unpack word <> " is incorrect."
             putStrLn "Suggestions:"
-            Dict.printSuggestions (Dict.suggestCorrections dict clean)
+            let dictMap = Dict.getDictionary dict  -- Extract the HashMap
+            Dict.printSuggestions (Dict.suggestCorrections dictMap clean)  -- Pass the extracted HashMap
 
 -- Loop to add custom words
 addCustomWordsLoop :: Dict.Dictionary -> T.Text -> IO ()
@@ -42,8 +43,8 @@ addCustomWordsLoop dict dictPath = do
         then do
             putStrLn "Enter the custom word:"
             customWord <- getLine
-            let updatedDict = Dict.addCustomWord (T.pack customWord) dict
-            Dict.saveCustomWords dictPath updatedDict
+            let updatedDict = Dict.addCustomWord (T.pack customWord) dict 
+            Dict.saveCustomWords dictPath updatedDict 
             putStrLn "Custom word added!"
-            addCustomWordsLoop updatedDict dictPath
+            addCustomWordsLoop updatedDict dictPath 
         else putStrLn "Goodbye!"

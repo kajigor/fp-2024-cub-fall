@@ -16,7 +16,9 @@ dependencies:
   - base >= 4.7 && < 5
   - text
   - containers
-  - array
+  - vector
+  - parallel
+  - unordered-containers
 
 ghc-options:
   - -Wall
